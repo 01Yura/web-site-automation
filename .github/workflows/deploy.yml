@@ -13,32 +13,77 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Prepare SSH
+      # Подготовка и валидация SSH-материалов
+      - name: Prepare & validate SSH materials
         env:
-          SSH_KEY: ${{ secrets.SSH_KEY }}
-          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_KEY:          ${{ secrets.SSH_KEY }}
+          SSH_KNOWN_HOSTS:  ${{ secrets.SSH_KNOWN_HOSTS }}
+          SSH_HOST:         ${{ secrets.SSH_HOST }}
+          SSH_PORT:         ${{ secrets.SSH_PORT }}
         run: |
-          set -e
+          set -euo pipefail
           mkdir -p ~/.ssh
+          umask 077
+
+          # 1) приватный ключ
           echo "$SSH_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
 
-          PORT="${SSH_PORT:-22}"   # если секрет пустой → порт 22
-
-          if [ -n "$SSH_KNOWN_HOSTS" ]; then
-            echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          # 2) known_hosts (из секрета; если пуст — соберём сканером)
+          if [ -n "${SSH_KNOWN_HOSTS:-}" ]; then
+            printf "%s\n" "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
           else
-            ssh-keyscan -p "$PORT" "$SSH_HOST" >> ~/.ssh/known_hosts
+            PORT="${SSH_PORT:-22}"
+            ssh-keyscan -p "$PORT" "$SSH_HOST" > ~/.ssh/known_hosts
+          fi
+          chmod 644 ~/.ssh/known_hosts
+
+          # 3) базовые проверки (без утечки приватных данных)
+          echo "== id_ed25519 lines =="
+          wc -l ~/.ssh/id_ed25519
+
+          echo "== BEGIN/END markers =="
+          head -n1 ~/.ssh/id_ed25519 || true
+          tail -n1 ~/.ssh/id_ed25519 || true
+
+          echo "== Validate private key readable =="
+          if ssh-keygen -y -f ~/.ssh/id_ed25519 > /dev/null 2>&1; then
+            echo "OK: private key format is valid"
+          else
+            echo "ERROR: private key is invalid (often one-line secret or broken newlines)"
+            exit 1
           fi
 
-          echo "$PORT" > .ssh_port
+          # сохраним порт на последующие шаги
+          echo "${SSH_PORT:-22}" > .ssh_port
 
-      - name: Deploy via rsync
+      # Проверим, что соединение устанавливается по ключу и host key принят
+      - name: Test SSH connection
         env:
           SSH_HOST: ${{ secrets.SSH_HOST }}
           SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          set -e
+          PORT="$(cat .ssh_port)"
+          ssh -p "$PORT" -o BatchMode=yes -o StrictHostKeyChecking=yes \
+              "$SSH_USER@$SSH_HOST" "echo 'SSH OK on port' $PORT"
+
+      # Создадим целевую директорию на сервере, если её ещё нет
+      - name: Ensure target directory exists
+        env:
+          SSH_HOST:   ${{ secrets.SSH_HOST }}
+          SSH_USER:   ${{ secrets.SSH_USER }}
+          TARGET_DIR: ${{ secrets.TARGET_DIR }}
+        run: |
+          set -e
+          PORT="$(cat .ssh_port)"
+          ssh -p "$PORT" "$SSH_USER@$SSH_HOST" "mkdir -p '$TARGET_DIR'"
+
+      # Деплой
+      - name: Deploy via rsync
+        env:
+          SSH_HOST:   ${{ secrets.SSH_HOST }}
+          SSH_USER:   ${{ secrets.SSH_USER }}
           TARGET_DIR: ${{ secrets.TARGET_DIR }}
         run: |
           set -e
@@ -47,3 +92,14 @@ jobs:
             --exclude ".git/" \
             --exclude ".github/" \
             . "$SSH_USER@$SSH_HOST:$TARGET_DIR"
+
+      # Лёгкая пост-проверка
+      - name: Post-deploy sanity check
+        env:
+          SSH_HOST:   ${{ secrets.SSH_HOST }}
+          SSH_USER:   ${{ secrets.SSH_USER }}
+          TARGET_DIR: ${{ secrets.TARGET_DIR }}
+        run: |
+          set -e
+          PORT="$(cat .ssh_port)"
+          ssh -p "$PORT" "$SSH_USER@$SSH_HOST" "ls -lah '$TARGET_DIR'; test -f '$TARGET_DIR/index.html' && tail -n 3 '$TARGET_DIR/index.html' || true"
