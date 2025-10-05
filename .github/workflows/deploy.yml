@@ -1,41 +1,49 @@
 name: Deploy static site to Ubuntu (root)
 
 on:
-    push:
-        branches: ["main"]
-    workflow_dispatch: {}
+  push:
+    branches: [ "main" ]
+  workflow_dispatch: {}
 
 jobs:
-    deploy:
-        runs-on: ubuntu-latest
+  deploy:
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-            - name: Prepare SSH
-              run: |
-                  mkdir -p ~/.ssh
-                  echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_ed25519
-                  chmod 600 ~/.ssh/id_ed25519
-                  # known_hosts: используйте секрет, если добавили; иначе соберём динамически
-                  if [ -n "${{ secrets.SSH_KNOWN_HOSTS }}" ]; then
-                    echo "${{ secrets.SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
-                  else
-                    ssh-keyscan -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
-                  fi
+      - name: Prepare SSH
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+        run: |
+          set -e
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
 
-            # Если index.html лежит в корне репозитория — так и оставьте "."
-            # Если сайт в подпапке, замените "." на путь к папке (например, "./site/")
-            - name: Deploy via rsync
-              run: |
-                  rsync -avz --delete -e "ssh -p ${{ secrets.SSH_PORT }}" \
-                    --exclude ".git/" \
-                    --exclude ".github/" \
-                    . ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.TARGET_DIR }}
+          PORT="${SSH_PORT:-22}"   # если секрет пустой → порт 22
 
-            # Альтернатива: закинуть только index.html
-            # - name: Deploy single file (index.html)
-            #   run: |
-            #     scp -P ${{ secrets.SSH_PORT }} index.html \
-            #       ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.TARGET_DIR }}/index.html
+          if [ -n "$SSH_KNOWN_HOSTS" ]; then
+            echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          else
+            ssh-keyscan -p "$PORT" "$SSH_HOST" >> ~/.ssh/known_hosts
+          fi
+
+          echo "$PORT" > .ssh_port
+
+      - name: Deploy via rsync
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          TARGET_DIR: ${{ secrets.TARGET_DIR }}
+        run: |
+          set -e
+          PORT="$(cat .ssh_port)"
+          rsync -avz --delete -e "ssh -p $PORT" \
+            --exclude ".git/" \
+            --exclude ".github/" \
+            . "$SSH_USER@$SSH_HOST:$TARGET_DIR"
