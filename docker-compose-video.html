@@ -1,24 +1,58 @@
 <!DOCTYPE html>
 <html lang="ru">
-<head>
-  <meta charset="UTF-8" />
-  <title>docker-compose.yml — с возможностью видеозаписи сессий</title>
-  <style>
-    body { font-family: Arial, sans-serif; background:#eef6ff; color:#333; margin:40px; }
-    h1 { color:#2c3e50; }
-    pre { background:#111; color:#eee; padding:16px; border-radius:8px; overflow:auto; }
-    a { color:#007acc; text-decoration:none; }
-    a:hover { text-decoration:underline; }
-    .note { margin-top:16px; background:#fffbe6; border-left:4px solid #f0c36d; padding:12px 16px; border-radius:6px; }
-    .note pre { background:#f7f7f7; color:#111; border-radius:6px; margin-top:8px; }
-    code { background:#f7f7f7; padding:1px 4px; border-radius:4px; }
-  </style>
-</head>
-<body>
-  <h1>docker-compose.yml — с возможностью видеозаписи сессий</h1>
-  <p><a href="/">← На главную</a></p>
+  <head>
+    <meta charset="UTF-8" />
+    <title>docker-compose.yml — с возможностью видеозаписи сессий</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #eef6ff;
+        color: #333;
+        margin: 40px;
+      }
+      h1 {
+        color: #2c3e50;
+      }
+      pre {
+        background: #111;
+        color: #eee;
+        padding: 16px;
+        border-radius: 8px;
+        overflow: auto;
+      }
+      a {
+        color: #007acc;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      .note {
+        margin-top: 16px;
+        background: #fffbe6;
+        border-left: 4px solid #f0c36d;
+        padding: 12px 16px;
+        border-radius: 6px;
+      }
+      .note pre {
+        background: #f7f7f7;
+        color: #111;
+        border-radius: 6px;
+        margin-top: 8px;
+      }
+      code {
+        background: #f7f7f7;
+        padding: 1px 4px;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>docker-compose.yml — с возможностью видеозаписи сессий</h1>
+    <p><a href="/">← На главную</a></p>
 
-  <pre>services:
+    <pre>
+services:
   selenoid:
     image: aerokube/selenoid
     network_mode: bridge
@@ -46,26 +80,45 @@
       - selenoid
     ports:
       - "8080:8080"
-    command: ["--selenoid-uri", "http://selenoid:4444"]</pre>
+    command: ["--selenoid-uri", "http://selenoid:4444"]</pre
+    >
 
-  <div class="note">
-    <strong>Важно для видеозаписи:</strong>
-    <ul>
-      <li><strong>В секции <code>environment</code> обязательно указывать абсолютный путь!</strong> Переменная <code>OVERRIDE_VIDEO_OUTPUT_DIR</code> должна быть, например: <code>/root/selenoid_with_video/video</code>. Подстановка <code>${PWD}</code> здесь не сработает.</li>
-      <li><strong>Обязательно скачай рекордер один раз</strong>, Selenoid сам его не скачает и видеозапись не будет работать: <code>docker pull selenoid/video-recorder:latest-release</code>.</li>
-    </ul>
+    <div class="note">
+      <strong>Важно для видеозаписи:</strong>
+      <ul>
+        <li>
+          <strong
+            >В секции <code>environment</code> обязательно указывать абсолютный
+            путь!</strong
+          >
+          Переменная <code>OVERRIDE_VIDEO_OUTPUT_DIR</code> должна быть,
+          например: <code>/root/selenoid_with_video/video</code>. Подстановка
+          <code>${PWD}</code> здесь не сработает.
+        </li>
+        <li>
+          <strong>Обязательно скачай рекордер один раз</strong>, Selenoid сам
+          его не скачает и видеозапись не будет работать:
+          <code>docker pull selenoid/video-recorder:latest-release</code>.
+        </li>
+      </ul>
 
-    <p><strong>Передача параметров в тест (Selenide/Java):</strong></p>
-    <pre>Configuration.browserCapabilities.setCapability(
+      <p><strong>Передача параметров в тест (Selenide/Java):</strong></p>
+      <pre>
+Configuration.browserCapabilities.setCapability(
     "selenoid:options",
     Map.of(
         "enableVNC", true,
         "enableLog", true,
         "enableVideo", true
     )
-);</pre>
+);</pre
+      >
 
-    <p><strong>Именование сессий и видео:</strong> можно задавать имя теста и файла видео, добавляя, например, временную метку. Это делается в самом тесте, не сложно, как сделать - уточняй у AI</p>
-  </div>
-</body>
+      <p>
+        <strong>Именование сессий и видео:</strong> можно задавать имя теста и
+        файла видео, добавляя, например, временную метку. Это делается в самом
+        тесте, не сложно, как сделать - уточняй у AI
+      </p>
+    </div>
+  </body>
 </html>

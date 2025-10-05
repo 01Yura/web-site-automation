@@ -1,0 +1,41 @@
+name: Deploy static site to Ubuntu (root)
+
+on:
+    push:
+        branches: ["main"]
+    workflow_dispatch: {}
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Prepare SSH
+              run: |
+                  mkdir -p ~/.ssh
+                  echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_ed25519
+                  chmod 600 ~/.ssh/id_ed25519
+                  # known_hosts: используйте секрет, если добавили; иначе соберём динамически
+                  if [ -n "${{ secrets.SSH_KNOWN_HOSTS }}" ]; then
+                    echo "${{ secrets.SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+                  else
+                    ssh-keyscan -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+                  fi
+
+            # Если index.html лежит в корне репозитория — так и оставьте "."
+            # Если сайт в подпапке, замените "." на путь к папке (например, "./site/")
+            - name: Deploy via rsync
+              run: |
+                  rsync -avz --delete -e "ssh -p ${{ secrets.SSH_PORT }}" \
+                    --exclude ".git/" \
+                    --exclude ".github/" \
+                    . ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.TARGET_DIR }}
+
+            # Альтернатива: закинуть только index.html
+            # - name: Deploy single file (index.html)
+            #   run: |
+            #     scp -P ${{ secrets.SSH_PORT }} index.html \
+            #       ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.TARGET_DIR }}/index.html
