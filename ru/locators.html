@@ -140,8 +140,7 @@
       </h1>
       <p class="sub">
         Схемы, примеры, и варианты кода. В колонке Selenide даны несколько
-        наиболее удобных способов: <code>$("...")</code>, <code>byXpath</code>,
-        <code>Selectors.byAttribute</code>, <code>byText/withText</code> и др.
+        наиболее удобных способов.
       </p>
 
       <h2>XPath</h2>
@@ -159,17 +158,17 @@
         <tbody>
           <tr>
             <td>tag &amp; attribute</td>
-            <td><code>//tag[@attr="value"]</code></td>
-            <td><code>//input[@aria-label="Search"]</code></td>
+            <td><code>//tag[@attribute="value"]</code></td>
+            <td><code>//input[@placeholder="Username"]</code></td>
             <td>Находит элемент по атрибуту</td>
             <td>
-              <code>$("input[aria-label='Search']")</code><br />
-              <code>$(byAttribute("aria-label","Search"))</code><br />
-              <code>$(byXpath("//input[@aria-label='Search']"))</code>
+              <code>$("input[placeholder='Username']")</code><br />
+              <code>$(byAttribute("placeholder","Username"))</code><br />
+              <code>$(byXpath("//input[@placeholder='Username']"))</code>
             </td>
             <td>
               <code
-                >driver.findElement(By.xpath("//input[@aria-label='Search']"))</code
+                >driver.findElement(By.xpath("//input[@placeholder='Username']"))</code
               >
             </td>
           </tr>
@@ -310,7 +309,7 @@
         <tbody>
           <tr>
             <td>tag &amp; attribute</td>
-            <td><code>tag[attr="value"]</code></td>
+            <td><code>tag[attribute="value"]</code></td>
             <td><code>input[aria-label="Search"]</code></td>
             <td>По атрибуту</td>
             <td>
@@ -355,7 +354,7 @@
           </tr>
           <tr>
             <td>attribute *=</td>
-            <td><code>[attr*="value"]</code></td>
+            <td><code>[attribute*="value"]</code></td>
             <td><code>input[placeholder*="user"]</code></td>
             <td>Атрибут содержит</td>
             <td>
@@ -366,7 +365,7 @@
           </tr>
           <tr>
             <td>attribute ^=</td>
-            <td><code>[attr^="value"]</code></td>
+            <td><code>[attribute^="value"]</code></td>
             <td><code>input[placeholder^="user"]</code></td>
             <td>Атрибут начинается с</td>
             <td>
