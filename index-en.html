@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Selenoid and Configuration Access</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="language-switcher">
+      <a href="index.html" class="lang-link active">RU</a>
+      <span class="lang-separator">|</span>
+      <a href="index-en.html" class="lang-link">EN</a>
+    </div>
+
+    <h1>Selenoid and Configuration Access</h1>
+
+    <div class="warning">
+      <strong>WARNING!</strong> I couldn't get Selenoid running on Windows 10
+      and on MacBook with M1 chip (Apple Silicon), although there's a workaround
+      for Mac, but it only works for Chrome. I managed to run it only on Linux
+      (Ubuntu; probably will work on other Linux distributions too).
+    </div>
+
+    <ul>
+      <li>
+        Access to <strong>Selenoid</strong>:
+        <a href="http://176.126.103.46:4444" target="_blank" rel="noopener"
+          >http://176.126.103.46:4444</a
+        >
+      </li>
+      <li>
+        Access to <strong>Selenoid UI</strong>:
+        <a href="http://176.126.103.46:8080" target="_blank" rel="noopener"
+          >http://176.126.103.46:8080</a
+        >
+      </li>
+      <li>
+        <strong>browsers.json</strong>:
+        <a href="browsers-en.html">view on page</a>
+      </li>
+      <li>
+        <strong>docker-compose.yml</strong> (Selenoid + UI):
+        <a href="docker-compose-en.html">view on page</a>
+      </li>
+      <li>
+        <strong>docker-compose.yml with video recording</strong>:
+        <a href="docker-compose-video-en.html">view on page</a>
+      </li>
+    </ul>
+
+    <div class="tips">
+      <h1>Common Selenoid Setup and Autotest Launch Errors</h1>
+      <ol>
+        <li>
+          <strong
+            >Browser images specified in <code>browsers.json</code> are not
+            downloaded.</strong
+          ><br />
+          Selenoid does <em>not</em> download them automatically, and tests
+          don't start due to missing image. Download the required images
+          manually.
+        </li>
+
+        <li>
+          <strong>Syntax errors in <code>browsers.json</code>.</strong>
+          <ul>
+            <li>
+              For <code>"chrome"</code> and <code>"opera"</code> the
+              <code>path</code> key should be <code>"/"</code>, not
+              <code>"/wd/hub"</code>.
+            </li>
+            <li>
+              Typos in image name/version tag (often confusion in placement of
+              underscores or colons when specifying image version, ChatGPT is
+              guilty of this).
+            </li>
+          </ul>
+        </li>
+
+        <li>
+          <strong
+            >Path errors in <code>docker-compose.yml</code> (volumes).</strong
+          ><br />
+          Due to incorrect paths, Selenoid can't see <code>browsers.json</code>,
+          UI doesn't connect to Selenoid, videos aren't written. Check directory
+          mounting (paths specified in volumes), this is a common error.
+        </li>
+
+        <li>
+          <strong>Video recording is configured incorrectly.</strong>
+          <ul>
+            <li>
+              Essentially in <code>docker-compose</code> you just need to add an
+              environment variable with an <u>absolute path</u> to the
+              <code>video</code> folder:
+              <pre>
+environment:
+  OVERRIDE_VIDEO_OUTPUT_DIR: /root/selenoid_with_video/video</pre
+              >
+              Here you can't use <code>${PWD}</code> or <code>./video</code> —
+              an absolute path is required! You can read more about this in
+              their official documentation:
+              <a
+                href="https://aerokube.com/selenoid/latest/#_video_recording"
+                target="_blank"
+                rel="noopener"
+                >aerokube.com/selenoid … video_recording</a
+              >.
+            </li>
+            <li>
+              Often forget to pre-download the recorder image:
+              <code>docker pull selenoid/video-recorder:latest-release</code>.
+            </li>
+            <li>
+              Forget that you can't use headless mode:
+              <pre>Configuration.headless = true;</pre>
+            </li>
+            Should be removed completely, or replaced with
+            <pre>Configuration.headless = false;</pre>
+          </ul>
+        </li>
+
+        <li>
+          <strong>Problems on Windows 10 and Mac with M1 chip.</strong><br />
+          Containers start, but browser starts and immediately crashes. For
+          Windows no stable solution found; for Mac there are workaround options
+          only for Chrome. Recommendation - use Linux host or VM/VPS (e.g.,
+          Ubuntu Server 22.04, ≥10&nbsp;GB disk, ≥2&nbsp;GB RAM).
+        </li>
+
+        <li>
+          <strong
+            >Incorrect IP address of the tested application in tests.</strong
+          ><br />
+          In container you can't use <code>localhost</code> to access an
+          application running <em>outside</em> the container - specify the real
+          host IP address. <br />Correct example:
+          <pre>Configuration.baseUrl = "http://192.168.0.127:3000";</pre>
+          Incorrect example:
+          <pre>Configuration.baseUrl = "http://localhost:3000";</pre>
+          Here you must use an IP address, not localhost, because this URL is
+          substituted into the browser address bar opened in the docker
+          container, and if you specify localhost, the container will think that
+          the application is also running inside the same container, but it is
+          not running in it.
+        </li>
+
+        <li>
+          <strong>Manual browser check in UI.</strong><br />
+          And in general after installing Selenoid, Selenoid UI and downloading
+          browser images, you need to make sure that browsers simply open at
+          least manually, so that later, if something doesn't work, you
+          understand - it's a problem with tests or Selenoid configuration. For
+          this after starting Selenoid (docker-compose up -d) go to its
+          ip_address:8080, at the top right there should be 2 CONNECTED labels,
+          then go to the CAPABILITIES tab, select a browser from the dropdown
+          list (if there's no list, then there's a problem with browsers.json or
+          path to it) and launch it manually. A browser window should appear. If
+          it appeared, congratulations - Selenoid is configured, now the main
+          thing is to correctly write everything in the tests themselves.
+        </li>
+      </ol>
+    </div>
+
+    <!-- Attribution footnote -->
+    <p class="attribution">
+      This is internal training material prepared for training purposes
+      employees on the current project. Author
+      <a
+        href="https://www.linkedin.com/in/yura-primyshev"
+        target="_blank"
+        rel="noopener"
+        >www.linkedin.com/in/yura-primyshev</a
+      >. May 2023
+    </p>
+  </body>
+</html>

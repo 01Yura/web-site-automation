@@ -1,19 +1,19 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>browsers.json — просмотр</title>
+    <title>browsers.json — view</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <div class="language-switcher">
-      <a href="browsers-ru.html" class="lang-link active">RU</a>
+      <a href="browsers-ru.html" class="lang-link">RU</a>
       <span class="lang-separator">|</span>
-      <a href="browsers-en.html" class="lang-link">EN</a>
+      <a href="browsers-en.html" class="lang-link active">EN</a>
     </div>
 
-    <h1>browsers.json — просмотр</h1>
-    <p><a href="index-ru.html">← На главную</a></p>
+    <h1>browsers.json — view</h1>
+    <p><a href="index-en.html">← Back to main</a></p>
     <pre>
 {
   "chrome": {
@@ -64,12 +64,12 @@
 }</pre
     >
 
-    <div class="note">
+    <div class="warning">
       <ol>
         <li>
           <strong
-            >Перед запуском все образы браузеров нужно скачать вручную, Selenoid
-            не может автоматически их скачивать:</strong
+            >Before starting, all browser images need to be downloaded manually,
+            Selenoid cannot download them automatically:</strong
           >
           <pre>
 docker pull selenoid/vnc_chrome:128.0
@@ -79,18 +79,18 @@ docker pull selenoid/vnc_firefox:115.0
 docker pull selenoid/vnc_opera:109.0
 docker pull selenoid/vnc_opera:100.0
 
-# проверить:
+# check:
 docker images | grep selenoid</pre
           >
         </li>
         <li>
           <strong
-            >Обрати внимание что корректный <code>path</code>: для
-            <em>"Chrome"</em> и <em>"Opera"</em> должен быть <code>"/"</code>, а
-            не <code>"/wd/hub"</code> — иначе браузер не стартанет.</strong
+            >Note that the correct <code>path</code>: for <em>"Chrome"</em> and
+            <em>"Opera"</em> should be <code>"/"</code>, not
+            <code>"/wd/hub"</code> — otherwise the browser won't start.</strong
           >
           <br />
-          <br />Пример:
+          <br />Example:
           <pre>
 {
   "image": "selenoid/vnc_chrome:128.0",
@@ -98,7 +98,7 @@ docker images | grep selenoid</pre
   "path": "/"
 }</pre
           >
-          Для <em>Firefox</em> остаётся <code>"/wd/hub"</code>.
+          For <em>Firefox</em> it remains <code>"/wd/hub"</code>.
         </li>
       </ol>
     </div>

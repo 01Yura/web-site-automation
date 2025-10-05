@@ -1,19 +1,19 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>docker-compose.yml — просмотр</title>
+    <title>docker-compose.yml — view</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <div class="language-switcher">
-      <a href="docker-compose-ru.html" class="lang-link active">RU</a>
+      <a href="docker-compose-ru.html" class="lang-link">RU</a>
       <span class="lang-separator">|</span>
-      <a href="docker-compose-en.html" class="lang-link">EN</a>
+      <a href="docker-compose-en.html" class="lang-link active">EN</a>
     </div>
 
-    <h1>docker-compose.yml — просмотр</h1>
-    <p><a href="index-ru.html">← На главную</a></p>
+    <h1>docker-compose.yml — view</h1>
+    <p><a href="index-en.html">← Back to main</a></p>
     <pre>
 services:
   selenoid:
@@ -44,11 +44,12 @@ services:
     command: ["--selenoid-uri", "http://selenoid:4444"]</pre
     >
 
-    <div class="note">
-      <strong>Windows:</strong> в винде переменная <code>${PWD}</code> может не
-      подставляться. Тогда укажи явные (лучше абсолютные) пути к
-      <code>browsers.json</code>, папкам <code>logs</code> и <code>video</code>.
-      Используй прямые слэши (<code>C:/...</code>). <br />Краткий пример:
+    <div class="warning">
+      <strong>Windows:</strong> in Windows the <code>${PWD}</code> variable may
+      not be substituted. Then specify explicit (preferably absolute) paths to
+      <code>browsers.json</code>, <code>logs</code> and
+      <code>video</code> folders. Use forward slashes (<code>C:/...</code>).
+      <br />Brief example:
       <pre>
 services:
   selenoid:

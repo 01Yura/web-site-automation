@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Доступ к Selenoid и конфигурации</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="language-switcher">
+      <a href="index-ru.html" class="lang-link active">RU</a>
+      <span class="lang-separator">|</span>
+      <a href="index-en.html" class="lang-link">EN</a>
+    </div>
+
+    <h1>Доступ к Selenoid и конфигурации</h1>
+
+    <div class="warning">
+      <strong>ВНИМАНИЕ!</strong> У меня не получилось поднять Selenoid на
+      Windows 10 и на MacBook с чипом M1 (Apple Silicon), хотя на Мак есть
+      костыль, но он работает тольуо для Chrome. Удалось запустить только на
+      Linux (Ubuntu; вероятно, заработает и на других дистрибутивах Linux).
+    </div>
+
+    <ul>
+      <li>
+        Доступ к <strong>Selenoid</strong>:
+        <a href="http://176.126.103.46:4444" target="_blank" rel="noopener"
+          >http://176.126.103.46:4444</a
+        >
+      </li>
+      <li>
+        Доступ к <strong>Selenoid UI</strong>:
+        <a href="http://176.126.103.46:8080" target="_blank" rel="noopener"
+          >http://176.126.103.46:8080</a
+        >
+      </li>
+      <li>
+        <strong>browsers.json</strong>:
+        <a href="browsers-ru.html">просмотреть на странице</a>
+      </li>
+      <li>
+        <strong>docker-compose.yml</strong> (Selenoid + UI):
+        <a href="docker-compose-ru.html">просмотреть на странице</a>
+      </li>
+      <li>
+        <strong>docker-compose.yml c видеозаписью</strong>:
+        <a href="docker-compose-video-ru.html">просмотреть на странице</a>
+      </li>
+    </ul>
+
+    <div class="tips">
+      <h1>Типичные ошибки при настройке Selenoid и запуске автотестов</h1>
+      <ol>
+        <li>
+          <strong
+            >Не скачаны образы браузеров указанные в
+            <code>browsers.json</code>.</strong
+          ><br />
+          Selenoid <em>не</em> загружает их автоматически, и тесты не стартуют
+          из-за отсутствия образа. Скачайте вручную нужные образы.
+        </li>
+
+        <li>
+          <strong>Синтаксические ошибки в <code>browsers.json</code>.</strong>
+          <ul>
+            <li>
+              Для <code>"chrome"</code> и <code>"opera"</code> ключ
+              <code>path</code> должен быть <code>"/"</code>, а не
+              <code>"/wd/hub"</code>.
+            </li>
+            <li>
+              Опечатки в названии образа/тега версии (часто бывает путаница в
+              расположении нижнего_подчеркивания или двоеточия при указании
+              версии образа, чат гпт этим грешит).
+            </li>
+          </ul>
+        </li>
+
+        <li>
+          <strong
+            >Ошибки путей в <code>docker-compose.yml</code> (volumes).</strong
+          ><br />
+          Из-за неверных путей Selenoid не видит <code>browsers.json</code>, UI
+          не коннектится к Selenoid, не пишутся видео. Проверьте монтирование
+          каталогов (пути, указанные в volumes), это частая ошибка.
+        </li>
+
+        <li>
+          <strong>Запись видео настроена неправильно.</strong>
+          <ul>
+            <li>
+              По сути в <code>docker-compose</code> нужно просто добавить
+              переменную окружения с <u>абсолютным путём</u> до папки
+              <code>video</code>:
+              <pre>
+environment:
+  OVERRIDE_VIDEO_OUTPUT_DIR: /root/selenoid_with_video/video</pre
+              >
+              Здесь нельзя использовать <code>${PWD}</code> или
+              <code>./video</code> — требуется именно абсолютный путь! Подробнее
+              об этом можно почитать в их официальной доке:
+              <a
+                href="https://aerokube.com/selenoid/latest/#_video_recording"
+                target="_blank"
+                rel="noopener"
+                >aerokube.com/selenoid … video_recording</a
+              >.
+            </li>
+            <li>
+              Часто забывают заранее скачать образ рекордера:
+              <code>docker pull selenoid/video-recorder:latest-release</code>.
+            </li>
+            <li>
+              Забывают что нельзя использовать headless mode:
+              <pre>Configuration.headless = true;</pre>
+            </li>
+            Надо убрать вообще, или заменить на
+            <pre>Configuration.headless = false;</pre>
+          </ul>
+        </li>
+
+        <li>
+          <strong>Проблемы на Windows 10 и Mac с чипом M1.</strong><br />
+          Контейнеры поднимаются, но браузер стартует и сразу падает. Для
+          Windows устойчивого решения не найдено; для Mac существуют костыльные
+          варианты только для Chrome. Рекомендация - использовать Linux-хост или
+          VM/VPS (например, Ubuntu Server 22.04, ≥10&nbsp;GB диска, ≥2&nbsp;GB
+          RAM).
+        </li>
+
+        <li>
+          <strong>Неверный IP-адрес тестируемого приложения в тестах.</strong
+          ><br />
+          В контейнере нельзя использовать <code>localhost</code> для обращения
+          к приложению, запущенному <em>вне</em> контейнера - указывайте
+          реальный IP-адрес хоста. <br />Пример правильно:
+          <pre>Configuration.baseUrl = "http://192.168.0.127:3000";</pre>
+          Пример НЕ правильно:
+          <pre>Configuration.baseUrl = "http://localhost:3000";</pre>
+          Тут обязательно должен быть ip адрес, а не localhost, так как данный
+          URL подставляется в адресную строку браузера, открытого в докер
+          контейнере, и если указать localhost, то контейнер будет думать, что
+          приложение запущего тоже внутри этого же самого контейнера, а оно
+          запущено не в нем.
+        </li>
+
+        <li>
+          <strong>Проверка браузеров вручную в UI.</strong><br />
+          И вообще после установки Selenoid, Selenoid UI и скачивания образов
+          браузеров, нужно убедится что браузеры просто открываются хотя бы в
+          ручную, чтобы потом, если что то не заработает, то понять - дело в
+          тестах или в конфигурации Selenoid. Для этого после запуска Selenoid
+          (docker-compose up -d) зайдите на его ip_adress:8080, сверху справа
+          должно быть 2 надписи CONNECTED, затем перейдите во вкладку
+          CAPABILITIES, выберете браузер из выпвдвющего списка (если списка нет,
+          то проблема в browsers.json или путем к нему) и запустите его в
+          ручную. Должно появится окно браузера. Если появилось, то поздравляю -
+          Selenoid настроен, теперь главное правильно все прописать в самих
+          тестах.
+        </li>
+      </ol>
+    </div>
+
+    <!-- Сноска-атрибуция -->
+    <p class="attribution">
+      Это внутренний обучающий материал, подготовленный для целей обучения
+      сотрудников на текущем проекте. Автор
+      <a
+        href="https://www.linkedin.com/in/yura-primyshev"
+        target="_blank"
+        rel="noopener"
+        >www.linkedin.com/in/yura-primyshev</a
+      >. май 2023
+    </p>
+  </body>
+</html>
