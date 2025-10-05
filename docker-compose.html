@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>docker-compose.yml — просмотр</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#eef6ff; color:#333; margin:40px; }
+    h1 { color:#2c3e50; }
+    pre { background:#111; color:#eee; padding:16px; border-radius:8px; overflow:auto; }
+    a { color:#007acc; text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    .note {
+      margin-top: 16px;
+      background: #fffbe6;
+      border-left: 4px solid #f0c36d;
+      padding: 12px 16px;
+      border-radius: 6px;
+    }
+    .note pre { background:#f7f7f7; color:#111; border-radius:6px; margin-top:8px; }
+    code { background:#f7f7f7; padding:1px 4px; border-radius:4px; }
+  </style>
+</head>
+<body>
+  <h1>docker-compose.yml — просмотр</h1>
+  <p><a href="/">← На главную</a></p>
+  <pre>services:
+  selenoid:
+    image: aerokube/selenoid
+    network_mode: bridge
+    ports:
+      - "4444:4444"
+    volumes:
+      - ${PWD}:/etc/selenoid
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${PWD}/video:/opt/selenoid/video
+      - ${PWD}/logs:/opt/selenoid/logs
+    command:
+      [
+        "-conf", "/etc/selenoid/browsers.json",
+        "-video-output-dir", "/opt/selenoid/video",
+        "-log-output-dir", "/opt/selenoid/logs"
+      ]
+
+  selenoid-ui:
+    container_name: selenoid-ui
+    image: aerokube/selenoid-ui
+    network_mode: bridge
+    links:
+      - selenoid
+    ports:
+      - "8080:8080"
+    command: ["--selenoid-uri", "http://selenoid:4444"]</pre>
+
+  <div class="note">
+    <strong>Windows:</strong> в винде переменная <code>${PWD}</code> может не подставляться. Тогда укажи явные (лучше абсолютные) пути к
+    <code>browsers.json</code>, папкам <code>logs</code> и <code>video</code>. Используй прямые слэши (<code>C:/...</code>).
+    <br />Краткий пример:
+    <pre>services:
+  selenoid:
+    image: aerokube/selenoid
+    volumes:
+      - C:/selenoid:/etc/selenoid
+      - /var/run/docker.sock:/var/run/docker.sock
+      - C:/selenoid/video:/opt/selenoid/video
+      - C:/selenoid/logs:/opt/selenoid/logs
+  selenoid-ui:
+    image: aerokube/selenoid-ui
+    command: ["--selenoid-uri","http://selenoid:4444"]</pre>
+  </div>
+</body>
+</html>

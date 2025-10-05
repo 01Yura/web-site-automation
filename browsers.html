@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>browsers.json — просмотр</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#eef6ff; color:#333; margin:40px; }
+    h1 { color:#2c3e50; }
+    pre { background:#111; color:#eee; padding:16px; border-radius:8px; overflow:auto; }
+    a { color:#007acc; text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    .note {
+      margin-top: 16px;
+      background: #fffbe6;
+      border-left: 4px solid #f0c36d;
+      padding: 12px 16px;
+      border-radius: 6px;
+    }
+    .note pre {
+      background: #f7f7f7;
+      color: #111;
+      border-radius: 6px;
+      margin-top: 8px;
+    }
+    ol { margin: 10px 0 0 18px; }
+    li { margin: 6px 0; }
+  </style>
+</head>
+<body>
+  <h1>browsers.json — просмотр</h1>
+  <p><a href="/">← На главную</a></p>
+  <pre>{
+  "chrome": {
+    "default": "128.0",
+    "versions": {
+      "128.0": {
+        "image": "selenoid/vnc_chrome:128.0",
+        "port": "4444",
+        "path": "/"
+      },
+      "115.0": {
+        "image": "selenoid/vnc_chrome:115.0",
+        "port": "4444",
+        "path": "/"
+      }
+    }
+  },
+  "firefox": {
+    "default": "125.0",
+    "versions": {
+      "125.0": {
+        "image": "selenoid/vnc_firefox:125.0",
+        "port": "4444",
+        "path": "/wd/hub"
+      },
+      "115.0": {
+        "image": "selenoid/vnc_firefox:115.0",
+        "port": "4444",
+        "path": "/wd/hub"
+      }
+    }
+  },
+  "opera": {
+    "default": "100.0",
+    "versions": {
+      "109.0": {
+        "image": "selenoid/vnc_opera:109.0",
+        "port": "4444",
+        "path": "/"
+      },
+      "100.0": {
+        "image": "selenoid/vnc_opera:100.0",
+        "port": "4444",
+        "path": "/"
+      }
+    }
+  }
+}</pre>
+
+  <div class="note">
+    <ol>
+      <li>
+        <strong>Перед запуском все образы браузеров нужно скачать вручную, Selenoid не может автоматически их скачивать:</strong>
+        <pre>docker pull selenoid/vnc_chrome:128.0
+docker pull selenoid/vnc_chrome:115.0
+docker pull selenoid/vnc_firefox:125.0
+docker pull selenoid/vnc_firefox:115.0
+docker pull selenoid/vnc_opera:109.0
+docker pull selenoid/vnc_opera:100.0
+
+# проверить:
+docker images | grep selenoid</pre>
+      </li>
+      <li>
+        <strong>Обрати внимание что корректный <code>path</code>: для <em>"Chrome"</em> и <em>"Opera"</em> должен быть <code>"/"</code>, а не <code>"/wd/hub"</code> — иначе браузер не стартанет.</strong>
+        <br>
+	<br>Пример:
+        <pre>{
+  "image": "selenoid/vnc_chrome:128.0",
+  "port": "4444",
+  "path": "/"
+}</pre>
+        Для <em>Firefox</em> остаётся <code>"/wd/hub"</code>.
+      </li>
+    </ol>
+  </div>
+</body>
+</html>
