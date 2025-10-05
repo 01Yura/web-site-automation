@@ -56,12 +56,12 @@ services:
             absolute path!</strong
           >
           The <code>OVERRIDE_VIDEO_OUTPUT_DIR</code> variable should be, for
-          example: <code>/root/selenoid_with_video/video</code>. Substitution
-          <code>${PWD}</code> won't work here.
+          example: <code>/root/selenoid_with_video/video</code>. The
+          substitution <code>${PWD}</code> won't work here.
         </li>
         <li>
-          <strong>Be sure to download the recorder once</strong>, Selenoid won't
-          download it itself and video recording won't work:
+          <strong>Be sure to download the recorder once</strong>, as Selenoid
+          won't download it itself and video recording won't work:
           <code>docker pull selenoid/video-recorder:latest-release</code>.
         </li>
       </ul>
@@ -79,9 +79,9 @@ Configuration.browserCapabilities.setCapability(
       >
 
       <p>
-        <strong>Session and video naming:</strong> you can set test name and
+        <strong>Session and video naming:</strong> you can set the test name and
         video file name by adding, for example, a timestamp. This is done in the
-        test itself, not difficult, how to do it - ask AI
+        test itself, it's not difficult - ask AI how to do it
       </p>
     </div>
   </body>
