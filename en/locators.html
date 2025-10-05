@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -128,9 +128,9 @@
   </head>
   <body>
     <div class="language-switcher">
-      <a href="locators-ru.html" class="lang-link active">RU</a>
+      <a href="../ru/locators.html" class="lang-link">RU</a>
       <span class="lang-separator">|</span>
-      <a href="locators-en.html" class="lang-link">EN</a>
+      <a href="locators.html" class="lang-link active">EN</a>
     </div>
 
     <div class="card">
@@ -139,9 +139,9 @@
         <span class="tiny">XPath & CSS — Selenide / Selenium</span>
       </h1>
       <p class="sub">
-        Схемы, примеры, и варианты кода. В колонке Selenide даны несколько
-        наиболее удобных способов: <code>$("...")</code>, <code>byXpath</code>,
-        <code>Selectors.byAttribute</code>, <code>byText/withText</code> и др.
+        Patterns, examples, and code variants. The Selenide column shows several
+        convenient options: <code>$("...")</code>, <code>byXpath</code>,
+        <code>Selectors.byAttribute</code>, <code>byText/withText</code>, etc.
       </p>
 
       <h2>XPath</h2>
@@ -152,7 +152,7 @@
             <th style="width: 18%">Schema</th>
             <th style="width: 20%">Example</th>
             <th style="width: 22%">Comment</th>
-            <th style="width: 16%">Selenide (варианты)</th>
+            <th style="width: 16%">Selenide (options)</th>
             <th style="width: 12%">Selenium</th>
           </tr>
         </thead>
@@ -161,7 +161,7 @@
             <td>tag &amp; attribute</td>
             <td><code>//tag[@attr="value"]</code></td>
             <td><code>//input[@aria-label="Search"]</code></td>
-            <td>Находит элемент по атрибуту</td>
+            <td>Find element by attribute</td>
             <td>
               <code>$("input[aria-label='Search']")</code><br />
               <code>$(byAttribute("aria-label","Search"))</code><br />
@@ -177,7 +177,7 @@
             <td>text()</td>
             <td><code>//tag[text()="value"]</code></td>
             <td><code>//button[text()="Login"]</code></td>
-            <td>Полное совпадение текста</td>
+            <td>Exact text match</td>
             <td>
               <code>$(byText("Login"))</code><br />
               <code>$$("button").findBy(text("Login"))</code><br />
@@ -189,23 +189,21 @@
             <td>contains() (text)</td>
             <td><code>//tag[contains(text(),"value")]</code></td>
             <td><code>//div[contains(text(),"Error")]</code></td>
-            <td>Частичное совпадение текста</td>
+            <td>Partial text match</td>
             <td>
               <code>$(withText("Error"))</code><br />
               <code>$(byXpath("//div[contains(text(),'Error')]"))</code>
             </td>
-            <td><code>By.xpath("//div[contains(text(),'Error')]")</code></td>
+            <td><code>By.xpath("//div[contains(text(),'Error']")</code></td>
           </tr>
           <tr>
             <td>contains() (attr)</td>
             <td><code>//tag[contains(@attr,"value")]</code></td>
             <td><code>//input[contains(@placeholder,"user")]</code></td>
-            <td>Частичное совпадение атрибута</td>
+            <td>Partial attribute match</td>
             <td>
               <code>$("input[placeholder*='user']")</code><br />
               <code>$(byAttribute("placeholder","user"))</code>
-              <span class="tiny">(содержит)</span><br />
-              <code>$(byXpath("//input[contains(@placeholder,'user')]"))</code>
             </td>
             <td>
               <code>By.xpath("//input[contains(@placeholder,'user')]")</code>
@@ -215,7 +213,7 @@
             <td>multiple attributes</td>
             <td><code>//tag[@a1="v1"][@a2="v2"]</code></td>
             <td><code>//input[@type="text"][@name="login"]</code></td>
-            <td>Несколько условий</td>
+            <td>Several conditions</td>
             <td>
               <code>$("input[type='text'][name='login']")</code><br />
               <code>$(byCssSelector("input[type='text'][name='login']"))</code
@@ -230,7 +228,7 @@
             <td>moving through the tree</td>
             <td><code>//parent/child</code></td>
             <td><code>//div/span</code></td>
-            <td>Переход родитель → потомок</td>
+            <td>Parent → child</td>
             <td>
               <code>$("div span")</code><br />
               <code>$(byXpath("//div/span"))</code>
@@ -241,7 +239,7 @@
             <td>not()</td>
             <td><code>//tag[not(contains(@attr,"v"))]</code></td>
             <td><code>//input[not(contains(@type,"hidden"))]</code></td>
-            <td>Исключение по условию</td>
+            <td>Exclude by condition</td>
             <td>
               <code>$(byXpath("//input[not(contains(@type,'hidden'))]"))</code>
             </td>
@@ -253,7 +251,7 @@
             <td>indexing</td>
             <td><code>(//tag[@attr="v"])[N]</code></td>
             <td><code>(//input[@type="text"])[2]</code></td>
-            <td>N‑й элемент в выборке</td>
+            <td>N-th element in the set</td>
             <td>
               <code>$$("input[type='text']").get(1)</code><br />
               <code>$(byXpath("(//input[@type='text'])[2]"))</code>
@@ -264,7 +262,7 @@
             <td>parent</td>
             <td><code>//tag/..</code></td>
             <td><code>//input/..</code></td>
-            <td>Переход к родителю</td>
+            <td>Go to parent</td>
             <td><code>$(byXpath("//input/.."))</code></td>
             <td><code>By.xpath("//input/..")</code></td>
           </tr>
@@ -272,7 +270,7 @@
             <td>following-sibling</td>
             <td><code>//tag/following-sibling::tag2</code></td>
             <td><code>//label/following-sibling::input</code></td>
-            <td>Сосед справа на том же уровне</td>
+            <td>Right sibling at same level</td>
             <td><code>$(byXpath("//label/following-sibling::input"))</code></td>
             <td><code>By.xpath("//label/following-sibling::input")</code></td>
           </tr>
@@ -280,7 +278,7 @@
             <td>preceding-sibling</td>
             <td><code>//tag/preceding-sibling::tag2</code></td>
             <td><code>//input/preceding-sibling::label</code></td>
-            <td>Сосед слева</td>
+            <td>Left sibling</td>
             <td><code>$(byXpath("//input/preceding-sibling::label"))</code></td>
             <td><code>By.xpath("//input/preceding-sibling::label")</code></td>
           </tr>
@@ -288,7 +286,7 @@
             <td>ancestor</td>
             <td><code>//tag/ancestor::X</code></td>
             <td><code>//span/ancestor::form</code></td>
-            <td>Любой предок выше по дереву</td>
+            <td>Any ancestor up the tree</td>
             <td><code>$(byXpath("//span/ancestor::form"))</code></td>
             <td><code>By.xpath("//span/ancestor::form")</code></td>
           </tr>
@@ -303,7 +301,7 @@
             <th style="width: 18%">Schema</th>
             <th style="width: 20%">Example</th>
             <th style="width: 22%">Comment</th>
-            <th style="width: 16%">Selenide (варианты)</th>
+            <th style="width: 16%">Selenide (options)</th>
             <th style="width: 12%">Selenium</th>
           </tr>
         </thead>
@@ -312,7 +310,7 @@
             <td>tag &amp; attribute</td>
             <td><code>tag[attr="value"]</code></td>
             <td><code>input[aria-label="Search"]</code></td>
-            <td>По атрибуту</td>
+            <td>By attribute</td>
             <td>
               <code>$("input[aria-label='Search']")</code><br />
               <code>$(byAttribute("aria-label","Search"))</code><br />
@@ -324,7 +322,7 @@
             <td>id</td>
             <td><code>#id</code></td>
             <td><code>#loginBtn</code></td>
-            <td>По id</td>
+            <td>By id</td>
             <td>
               <code>$("#loginBtn")</code><br />
               <code>$(byId("loginBtn"))</code>
@@ -335,7 +333,7 @@
             <td>class name</td>
             <td><code>.className</code></td>
             <td><code>.btn-primary</code></td>
-            <td>По классу</td>
+            <td>By class</td>
             <td>
               <code>$(".btn-primary")</code><br />
               <code>$(byClassName("btn-primary"))</code>
@@ -346,7 +344,7 @@
             <td>multiple class names</td>
             <td><code>.class1.class2</code></td>
             <td><code>.btn.large</code></td>
-            <td>Два класса одновременно</td>
+            <td>Two classes simultaneously</td>
             <td>
               <code>$(".btn.large")</code><br />
               <code>$(byCssSelector(".btn.large"))</code>
@@ -357,7 +355,7 @@
             <td>attribute *=</td>
             <td><code>[attr*="value"]</code></td>
             <td><code>input[placeholder*="user"]</code></td>
-            <td>Атрибут содержит</td>
+            <td>Attribute contains</td>
             <td>
               <code>$("input[placeholder*='user']")</code><br />
               <code>$(byAttribute("placeholder","user"))</code>
@@ -368,7 +366,7 @@
             <td>attribute ^=</td>
             <td><code>[attr^="value"]</code></td>
             <td><code>input[placeholder^="user"]</code></td>
-            <td>Атрибут начинается с</td>
+            <td>Attribute starts with</td>
             <td>
               <code>$("input[placeholder^='user']")</code><br />
               <code>$(byCssSelector("input[placeholder^='user']"))</code>
@@ -379,7 +377,7 @@
             <td>attribute $=</td>
             <td><code>[attr$="value"]</code></td>
             <td><code>img[src$=".png"]</code></td>
-            <td>Атрибут заканчивается на</td>
+            <td>Attribute ends with</td>
             <td>
               <code>$("img[src$='.png']")</code><br />
               <code>$(byCssSelector("img[src$='.png']"))</code>
@@ -387,10 +385,10 @@
             <td><code>By.cssSelector("img[src$='.png']")</code></td>
           </tr>
           <tr>
-            <td>name / link text (полезно знать)</td>
-            <td><code>a:contains(text) — (нет в чистом CSS)</code></td>
-            <td><code>Ссылки по тексту</code></td>
-            <td>В CSS нет поиска по тексту — используем API</td>
+            <td>name / link text (good to know)</td>
+            <td><code>a:contains(text) — (not in pure CSS)</code></td>
+            <td><code>Links by text</code></td>
+            <td>No text search in CSS — use API</td>
             <td>
               <code>$(byLinkText("Home"))</code><br />
               <code>$(byPartialLinkText("Hom"))</code>
@@ -404,7 +402,7 @@
       </table>
 
       <p class="sub">
-        Импорты (Selenide):
+        Imports (Selenide):
         <code>import static com.codeborne.selenide.Selenide.*;</code>,
         <code>import static com.codeborne.selenide.Selectors.*;</code>,
         <code>import static com.codeborne.selenide.Condition.*;</code>
@@ -412,8 +410,7 @@
     </div>
 
     <footer>
-      Сгенерировано автоматически. Используй как шпаргалку при написании
-      UI‑тестов.
+      Generated automatically. Use as a cheat sheet when writing UI tests.
     </footer>
   </body>
 </html>
