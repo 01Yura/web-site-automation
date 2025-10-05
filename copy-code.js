@@ -11,6 +11,14 @@ function addCopyButtons() {
     copyButton.textContent = "Copy";
     copyButton.onclick = () => copyCode(block, copyButton);
 
+    // Ensure correct positioning regardless of external CSS
+    if (getComputedStyle(block).position === "static") {
+      block.style.position = "relative";
+    }
+    copyButton.style.position = "absolute";
+    copyButton.style.top = "8px";
+    copyButton.style.right = "8px";
+
     block.insertBefore(copyButton, block.firstChild);
   });
 }
