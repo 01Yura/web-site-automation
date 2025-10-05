@@ -11,7 +11,7 @@ function addCopyButtons() {
     copyButton.textContent = "Copy";
     copyButton.onclick = () => copyCode(block, copyButton);
 
-    block.appendChild(copyButton);
+    block.insertBefore(copyButton, block.firstChild);
   });
 }
 
