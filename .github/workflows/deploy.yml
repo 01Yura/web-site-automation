@@ -1,4 +1,4 @@
-name: Deploy static site to Ubuntu (root)
+name: Deploy static site to Ubuntu (root, password)
 
 on:
   push:
@@ -13,93 +13,93 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Подготовка и валидация SSH-материалов
-      - name: Prepare & validate SSH materials
-        env:
-          SSH_KEY:          ${{ secrets.SSH_KEY }}
-          SSH_KNOWN_HOSTS:  ${{ secrets.SSH_KNOWN_HOSTS }}
-          SSH_HOST:         ${{ secrets.SSH_HOST }}
-          SSH_PORT:         ${{ secrets.SSH_PORT }}
+      - name: Install sshpass (and ensure rsync)
         run: |
-          set -euo pipefail
+          sudo apt-get update -y
+          sudo apt-get install -y sshpass rsync
+
+      # (Опционально) запишем known_hosts, если передан секрет.
+      - name: Prepare known_hosts
+        env:
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
           mkdir -p ~/.ssh
-          umask 077
-
-          # 1) приватный ключ
-          echo "$SSH_KEY" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-
-          # 2) known_hosts (из секрета; если пуст — соберём сканером)
           if [ -n "${SSH_KNOWN_HOSTS:-}" ]; then
             printf "%s\n" "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
-          else
-            PORT="${SSH_PORT:-22}"
-            ssh-keyscan -p "$PORT" "$SSH_HOST" > ~/.ssh/known_hosts
-          fi
-          chmod 644 ~/.ssh/known_hosts
-
-          # 3) базовые проверки (без утечки приватных данных)
-          echo "== id_ed25519 lines =="
-          wc -l ~/.ssh/id_ed25519
-
-          echo "== BEGIN/END markers =="
-          head -n1 ~/.ssh/id_ed25519 || true
-          tail -n1 ~/.ssh/id_ed25519 || true
-
-          echo "== Validate private key readable =="
-          if ssh-keygen -y -f ~/.ssh/id_ed25519 > /dev/null 2>&1; then
-            echo "OK: private key format is valid"
-          else
-            echo "ERROR: private key is invalid (often one-line secret or broken newlines)"
-            exit 1
+            chmod 644 ~/.ssh/known_hosts
           fi
 
-          # сохраним порт на последующие шаги
-          echo "${SSH_PORT:-22}" > .ssh_port
-
-      # Проверим, что соединение устанавливается по ключу и host key принят
-      - name: Test SSH connection
+      - name: Test SSH connection (password)
         env:
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_HOST:     ${{ secrets.SSH_HOST }}
+          SSH_USER:     ${{ secrets.SSH_USER }}
+          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+          SSH_PORT:     ${{ secrets.SSH_PORT }}
         run: |
           set -e
-          PORT="$(cat .ssh_port)"
-          ssh -p "$PORT" -o BatchMode=yes -o StrictHostKeyChecking=yes \
-              "$SSH_USER@$SSH_HOST" "echo 'SSH OK on port' $PORT"
+          PORT="${SSH_PORT:-22}"
 
-      # Создадим целевую директорию на сервере, если её ещё нет
+          # Если нет known_hosts, отключим проверку, чтобы не падало на первом коннекте
+          SSH_OPTS="-p $PORT -o BatchMode=yes"
+          if [ ! -f ~/.ssh/known_hosts ]; then
+            SSH_OPTS="$SSH_OPTS -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+          fi
+
+          sshpass -p "$SSH_PASSWORD" ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" "echo 'SSH OK on port' $PORT"
+
       - name: Ensure target directory exists
         env:
-          SSH_HOST:   ${{ secrets.SSH_HOST }}
-          SSH_USER:   ${{ secrets.SSH_USER }}
-          TARGET_DIR: ${{ secrets.TARGET_DIR }}
+          SSH_HOST:     ${{ secrets.SSH_HOST }}
+          SSH_USER:     ${{ secrets.SSH_USER }}
+          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+          SSH_PORT:     ${{ secrets.SSH_PORT }}
+          TARGET_DIR:   ${{ secrets.TARGET_DIR }}
         run: |
           set -e
-          PORT="$(cat .ssh_port)"
-          ssh -p "$PORT" "$SSH_USER@$SSH_HOST" "mkdir -p '$TARGET_DIR'"
+          PORT="${SSH_PORT:-22}"
+          SSH_OPTS="-p $PORT"
+          if [ ! -f ~/.ssh/known_hosts ]; then
+            SSH_OPTS="$SSH_OPTS -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+          fi
+          sshpass -p "$SSH_PASSWORD" ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" "mkdir -p '$TARGET_DIR'"
 
-      # Деплой
-      - name: Deploy via rsync
+      - name: Deploy via rsync (password)
         env:
-          SSH_HOST:   ${{ secrets.SSH_HOST }}
-          SSH_USER:   ${{ secrets.SSH_USER }}
-          TARGET_DIR: ${{ secrets.TARGET_DIR }}
+          SSH_HOST:     ${{ secrets.SSH_HOST }}
+          SSH_USER:     ${{ secrets.SSH_USER }}
+          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+          SSH_PORT:     ${{ secrets.SSH_PORT }}
+          TARGET_DIR:   ${{ secrets.TARGET_DIR }}
         run: |
           set -e
-          PORT="$(cat .ssh_port)"
-          rsync -avz --delete -e "ssh -p $PORT" \
+          PORT="${SSH_PORT:-22}"
+
+          # Сборка SSH-опций для rsync
+          RSYNC_SSH="ssh -p $PORT"
+          if [ ! -f ~/.ssh/known_hosts ]; then
+            RSYNC_SSH="$RSYNC_SSH -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+          fi
+
+          # ВАЖНО: префикс sshpass должен стоять ПЕРЕД rsync
+          sshpass -p "$SSH_PASSWORD" rsync -avz --delete \
+            -e "$RSYNC_SSH" \
             --exclude ".git/" \
             --exclude ".github/" \
             . "$SSH_USER@$SSH_HOST:$TARGET_DIR"
 
-      # Лёгкая пост-проверка
       - name: Post-deploy sanity check
         env:
-          SSH_HOST:   ${{ secrets.SSH_HOST }}
-          SSH_USER:   ${{ secrets.SSH_USER }}
-          TARGET_DIR: ${{ secrets.TARGET_DIR }}
+          SSH_HOST:     ${{ secrets.SSH_HOST }}
+          SSH_USER:     ${{ secrets.SSH_USER }}
+          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+          SSH_PORT:     ${{ secrets.SSH_PORT }}
+          TARGET_DIR:   ${{ secrets.TARGET_DIR }}
         run: |
           set -e
-          PORT="$(cat .ssh_port)"
-          ssh -p "$PORT" "$SSH_USER@$SSH_HOST" "ls -lah '$TARGET_DIR'; test -f '$TARGET_DIR/index.html' && tail -n 3 '$TARGET_DIR/index.html' || true"
+          PORT="${SSH_PORT:-22}"
+          SSH_OPTS="-p $PORT"
+          if [ ! -f ~/.ssh/known_hosts ]; then
+            SSH_OPTS="$SSH_OPTS -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+          fi
+          sshpass -p "$SSH_PASSWORD" ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" \
+            "ls -lah '$TARGET_DIR'; test -f '$TARGET_DIR/index.html' && tail -n 3 '$TARGET_DIR/index.html' || true"
