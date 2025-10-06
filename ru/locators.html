@@ -63,7 +63,11 @@
               <code>$$("button").findBy(text("Login"))</code><br />
               <code>$(byXpath("//button[text()='Login']"))</code>
             </td>
-            <td><code>By.xpath("//button[text()='Login']")</code></td>
+            <td>
+              <code
+                >driver.findElement(By.xpath("//button[text()='Login']"))</code
+              >
+            </td>
           </tr>
           <tr>
             <td>contains() (text)</td>
@@ -74,7 +78,11 @@
               <code>$(withText("Error"))</code><br />
               <code>$(byXpath("//div[contains(text(),'Error')]"))</code>
             </td>
-            <td><code>By.xpath("//div[contains(text(),'Error')]")</code></td>
+            <td>
+              <code
+                >driver.findElement(By.xpath("//div[contains(text(),'Error')]"))</code
+              >
+            </td>
           </tr>
           <tr>
             <td>contains() (attr)</td>
@@ -88,7 +96,9 @@
               <code>$(byXpath("//input[contains(@placeholder,'usern')]"))</code>
             </td>
             <td>
-              <code>By.xpath("//input[contains(@placeholder,'usern')]")</code>
+              <code
+                >driver.findElement(By.xpath("//input[contains(@placeholder,'usern')]"))</code
+              >
             </td>
           </tr>
           <tr>
@@ -103,7 +113,9 @@
               <code>$(byXpath("//input[@type='text'][@name='login']"))</code>
             </td>
             <td>
-              <code>By.xpath("//input[@type='text'][@name='login']")</code>
+              <code
+                >driver.findElement(By.xpath("//input[@type='text'][@name='login']"))</code
+              >
             </td>
           </tr>
           <tr>
@@ -115,7 +127,7 @@
               <code>$("div span")</code><br />
               <code>$(byXpath("//div/span"))</code>
             </td>
-            <td><code>By.xpath("//div/span")</code></td>
+            <td><code>driver.findElement(By.xpath("//div/span"))</code></td>
           </tr>
           <tr>
             <td>not()</td>
@@ -126,7 +138,9 @@
               <code>$(byXpath("//input[not(contains(@type,'hidden'))]"))</code>
             </td>
             <td>
-              <code>By.xpath("//input[not(contains(@type,'hidden'))]")</code>
+              <code
+                >driver.findElement(By.xpath("//input[not(contains(@type,'hidden'))]"))</code
+              >
             </td>
           </tr>
           <tr>
@@ -138,7 +152,11 @@
               <code>$$("input[type='text']").get(1)</code><br />
               <code>$(byXpath("(//input[@type='text'])[2]"))</code>
             </td>
-            <td><code>By.xpath("(//input[@type='text'])[2]")</code></td>
+            <td>
+              <code
+                >driver.findElement(By.xpath("(//input[@type='text'])[2]"))</code
+              >
+            </td>
           </tr>
           <tr>
             <td>parent</td>
@@ -146,7 +164,7 @@
             <td><code>//input/..</code></td>
             <td>Переход к родителю</td>
             <td><code>$(byXpath("//input/.."))</code></td>
-            <td><code>By.xpath("//input/..")</code></td>
+            <td><code>driver.findElement(By.xpath("//input/.."))</code></td>
           </tr>
           <tr>
             <td>following-sibling</td>
@@ -154,7 +172,11 @@
             <td><code>//label/following-sibling::input</code></td>
             <td>Сосед справа на том же уровне</td>
             <td><code>$(byXpath("//label/following-sibling::input"))</code></td>
-            <td><code>By.xpath("//label/following-sibling::input")</code></td>
+            <td>
+              <code
+                >driver.findElement(By.xpath("//label/following-sibling::input"))</code
+              >
+            </td>
           </tr>
           <tr>
             <td>preceding-sibling</td>
@@ -162,7 +184,11 @@
             <td><code>//input/preceding-sibling::label</code></td>
             <td>Сосед слева</td>
             <td><code>$(byXpath("//input/preceding-sibling::label"))</code></td>
-            <td><code>By.xpath("//input/preceding-sibling::label")</code></td>
+            <td>
+              <code
+                >driver.findElement(By.xpath("//input/preceding-sibling::label"))</code
+              >
+            </td>
           </tr>
           <tr>
             <td>ancestor</td>
@@ -170,7 +196,9 @@
             <td><code>//span/ancestor::form</code></td>
             <td>Любой предок выше по дереву</td>
             <td><code>$(byXpath("//span/ancestor::form"))</code></td>
-            <td><code>By.xpath("//span/ancestor::form")</code></td>
+            <td>
+              <code>driver.findElement(By.xpath("//span/ancestor::form"))</code>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -198,7 +226,11 @@
               <code>$(byAttribute("aria-label","Search"))</code><br />
               <code>$(byCssSelector("input[aria-label='Search']"))</code>
             </td>
-            <td><code>By.cssSelector("input[aria-label='Search']")</code></td>
+            <td>
+              <code
+                >driver.findElement(By.cssSelector("input[aria-label='Search']"))</code
+              >
+            </td>
           </tr>
           <tr>
             <td>id</td>
@@ -209,7 +241,7 @@
               <code>$("#loginBtn")</code><br />
               <code>$(byId("loginBtn"))</code>
             </td>
-            <td><code>By.id("loginBtn")</code></td>
+            <td><code>driver.findElement(By.id("loginBtn"))</code></td>
           </tr>
           <tr>
             <td>class name</td>
@@ -220,7 +252,9 @@
               <code>$(".btn-primary")</code><br />
               <code>$(byClassName("btn-primary"))</code>
             </td>
-            <td><code>By.className("btn-primary")</code></td>
+            <td>
+              <code>driver.findElement(By.className("btn-primary"))</code>
+            </td>
           </tr>
           <tr>
             <td>multiple class names</td>
@@ -231,7 +265,9 @@
               <code>$(".btn.large")</code><br />
               <code>$(byCssSelector(".btn.large"))</code>
             </td>
-            <td><code>By.cssSelector(".btn.large")</code></td>
+            <td>
+              <code>driver.findElement(By.cssSelector(".btn.large"))</code>
+            </td>
           </tr>
           <tr>
             <td>attribute *=</td>
@@ -242,7 +278,11 @@
               <code>$("input[placeholder*='user']")</code><br />
               <code>$(byAttribute("placeholder","user"))</code>
             </td>
-            <td><code>By.cssSelector("input[placeholder*='user']")</code></td>
+            <td>
+              <code
+                >driver.findElement(By.cssSelector("input[placeholder*='user']"))</code
+              >
+            </td>
           </tr>
           <tr>
             <td>attribute ^=</td>
@@ -253,7 +293,11 @@
               <code>$("input[placeholder^='user']")</code><br />
               <code>$(byCssSelector("input[placeholder^='user']"))</code>
             </td>
-            <td><code>By.cssSelector("input[placeholder^='user']")</code></td>
+            <td>
+              <code
+                >driver.findElement(By.cssSelector("input[placeholder^='user']"))</code
+              >
+            </td>
           </tr>
           <tr>
             <td>attribute $=</td>
@@ -264,7 +308,11 @@
               <code>$("img[src$='.png']")</code><br />
               <code>$(byCssSelector("img[src$='.png']"))</code>
             </td>
-            <td><code>By.cssSelector("img[src$='.png']")</code></td>
+            <td>
+              <code
+                >driver.findElement(By.cssSelector("img[src$='.png']"))</code
+              >
+            </td>
           </tr>
           <tr>
             <td>name / link text (полезно знать)</td>
@@ -276,8 +324,8 @@
               <code>$(byPartialLinkText("Hom"))</code>
             </td>
             <td>
-              <code>By.linkText("Home")</code><br />
-              <code>By.partialLinkText("Hom")</code>
+              <code>driver.findElement(By.linkText("Home"))</code><br />
+              <code>driver.findElement(By.partialLinkText("Hom"))</code>
             </td>
           </tr>
         </tbody>
