@@ -1,0 +1,124 @@
+(function () {
+  const LANG_KEY = "preferredLanguage";
+
+  function detectLangFromPath() {
+    const p = location.pathname;
+    if (p.includes("/en/")) return "en";
+    if (p.includes("/ru/")) return "ru";
+    return null;
+  }
+
+  function getLang() {
+    return localStorage.getItem(LANG_KEY) || detectLangFromPath() || "ru";
+  }
+
+  function setLang(lang) {
+    if (lang !== "ru" && lang !== "en") return;
+    localStorage.setItem(LANG_KEY, lang);
+    document.dispatchEvent(new CustomEvent("lang:change", { detail: lang }));
+  }
+
+  function updateHomeLinks(lang) {
+    const loc = document.getElementById("link-locators");
+    const deps = document.getElementById("link-deps");
+    const sel = document.getElementById("link-selenoid");
+    const title = document.getElementById("home-title");
+    const desc = document.getElementById("home-desc");
+    const homeLabel = document.getElementById("home-switcher-label");
+    if (loc) loc.href = lang === "en" ? "en/locators.html" : "ru/locators.html";
+    if (deps)
+      deps.href =
+        lang === "en" ? "en/dependencies.html" : "ru/dependencies.html";
+    // Go straight to the Selenoid landing for the selected language
+    if (sel) sel.href = lang === "en" ? "en/index.html" : "ru/index.html";
+    if (title)
+      title.textContent =
+        lang === "en" ? "Test Automation Materials" : "Материалы по автотестам";
+    if (desc)
+      desc.textContent =
+        lang === "en" ? "Choose a section:" : "Выберите раздел:";
+    if (homeLabel) homeLabel.textContent = lang === "en" ? "Home" : "Дом";
+  }
+
+  function initLanguageSwitcher() {
+    const switcher = document.querySelectorAll(
+      ".language-switcher a.lang-link"
+    );
+    switcher.forEach((a) => {
+      a.addEventListener("click", function (e) {
+        const href = a.getAttribute("href") || "";
+        const lang =
+          href.includes("/en/") ||
+          href.endsWith("en/index.html") ||
+          a.textContent.trim() === "EN"
+            ? "en"
+            : "ru";
+        setLang(lang);
+        if (
+          location.pathname.endsWith("/index.html") ||
+          location.pathname === "/"
+        ) {
+          e.preventDefault();
+        }
+      });
+    });
+  }
+
+  function initHomeSwitcher() {
+    const ruTop = document.getElementById("switch-ru");
+    const enTop = document.getElementById("switch-en");
+    if (ruTop)
+      ruTop.addEventListener("click", function () {
+        setLang("ru");
+      });
+    if (enTop)
+      enTop.addEventListener("click", function () {
+        setLang("en");
+      });
+  }
+
+  function applyInitial() {
+    const lang = getLang();
+    updateHomeLinks(lang);
+    // Localize buttons on homepage
+    const locBtn = document.getElementById("link-locators");
+    const depBtn = document.getElementById("link-deps");
+    if (locBtn)
+      locBtn.textContent =
+        lang === "en" ? "Locators (XPath & CSS)" : "Локаторы (XPath & CSS)";
+    if (depBtn)
+      depBtn.textContent =
+        lang === "en" ? "Dependencies (Java)" : "Зависимости (Java)";
+    // toggle selenoid single-box language if present
+    const blockRu = document.getElementById("sel-ru");
+    const blockEn = document.getElementById("sel-en");
+    if (blockRu && blockEn) {
+      blockRu.style.display = lang === "ru" ? "block" : "none";
+      blockEn.style.display = lang === "en" ? "block" : "none";
+    }
+    // if we are on selenoid.html and have a hash, adjust saved lang
+    if (location.pathname.endsWith("/selenoid.html") && location.hash) {
+      const h = location.hash.replace("#", "");
+      if (h === "ru" || h === "en") setLang(h);
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    initLanguageSwitcher();
+    initHomeSwitcher();
+    applyInitial();
+    document.addEventListener("lang:change", function (e) {
+      updateHomeLinks(e.detail);
+      // also refresh labels instantly
+      const lang = e.detail;
+      const locBtn = document.getElementById("link-locators");
+      const depBtn = document.getElementById("link-deps");
+      if (locBtn)
+        locBtn.textContent =
+          lang === "en" ? "Locators (XPath & CSS)" : "Локаторы (XPath & CSS)";
+      if (depBtn)
+        depBtn.textContent =
+          lang === "en" ? "Dependencies (Java)" : "Зависимости (Java)";
+    });
+  });
+})();

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Dependencies for Test Automation (Java)</title>
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+    <link rel="stylesheet" href="../assets/styles.css" />
+    <script src="../assets/copy-code.js"></script>
+    <style>
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #fff;
+      }
+      th,
+      td {
+        border: 1px solid #e1e6eb;
+        padding: 10px;
+        vertical-align: top;
+      }
+      th {
+        background: #f5f7fa;
+        text-align: left;
+      }
+      .pkg {
+        white-space: nowrap;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="language-switcher">
+      <a href="../ru/dependencies.html" class="lang-link">RU</a>
+      <span class="lang-separator">|</span>
+      <a href="dependencies.html" class="lang-link active">EN</a>
+    </div>
+
+    <h1>Dependencies for Test Automation (Java)</h1>
+    <p><a href="../index.html">← Back to main</a></p>
+    <p>A curated list of libraries used for UI and API tests.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 24%">Dependency</th>
+          <th style="width: 46%">Purpose</th>
+          <th style="width: 30%">Link</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="pkg"><strong>JUnit 5 (junit-jupiter)</strong></td>
+          <td>Main testing framework for writing and running tests.</td>
+          <td>
+            <a
+              href="https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter"
+              target="_blank"
+              rel="noopener"
+              >JUnit 5</a
+            >
+          </td>
+        </tr>
+        <tr>
+          <td class="pkg"><strong>REST Assured</strong></td>
+          <td>REST API testing (HTTP requests and response assertions).</td>
+          <td>
+            <a
+              href="https://mvnrepository.com/artifact/io.rest-assured/rest-assured"
+              target="_blank"
+              rel="noopener"
+              >REST Assured</a
+            >
+          </td>
+        </tr>
+        <tr>
+          <td class="pkg"><strong>JSON Schema Validator</strong></td>
+          <td>Validate JSON responses against a JSON Schema contract.</td>
+          <td>
+            <a
+              href="https://mvnrepository.com/artifact/io.rest-assured/json-schema-validator"
+              target="_blank"
+              rel="noopener"
+              >JSON Schema Validator</a
+            >
+          </td>
+        </tr>
+        <tr>
+          <td class="pkg"><strong>Selenide</strong></td>
+          <td>
+            UI testing wrapper over Selenium with waits and a convenient API.
+          </td>
+          <td>
+            <a
+              href="https://mvnrepository.com/artifact/com.codeborne/selenide"
+              target="_blank"
+              rel="noopener"
+              >Selenide</a
+            >
+          </td>
+        </tr>
+        <tr>
+          <td class="pkg"><strong>Jackson Databind</strong></td>
+          <td>JSON ↔ Java object mapping.</td>
+          <td>
+            <a
+              href="https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind"
+              target="_blank"
+              rel="noopener"
+              >Jackson Databind</a
+            >
+          </td>
+        </tr>
+        <tr>
+          <td class="pkg"><strong>rgxgen</strong></td>
+          <td>Generate strings from regex (valid test data).</td>
+          <td>
+            <a
+              href="https://mvnrepository.com/artifact/com.github.curious-odd-man/rgxgen"
+              target="_blank"
+              rel="noopener"
+              >rgxgen</a
+            >
+          </td>
+        </tr>
+        <tr>
+          <td class="pkg"><strong>Generex</strong></td>
+          <td>Generate strings from regex (alternative to rgxgen).</td>
+          <td>
+            <a
+              href="https://mvnrepository.com/artifact/com.github.mifmif/generex"
+              target="_blank"
+              rel="noopener"
+              >Generex</a
+            >
+          </td>
+        </tr>
+        <tr>
+          <td class="pkg"><strong>Lombok</strong></td>
+          <td>Generates getters, setters, constructors, builders.</td>
+          <td>
+            <a
+              href="https://mvnrepository.com/artifact/org.projectlombok/lombok"
+              target="_blank"
+              rel="noopener"
+              >Lombok</a
+            >
+          </td>
+        </tr>
+        <tr>
+          <td class="pkg"><strong>AssertJ</strong></td>
+          <td>Readable fluent assertions (<code>assertThat</code>).</td>
+          <td>
+            <a
+              href="https://mvnrepository.com/artifact/org.assertj/assertj-core"
+              target="_blank"
+              rel="noopener"
+              >AssertJ</a
+            >
+          </td>
+        </tr>
+        <tr>
+          <td class="pkg"><strong>SLF4J Simple</strong></td>
+          <td>Simple logging implementation printing to console.</td>
+          <td>
+            <a
+              href="https://mvnrepository.com/artifact/org.slf4j/slf4j-simple"
+              target="_blank"
+              rel="noopener"
+              >SLF4J Simple</a
+            >
+          </td>
+        </tr>
+        <tr>
+          <td class="pkg"><strong>AspectJ Weaver</strong></td>
+          <td>
+            Support for <code>@Step</code> and other aspects (for Allure).
+          </td>
+          <td>
+            <a
+              href="https://mvnrepository.com/artifact/org.aspectj/aspectjweaver"
+              target="_blank"
+              rel="noopener"
+              >AspectJ Weaver</a
+            >
+          </td>
+        </tr>
+        <tr>
+          <td class="pkg"><strong>Allure JUnit5</strong></td>
+          <td>Allure integration with JUnit 5 (collects test statuses).</td>
+          <td>
+            <a
+              href="https://mvnrepository.com/artifact/io.qameta.allure/allure-junit5"
+              target="_blank"
+              rel="noopener"
+              >Allure JUnit5</a
+            >
+          </td>
+        </tr>
+        <tr>
+          <td class="pkg"><strong>Allure REST Assured</strong></td>
+          <td>API request/response logging in Allure.</td>
+          <td>
+            <a
+              href="https://mvnrepository.com/artifact/io.qameta.allure/allure-rest-assured"
+              target="_blank"
+              rel="noopener"
+              >Allure REST Assured</a
+            >
+          </td>
+        </tr>
+        <tr>
+          <td class="pkg"><strong>Allure Selenide</strong></td>
+          <td>Screenshots and Selenide action steps in Allure.</td>
+          <td>
+            <a
+              href="https://mvnrepository.com/artifact/io.qameta.allure/allure-selenide"
+              target="_blank"
+              rel="noopener"
+              >Allure Selenide</a
+            >
+          </td>
+        </tr>
+        <tr>
+          <td class="pkg"><strong>Allure AssertJ</strong></td>
+          <td>Pretty rendering of AssertJ assertions in the report.</td>
+          <td>
+            <a
+              href="https://mvnrepository.com/artifact/io.qameta.allure/allure-assertj"
+              target="_blank"
+              rel="noopener"
+              >Allure AssertJ</a
+            >
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p class="attribution">Author: Yura Primyshev.</p>
+  </body>
+</html>

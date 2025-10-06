@@ -161,3 +161,98 @@ code {
   color: #666;
   font-family: Arial, sans-serif;
 }
+
+/* Home page layout */
+.home {
+  max-width: 960px;
+  margin: 80px auto 40px;
+  background: #fff;
+  border-left: 4px solid #2c7be5;
+  border-radius: 8px;
+  padding: 18px 20px;
+}
+
+.menu {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.menu a {
+  background: #2c7be5;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.menu a:hover {
+  background: #1f62bd;
+}
+
+.desc {
+  margin-top: 10px;
+  color: #555;
+}
+
+/* Home language picker */
+.lang-picker {
+  margin: 0 0 10px 0;
+}
+.lang-btn {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 6px 10px;
+  border: 1px solid #2c7be5;
+  border-radius: 6px;
+  color: #2c7be5;
+  background: #fff;
+  text-decoration: none;
+  font-weight: bold;
+  cursor: pointer;
+}
+.lang-btn.active,
+.lang-btn:hover {
+  color: #fff;
+  background: #2c7be5;
+}
+
+/* Selenoid hub page */
+.card {
+  max-width: 960px;
+  margin: 80px auto 40px;
+  background: #fff;
+  border-left: 4px solid #2c7be5;
+  border-radius: 8px;
+  padding: 18px 20px;
+}
+
+.sections {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.section {
+  background: #f5f7fa;
+  border: 1px solid #e1e6eb;
+  border-radius: 6px;
+  padding: 12px 14px;
+}
+
+.section h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+
+.section a {
+  display: block;
+  margin: 6px 0;
+}
+
+.back {
+  margin-top: 10px;
+}

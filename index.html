@@ -2,12 +2,30 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <title>Доступ к Selenoid и конфигурации</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Home</title>
     <link rel="icon" type="image/png" href="favicon.png" />
-    <meta http-equiv="refresh" content="0; url=ru/index.html" />
-    <link rel="canonical" href="ru/index.html" />
+    <link rel="stylesheet" href="assets/styles.css" />
   </head>
   <body>
-    <p>Перенаправление на <a href="ru/index.html">русскую версию</a>...</p>
+    <div class="language-switcher">
+      <a id="home-switcher-label" href="index.html" class="lang-link active"
+        >Home</a
+      >
+      <span class="lang-separator">|</span>
+      <a id="switch-ru" href="ru/index.html" class="lang-link">RU</a>
+      <span class="lang-separator">|</span>
+      <a id="switch-en" href="en/index.html" class="lang-link">EN</a>
+    </div>
+    <div class="home">
+      <h1 id="home-title">Материалы по автотестам</h1>
+      <p id="home-desc" class="desc">Выберите раздел:</p>
+      <div class="menu">
+        <a id="link-selenoid" href="selenoid.html">Selenoid</a>
+        <a id="link-locators" href="ru/locators.html">Локаторы (XPath & CSS)</a>
+        <a id="link-deps" href="ru/dependencies.html">Зависимости (Java)</a>
+      </div>
+    </div>
+    <script src="assets/lang.js"></script>
   </body>
 </html>
