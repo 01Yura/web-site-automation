@@ -76,6 +76,10 @@
             <td>Partial text match</td>
             <td>
               <code>$(withText("Error"))</code><br />
+              <span class="tiny"
+                >Generates approximately this XPath:
+                .//*[contains(text(),'Error')]</span
+              ><br />
               <code>$(byXpath("//div[contains(text(),'Error')]"))</code>
             </td>
             <td>
@@ -203,7 +207,10 @@
         </tbody>
       </table>
 
-      <h2>CSS Selectors</h2>
+      <h2>
+        CSS Selectors
+        <span class="tiny">(CSS has no text() and contains() functions)</span>
+      </h2>
       <table>
         <thead>
           <tr>

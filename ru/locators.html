@@ -76,6 +76,10 @@
             <td>Частичное совпадение текста</td>
             <td>
               <code>$(withText("Error"))</code><br />
+              <span class="tiny"
+                >Генерирует примерно такой XPath:
+                .//*[contains(text(),'Error')]</span
+              ><br />
               <code>$(byXpath("//div[contains(text(),'Error')]"))</code>
             </td>
             <td>
@@ -86,18 +90,15 @@
           </tr>
           <tr>
             <td>contains() (attr)</td>
-            <td><code>//tag[contains(@attr,"value")]</code></td>
-            <td><code>//input[contains(@placeholder,"usern")]</code></td>
+            <td><code>//tag[contains(@attribute,"value")]</code></td>
+            <td><code>//input[contains(@placeholder,"Usern")]</code></td>
             <td>Частичное совпадение значения атрибута</td>
             <td>
-              <code>$("input[placeholder*='user']")</code><br />
-              <code>$(byAttribute("placeholder","user"))</code>
-              <span class="tiny">(содержит)</span><br />
-              <code>$(byXpath("//input[contains(@placeholder,'usern')]"))</code>
+              <code>$(byXpath("//input[contains(@placeholder,'Usern')]"))</code>
             </td>
             <td>
               <code
-                >driver.findElement(By.xpath("//input[contains(@placeholder,'usern')]"))</code
+                >driver.findElement(By.xpath("//input[contains(@placeholder,'Usern')]"))</code
               >
             </td>
           </tr>
@@ -203,7 +204,10 @@
         </tbody>
       </table>
 
-      <h2>CSS Selectors</h2>
+      <h2>
+        CSS Selectors
+        <span class="tiny">(у CSS нет функций text() и contains())</span>
+      </h2>
       <table>
         <thead>
           <tr>
