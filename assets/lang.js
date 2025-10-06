@@ -89,6 +89,9 @@
     if (depBtn)
       depBtn.textContent =
         lang === "en" ? "Dependencies (Java)" : "Зависимости (Java)";
+    // Miro link title is language-neutral
+    const miroBtn = document.getElementById("link-miro");
+    if (miroBtn) miroBtn.textContent = "Java Collection Framework";
     // toggle selenoid single-box language if present
     const blockRu = document.getElementById("sel-ru");
     const blockEn = document.getElementById("sel-en");
