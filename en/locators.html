@@ -4,127 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Locators Cheat Sheet — XPath & CSS (Selenide / Selenium)</title>
-    <style>
-      :root {
-        --bg: #0f172a;
-        --card: #111827;
-        --text: #e5e7eb;
-        --muted: #9ca3af;
-        --grid: #374151;
-      }
-      * {
-        box-sizing: border-box;
-      }
-      body {
-        margin: 0;
-        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto,
-          "Helvetica Neue", Arial;
-        background: linear-gradient(180deg, #0b1022 0%, #0f172a 100%);
-        color: var(--text);
-        line-height: 1.55;
-        padding: 32px;
-      }
-      .language-switcher {
-        position: fixed;
-        top: 16px;
-        right: 16px;
-        background: rgba(17, 24, 39, 0.85);
-        border: 1px solid #1f2937;
-        border-radius: 8px;
-        padding: 6px 10px;
-        z-index: 1000;
-      }
-      .lang-link {
-        color: #93c5fd;
-        text-decoration: none;
-        font-weight: 600;
-        font-size: 13px;
-        padding: 4px 8px;
-        border-radius: 4px;
-      }
-      .lang-link.active {
-        background: #2563eb;
-        color: white;
-      }
-      .lang-separator {
-        color: #64748b;
-        margin: 0 4px;
-      }
-      h1,
-      h2 {
-        margin: 0 0 14px;
-        letter-spacing: 0.2px;
-      }
-      h1 {
-        font-size: 28px;
-      }
-      h2 {
-        font-size: 22px;
-        margin-top: 28px;
-      }
-      .card {
-        background: #0f172acc;
-        border: 1px solid #1f2937;
-        border-radius: 16px;
-        padding: 18px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-        margin-bottom: 22px;
-      }
-      p.sub {
-        color: var(--muted);
-        margin-top: -6px;
-        margin-bottom: 14px;
-        font-size: 14px;
-      }
-      table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-        overflow: hidden;
-        border-radius: 12px;
-      }
-      thead th {
-        position: sticky;
-        top: 0;
-        background: #1f2937;
-        color: #e5e7eb;
-        font-weight: 700;
-        text-align: left;
-        padding: 10px 12px;
-        border-bottom: 1px solid var(--grid);
-        font-size: 14px;
-      }
-      tbody td {
-        padding: 10px 12px;
-        border-bottom: 1px dashed rgba(156, 163, 175, 0.25);
-        vertical-align: top;
-        font-size: 14px;
-      }
-      tbody tr:nth-child(odd) {
-        background: rgba(31, 41, 55, 0.35);
-      }
-      code {
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-          "Liberation Mono", "Courier New", monospace;
-        background: #0b1022;
-        color: #e2e8f0;
-        border: 1px solid #1f2937;
-        border-radius: 8px;
-        padding: 2px 6px;
-        white-space: nowrap;
-        display: inline-block;
-        margin: 2px 0;
-      }
-      .tiny {
-        font-size: 12px;
-        color: #cbd5e1;
-      }
-      footer {
-        color: #94a3b8;
-        font-size: 12px;
-        margin-top: 22px;
-      }
-    </style>
+    <link rel="stylesheet" href="../assets/locators.css" />
   </head>
   <body>
     <div class="language-switcher">
@@ -160,10 +40,11 @@
             <td>tag &amp; attribute</td>
             <td><code>//tag[@attribute="value"]</code></td>
             <td><code>//input[@placeholder="Username"]</code></td>
-            <td>Find element by attribute</td>
             <td>
-              <code>$("input[placeholder='Username']")</code><br />
-              <code>$(byAttribute("placeholder","Username"))</code><br />
+              Find element by tag and attribute (this is the most common way for
+              XPath)
+            </td>
+            <td>
               <code>$(byXpath("//input[@placeholder='Username']"))</code>
             </td>
             <td>
@@ -182,7 +63,11 @@
               <code>$$("button").findBy(text("Login"))</code><br />
               <code>$(byXpath("//button[text()='Login']"))</code>
             </td>
-            <td><code>By.xpath("//button[text()='Login']")</code></td>
+            <td>
+              <code
+                >driver.findElement(By.xpath("//button[text()='Login']"))</code
+              >
+            </td>
           </tr>
           <tr>
             <td>contains() (text)</td>
@@ -193,24 +78,32 @@
               <code>$(withText("Error"))</code><br />
               <code>$(byXpath("//div[contains(text(),'Error')]"))</code>
             </td>
-            <td><code>By.xpath("//div[contains(text(),'Error']")</code></td>
+            <td>
+              <code
+                >driver.findElement(By.xpath("//div[contains(text(),'Error')]"))</code
+              >
+            </td>
           </tr>
           <tr>
             <td>contains() (attr)</td>
             <td><code>//tag[contains(@attr,"value")]</code></td>
-            <td><code>//input[contains(@placeholder,"user")]</code></td>
+            <td><code>//input[contains(@placeholder,"usern")]</code></td>
             <td>Partial attribute match</td>
             <td>
               <code>$("input[placeholder*='user']")</code><br />
               <code>$(byAttribute("placeholder","user"))</code>
+              <span class="tiny">(contains)</span><br />
+              <code>$(byXpath("//input[contains(@placeholder,'usern')]"))</code>
             </td>
             <td>
-              <code>By.xpath("//input[contains(@placeholder,'user')]")</code>
+              <code
+                >driver.findElement(By.xpath("//input[contains(@placeholder,'usern')]"))</code
+              >
             </td>
           </tr>
           <tr>
             <td>multiple attributes</td>
-            <td><code>//tag[@a1="v1"][@a2="v2"]</code></td>
+            <td><code>//tag[rule1][rule2]</code></td>
             <td><code>//input[@type="text"][@name="login"]</code></td>
             <td>Several conditions</td>
             <td>
@@ -220,7 +113,9 @@
               <code>$(byXpath("//input[@type='text'][@name='login']"))</code>
             </td>
             <td>
-              <code>By.xpath("//input[@type='text'][@name='login']")</code>
+              <code
+                >driver.findElement(By.xpath("//input[@type='text'][@name='login']"))</code
+              >
             </td>
           </tr>
           <tr>
@@ -232,7 +127,7 @@
               <code>$("div span")</code><br />
               <code>$(byXpath("//div/span"))</code>
             </td>
-            <td><code>By.xpath("//div/span")</code></td>
+            <td><code>driver.findElement(By.xpath("//div/span"))</code></td>
           </tr>
           <tr>
             <td>not()</td>
@@ -243,7 +138,9 @@
               <code>$(byXpath("//input[not(contains(@type,'hidden'))]"))</code>
             </td>
             <td>
-              <code>By.xpath("//input[not(contains(@type,'hidden'))]")</code>
+              <code
+                >driver.findElement(By.xpath("//input[not(contains(@type,'hidden'))]"))</code
+              >
             </td>
           </tr>
           <tr>
@@ -255,7 +152,11 @@
               <code>$$("input[type='text']").get(1)</code><br />
               <code>$(byXpath("(//input[@type='text'])[2]"))</code>
             </td>
-            <td><code>By.xpath("(//input[@type='text'])[2]")</code></td>
+            <td>
+              <code
+                >driver.findElement(By.xpath("(//input[@type='text'])[2]"))</code
+              >
+            </td>
           </tr>
           <tr>
             <td>parent</td>
@@ -263,7 +164,7 @@
             <td><code>//input/..</code></td>
             <td>Go to parent</td>
             <td><code>$(byXpath("//input/.."))</code></td>
-            <td><code>By.xpath("//input/..")</code></td>
+            <td><code>driver.findElement(By.xpath("//input/.."))</code></td>
           </tr>
           <tr>
             <td>following-sibling</td>
@@ -271,7 +172,11 @@
             <td><code>//label/following-sibling::input</code></td>
             <td>Right sibling at same level</td>
             <td><code>$(byXpath("//label/following-sibling::input"))</code></td>
-            <td><code>By.xpath("//label/following-sibling::input")</code></td>
+            <td>
+              <code
+                >driver.findElement(By.xpath("//label/following-sibling::input"))</code
+              >
+            </td>
           </tr>
           <tr>
             <td>preceding-sibling</td>
@@ -279,7 +184,11 @@
             <td><code>//input/preceding-sibling::label</code></td>
             <td>Left sibling</td>
             <td><code>$(byXpath("//input/preceding-sibling::label"))</code></td>
-            <td><code>By.xpath("//input/preceding-sibling::label")</code></td>
+            <td>
+              <code
+                >driver.findElement(By.xpath("//input/preceding-sibling::label"))</code
+              >
+            </td>
           </tr>
           <tr>
             <td>ancestor</td>
@@ -287,7 +196,9 @@
             <td><code>//span/ancestor::form</code></td>
             <td>Any ancestor up the tree</td>
             <td><code>$(byXpath("//span/ancestor::form"))</code></td>
-            <td><code>By.xpath("//span/ancestor::form")</code></td>
+            <td>
+              <code>driver.findElement(By.xpath("//span/ancestor::form"))</code>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -315,7 +226,11 @@
               <code>$(byAttribute("aria-label","Search"))</code><br />
               <code>$(byCssSelector("input[aria-label='Search']"))</code>
             </td>
-            <td><code>By.cssSelector("input[aria-label='Search']")</code></td>
+            <td>
+              <code
+                >driver.findElement(By.cssSelector("input[aria-label='Search']"))</code
+              >
+            </td>
           </tr>
           <tr>
             <td>id</td>
@@ -326,7 +241,7 @@
               <code>$("#loginBtn")</code><br />
               <code>$(byId("loginBtn"))</code>
             </td>
-            <td><code>By.id("loginBtn")</code></td>
+            <td><code>driver.findElement(By.id("loginBtn"))</code></td>
           </tr>
           <tr>
             <td>class name</td>
@@ -337,7 +252,9 @@
               <code>$(".btn-primary")</code><br />
               <code>$(byClassName("btn-primary"))</code>
             </td>
-            <td><code>By.className("btn-primary")</code></td>
+            <td>
+              <code>driver.findElement(By.className("btn-primary"))</code>
+            </td>
           </tr>
           <tr>
             <td>multiple class names</td>
@@ -348,7 +265,9 @@
               <code>$(".btn.large")</code><br />
               <code>$(byCssSelector(".btn.large"))</code>
             </td>
-            <td><code>By.cssSelector(".btn.large")</code></td>
+            <td>
+              <code>driver.findElement(By.cssSelector(".btn.large"))</code>
+            </td>
           </tr>
           <tr>
             <td>attribute *=</td>
@@ -359,7 +278,11 @@
               <code>$("input[placeholder*='user']")</code><br />
               <code>$(byAttribute("placeholder","user"))</code>
             </td>
-            <td><code>By.cssSelector("input[placeholder*='user']")</code></td>
+            <td>
+              <code
+                >driver.findElement(By.cssSelector("input[placeholder*='user']"))</code
+              >
+            </td>
           </tr>
           <tr>
             <td>attribute ^=</td>
@@ -370,7 +293,11 @@
               <code>$("input[placeholder^='user']")</code><br />
               <code>$(byCssSelector("input[placeholder^='user']"))</code>
             </td>
-            <td><code>By.cssSelector("input[placeholder^='user']")</code></td>
+            <td>
+              <code
+                >driver.findElement(By.cssSelector("input[placeholder^='user']"))</code
+              >
+            </td>
           </tr>
           <tr>
             <td>attribute $=</td>
@@ -381,7 +308,11 @@
               <code>$("img[src$='.png']")</code><br />
               <code>$(byCssSelector("img[src$='.png']"))</code>
             </td>
-            <td><code>By.cssSelector("img[src$='.png']")</code></td>
+            <td>
+              <code
+                >driver.findElement(By.cssSelector("img[src$='.png']"))</code
+              >
+            </td>
           </tr>
           <tr>
             <td>name / link text (good to know)</td>
@@ -393,8 +324,8 @@
               <code>$(byPartialLinkText("Hom"))</code>
             </td>
             <td>
-              <code>By.linkText("Home")</code><br />
-              <code>By.partialLinkText("Hom")</code>
+              <code>driver.findElement(By.linkText("Home"))</code><br />
+              <code>driver.findElement(By.partialLinkText("Hom"))</code>
             </td>
           </tr>
         </tbody>
