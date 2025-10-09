@@ -21,8 +21,13 @@
     <div class="warning">
       <strong>ВНИМАНИЕ!</strong> У меня не получилось поднять Selenoid на
       Windows 10 и на MacBook с чипом M1 (Apple Silicon), хотя на Мак есть
-      костыль, но он работает тольуо для Chrome. Удалось запустить только на
-      Linux (Ubuntu; вероятно, заработает и на других дистрибутивах Linux).
+      костыль (<a
+        href="https://gist.github.com/AlexRogalskiy/b266e960606dc565c22c3e6bfd9f48df"
+        target="_blank"
+        rel="noopener"
+        >ссылка</a
+      >), но он работает только для Chrome версии 91. Удалось запустить только на Linux
+      (Ubuntu; вероятно, заработает и на других дистрибутивах Linux).
     </div>
 
     <ul>
@@ -35,7 +40,8 @@
       <li>
         Доступ к <strong>Selenoid UI</strong>:
         <a href="http://176.126.103.46:8080" target="_blank" rel="noopener"
-          >http://176.126.103.46:8080 (не запускайте UI тесты в несколько потоков, так как сервер ляжет из-за небольшого кол-ва RAM)</a
+          >http://176.126.103.46:8080 (не запускайте UI тесты в несколько
+          потоков, так как сервер ляжет из-за небольшого кол-ва RAM)</a
         >
       </li>
       <li>
@@ -127,9 +133,13 @@ environment:
           <strong>Проблемы на Windows 10 и Mac с чипом M1.</strong><br />
           Контейнеры поднимаются, но браузер стартует и сразу падает. Для
           Windows устойчивого решения не найдено; для Mac существуют костыльные
-          варианты только для Chrome. Рекомендация - использовать Linux-хост или
-          VM/VPS (например, Ubuntu Server 22.04, ≥10&nbsp;GB диска, ≥2&nbsp;GB
-          RAM).
+          варианты только для Chrome версии 91 (<a
+            href="https://gist.github.com/AlexRogalskiy/b266e960606dc565c22c3e6bfd9f48df"
+            target="_blank"
+            rel="noopener"
+            >ссылка</a
+          >). Рекомендация - использовать Linux-хост или VM/VPS (например,
+          Ubuntu Server 22.04, ≥10&nbsp;GB диска, ≥2&nbsp;GB RAM).
         </li>
 
         <li>

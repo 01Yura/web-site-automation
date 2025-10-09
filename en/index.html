@@ -21,8 +21,13 @@
     <div class="warning">
       <strong>WARNING!</strong> I couldn't get Selenoid running on Windows 10
       and on MacBook with M1 chip (Apple Silicon), although there's a workaround
-      for Mac, but it only works for Chrome. I managed to run it only on Linux
-      (Ubuntu; it will probably work on other Linux distributions too).
+      for Mac (<a
+        href="https://gist.github.com/AlexRogalskiy/b266e960606dc565c22c3e6bfd9f48df"
+        target="_blank"
+        rel="noopener"
+        >link</a
+      >), but it only works for Chrome version 91. I managed to run it only on
+      Linux (Ubuntu; it will probably work on other Linux distributions too).
     </div>
 
     <ul>
@@ -35,7 +40,8 @@
       <li>
         Access to <strong>Selenoid UI</strong>:
         <a href="http://176.126.103.46:8080" target="_blank" rel="noopener"
-          >http://176.126.103.46:8080</a
+          >http://176.126.103.46:8080 (do not run UI tests in multiple threads,
+          the server may crash due to low RAM)</a
         >
       </li>
       <li>
@@ -129,9 +135,13 @@ environment:
           <strong>Problems on Windows 10 and Mac with M1 chip.</strong><br />
           Containers start, but the browser starts and immediately crashes. For
           Windows, no stable solution has been found; for Mac, there are
-          workaround options only for Chrome. Recommendation: use a Linux host
-          or VM/VPS (e.g., Ubuntu Server 22.04, ≥10&nbsp;GB disk, ≥2&nbsp;GB
-          RAM).
+          workaround options only for Chrome version 91 (<a
+            href="https://gist.github.com/AlexRogalskiy/b266e960606dc565c22c3e6bfd9f48df"
+            target="_blank"
+            rel="noopener"
+            >link</a
+          >). Recommendation: use a Linux host or VM/VPS (e.g., Ubuntu Server
+          22.04, ≥10&nbsp;GB disk, ≥2&nbsp;GB RAM).
         </li>
 
         <li>
