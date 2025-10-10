@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Конфигурации</title>
+    <link rel="icon" type="image/png" href="../favicon.png" />
+    <link rel="stylesheet" href="../assets/styles.css" />
+    <script src="../assets/copy-code.js"></script>
+  </head>
+  <body>
+    <div class="language-switcher">
+      <a href="../index.html" class="lang-link">Home</a>
+      <span class="lang-separator">|</span>
+      <a href="configs.html" class="lang-link active">RU</a>
+      <span class="lang-separator">|</span>
+      <a href="../en/configs.html" class="lang-link">EN</a>
+    </div>
+
+    <h1>Конфигурации</h1>
+
+    <div class="code-block">
+      <pre><code>package api.configs;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
+public class Config {
+    private static final Config INSTANCE = new Config();
+    
+    private final Properties properties = new Properties();
+
+    private Config() {
+        try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream("config.properties")) {
+            if (inputStream == null) {
+                throw new RuntimeException("config.properties is not found in resources");
+            }
+            properties.load(inputStream);
+        } catch (IOException e) {
+            throw new RuntimeException("Fail to load config.properties", e);
+        }
+    }
+
+    public static String getProperty(String key) {
+        String systemValue = System.getProperty(key);
+        if (systemValue != null) return systemValue;
+
+        String envKey = <span class="tooltip">key.toUpperCase().replace(".", "_")<span class="tooltiptext">Строка String envKey = key.toUpperCase().replace(".", "_"); нужна для того, чтобы преобразовать ключ из config.properties (например, admin.password) в формат, принятый для переменных окружения в ОС (например, ADMIN_PASSWORD).
+
+Почему так делается:
+
+В config.properties ключи обычно пишут в "Java-стиле" через точки:
+admin.password=1234
+db.url=jdbc:postgresql://localhost:5432/test
+
+В переменных окружения в Unix/Windows обычно используют верхний регистр и _ вместо точек:
+ADMIN_PASSWORD=1234
+DB_URL=jdbc:postgresql://localhost:5432/test
+
+Поэтому метод и делает трансформацию:
+key.toUpperCase() → admin.password → ADMIN.PASSWORD
+.replace(".", "_") → ADMIN_PASSWORD
+
+Таким образом у тебя появляется единая логика поиска значения:
+сначала берём из System.getProperty("admin.password") (например, если ты передал -Dadmin.password=1234 при запуске Java),
+если нет — пробуем из System.getenv("ADMIN_PASSWORD"),
+если и там нет — берём из config.properties.</span></span>;
+        String envValue = System.getenv(envKey);
+        if (envValue != null) return envValue;
+
+        return INSTANCE.properties.getProperty(key);
+    }
+}</code></pre>
+    </div>
+
+    <div class="tips">
+      <h2>Объяснение кода</h2>
+
+      <h3>Паттерн Singleton</h3>
+      <p>
+        Класс Config реализует паттерн Singleton для централизованного
+        управления конфигурацией приложения. Основные возможности:
+      </p>
+      <ul>
+        <li>
+          Загружает настройки из файла config.properties при инициализации
+        </li>
+        <li>
+          Поддерживает приоритетную систему получения конфигурации (системные
+          свойства > переменные окружения > файл)
+        </li>
+        <li>
+          Обеспечивает единую точку доступа к настройкам во всем приложении
+        </li>
+        <li>Кэширует конфигурацию в памяти для быстрого доступа</li>
+      </ul>
+
+      <h3>Eager Initialization</h3>
+      <p>
+        Единственный экземпляр класса создается при загрузке класса (eager
+        initialization). Преимущества:
+      </p>
+      <ul>
+        <li>Простота реализации</li>
+        <li>Потокобезопасность (JVM гарантирует инициализацию static полей)</li>
+        <li>Нет необходимости в синхронизации</li>
+      </ul>
+
+      <h3>Приватный конструктор</h3>
+      <p>Приватный конструктор - ключевая часть паттерна Singleton:</p>
+      <ul>
+        <li>Предотвращает создание экземпляров класса извне</li>
+        <li>
+          Гарантирует, что в приложении будет существовать только один экземпляр
+          Config
+        </li>
+        <li>Обеспечивает контроль над процессом создания объекта</li>
+      </ul>
+
+      <h3>Система приоритетов конфигурации</h3>
+      <p>
+        Метод getProperty() реализует систему приоритетов (от высшего к
+        низшему):
+      </p>
+      <ol>
+        <li>
+          <strong>Системные свойства Java</strong> (System.getProperty) -
+          передаются через -D параметры при запуске JVM
+        </li>
+        <li>
+          <strong>Переменные окружения</strong> (System.getenv) -
+          устанавливаются в ОС, контейнере или CI/CD пайплане
+        </li>
+        <li>
+          <strong>Файл config.properties</strong> - стандартный способ для
+          локальной разработки
+        </li>
+      </ol>
+
+      <h3>Примеры использования</h3>
+
+      <h4
+        style="
+          border-bottom: 2px solid #2c7be5;
+          padding-bottom: 8px;
+          margin-bottom: 16px;
+        "
+      >
+        1. Системные свойства
+      </h4>
+      <div class="code-block">
+        <pre><code>mvn clean test -DapiBaseUrl=http://localhost</code></pre>
+      </div>
+
+      <h4
+        style="
+          border-bottom: 2px solid #2c7be5;
+          padding-bottom: 8px;
+          margin-bottom: 16px;
+        "
+      >
+        2. Переменные окружения
+      </h4>
+
+      <p><strong>Для Docker:</strong></p>
+      <div class="code-block">
+        <pre><code>services:
+  backend:
+    image: nobugsme/nbank:with_database
+    environment:
+      - APIBASEURL=http://localhost:4111
+      - UIBASEURL=http://localhost:80
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=admin123</code></pre>
+      </div>
+
+      <p><strong>Для CI/CD пайплайна:</strong></p>
+      <div class="code-block">
+        <pre><code>- name: Run tests
+  run: ./mvnw clean test -q
+  env:
+     UIREMOTE: http://localhost:4444/wd/hub
+     APIBASEURL: http://194.87.199.75:4111
+     UIBASEURL: http://194.87.199.75:80</code></pre>
+      </div>
+
+      <p><strong>Для ОС:</strong></p>
+      <div class="code-block">
+        <pre><code># Windows (PowerShell)
+$env:APIBASEURL="http://localhost:3000"
+$env:ADMIN_USERNAME="admin"
+$env:ADMIN_PASSWORD="admin123"
+
+# Linux/macOS (Bash)
+export APIBASEURL=http://localhost:3000
+export ADMIN_USERNAME=admin
+export ADMIN_PASSWORD=admin123</code></pre>
+      </div>
+
+      <h4
+        style="
+          border-bottom: 2px solid #2c7be5;
+          padding-bottom: 8px;
+          margin-bottom: 16px;
+        "
+      >
+        3. Файл config.properties
+      </h4>
+      <div class="code-block">
+        <pre><code>apiBaseUrl=http://localhost:3000
+admin.username=admin
+admin.password=admin123</code></pre>
+      </div>
+    </div>
+
+    <p class="attribution">
+      Это внутренний обучающий материал, подготовленный для целей обучения
+      сотрудников на текущем проекте. Автор
+      <a
+        href="https://www.linkedin.com/in/yura-primyshev"
+        target="_blank"
+        rel="noopener"
+        >www.linkedin.com/in/yura-primyshev</a
+      >.
+    </p>
+  </body>
+</html>

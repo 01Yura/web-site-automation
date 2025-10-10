@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Configurations</title>
+    <link rel="icon" type="image/png" href="../favicon.png" />
+    <link rel="stylesheet" href="../assets/styles.css" />
+    <script src="../assets/copy-code.js"></script>
+  </head>
+  <body>
+    <div class="language-switcher">
+      <a href="../index.html" class="lang-link">Home</a>
+      <span class="lang-separator">|</span>
+      <a href="../ru/configs.html" class="lang-link">RU</a>
+      <span class="lang-separator">|</span>
+      <a href="configs.html" class="lang-link active">EN</a>
+    </div>
+
+    <h1>Configurations</h1>
+
+    <div class="code-block">
+      <pre><code>package api.configs;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
+public class Config {
+    private static final Config INSTANCE = new Config();
+    
+    private final Properties properties = new Properties();
+
+    private Config() {
+        try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream("config.properties")) {
+            if (inputStream == null) {
+                throw new RuntimeException("config.properties is not found in resources");
+            }
+            properties.load(inputStream);
+        } catch (IOException e) {
+            throw new RuntimeException("Fail to load config.properties", e);
+        }
+    }
+
+    public static String getProperty(String key) {
+        String systemValue = System.getProperty(key);
+        if (systemValue != null) return systemValue;
+
+        String envKey = <span class="tooltip">key.toUpperCase().replace(".", "_")<span class="tooltiptext">The line String envKey = key.toUpperCase().replace(".", "_"); is needed to convert a key from config.properties (e.g., admin.password) to the format accepted for environment variables in OS (e.g., ADMIN_PASSWORD).
+
+Why this is done:
+
+In config.properties keys are usually written in "Java-style" with dots:
+admin.password=1234
+db.url=jdbc:postgresql://localhost:5432/test
+
+In environment variables in Unix/Windows they usually use uppercase and _ instead of dots:
+ADMIN_PASSWORD=1234
+DB_URL=jdbc:postgresql://localhost:5432/test
+
+Therefore the method performs transformation:
+key.toUpperCase() → admin.password → ADMIN.PASSWORD
+.replace(".", "_") → ADMIN_PASSWORD
+
+Thus you get unified logic for value lookup:
+first we get from System.getProperty("admin.password") (e.g., if you passed -Dadmin.password=1234 when running Java),
+if not found — try from System.getenv("ADMIN_PASSWORD"),
+if not there either — get from config.properties.</span></span>;
+        String envValue = System.getenv(envKey);
+        if (envValue != null) return envValue;
+
+        return INSTANCE.properties.getProperty(key);
+    }
+}</code></pre>
+    </div>
+
+    <div class="tips">
+      <h2>Code Explanation</h2>
+
+      <h3>Singleton Pattern</h3>
+      <p>
+        The Config class implements the Singleton pattern for centralized
+        application configuration management. Key features:
+      </p>
+      <ul>
+        <li>
+          Loads settings from config.properties file during initialization
+        </li>
+        <li>
+          Supports priority-based configuration retrieval (system properties >
+          environment variables > file)
+        </li>
+        <li>
+          Provides a single point of access to settings throughout the
+          application
+        </li>
+        <li>Caches configuration in memory for fast access</li>
+      </ul>
+
+      <h3>Eager Initialization</h3>
+      <p>
+        The single class instance is created during class loading (eager
+        initialization). Advantages:
+      </p>
+      <ul>
+        <li>Simple implementation</li>
+        <li>Thread safety (JVM guarantees static field initialization)</li>
+        <li>No need for synchronization</li>
+      </ul>
+
+      <h3>Private Constructor</h3>
+      <p>Private constructor is a key part of the Singleton pattern:</p>
+      <ul>
+        <li>Prevents external instantiation of the class</li>
+        <li>Guarantees only one Config instance exists in the application</li>
+        <li>Provides control over object creation process</li>
+      </ul>
+
+      <h3>Configuration Priority System</h3>
+      <p>
+        The getProperty() method implements a priority system (highest to
+        lowest):
+      </p>
+      <ol>
+        <li>
+          <strong>Java System Properties</strong> (System.getProperty) - passed
+          via -D parameters when starting JVM
+        </li>
+        <li>
+          <strong>Environment Variables</strong> (System.getenv) - set in OS or
+          container
+        </li>
+        <li>
+          <strong>config.properties file</strong> - standard method for local
+          development
+        </li>
+      </ol>
+
+      <h3>Usage Examples</h3>
+
+      <h4
+        style="
+          border-bottom: 2px solid #2c7be5;
+          padding-bottom: 8px;
+          margin-bottom: 16px;
+        "
+      >
+        1. System Properties
+      </h4>
+      <div class="code-block">
+        <pre><code>mvn clean test -DapiBaseUrl=http://localhost</code></pre>
+      </div>
+
+      <h4
+        style="
+          border-bottom: 2px solid #2c7be5;
+          padding-bottom: 8px;
+          margin-bottom: 16px;
+        "
+      >
+        2. Environment Variables
+      </h4>
+
+      <p><strong>For Docker:</strong></p>
+      <div class="code-block">
+        <pre><code>services:
+  backend:
+    image: nobugsme/nbank:with_database
+    environment:
+      - APIBASEURL=http://localhost:4111
+      - UIBASEURL=http://localhost:80
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=admin123</code></pre>
+      </div>
+
+      <p><strong>For CI/CD Pipeline:</strong></p>
+      <div class="code-block">
+        <pre><code>- name: Run tests
+  run: ./mvnw clean test -q
+  env:
+     UIREMOTE: http://localhost:4444/wd/hub
+     APIBASEURL: http://194.87.199.75:4111
+     UIBASEURL: http://194.87.199.75:80</code></pre>
+      </div>
+
+      <p><strong>For OS:</strong></p>
+      <div class="code-block">
+        <pre><code># Windows (PowerShell)
+$env:APIBASEURL="http://localhost:3000"
+$env:ADMIN_USERNAME="admin"
+$env:ADMIN_PASSWORD="admin123"
+
+# Linux/macOS (Bash)
+export APIBASEURL=http://localhost:3000
+export ADMIN_USERNAME=admin
+export ADMIN_PASSWORD=admin123</code></pre>
+      </div>
+
+      <h4
+        style="
+          border-bottom: 2px solid #2c7be5;
+          padding-bottom: 8px;
+          margin-bottom: 16px;
+        "
+      >
+        3. config.properties file
+      </h4>
+      <div class="code-block">
+        <pre><code>apiBaseUrl=http://localhost:3000
+admin.username=admin
+admin.password=admin123</code></pre>
+      </div>
+    </div>
+
+    <p class="attribution">
+      This is internal training material prepared for training employees on the
+      current project. Author
+      <a
+        href="https://www.linkedin.com/in/yura-primyshev"
+        target="_blank"
+        rel="noopener"
+        >www.linkedin.com/in/yura-primyshev</a
+      >.
+    </p>
+  </body>
+</html>
