@@ -22,6 +22,7 @@
     const loc = document.getElementById("link-locators");
     const deps = document.getElementById("link-deps");
     const sel = document.getElementById("link-selenoid");
+    const cookbook = document.getElementById("link-cookbook");
     const title = document.getElementById("home-title");
     const desc = document.getElementById("home-desc");
     const homeLabel = document.getElementById("home-switcher-label");
@@ -29,6 +30,8 @@
     if (deps)
       deps.href =
         lang === "en" ? "en/dependencies.html" : "ru/dependencies.html";
+    if (cookbook)
+      cookbook.href = lang === "en" ? "en/cookbook.html" : "ru/cookbook.html";
     // Go straight to the Selenoid landing for the selected language
     if (sel) sel.href = lang === "en" ? "en/index.html" : "ru/index.html";
     if (title)
@@ -83,12 +86,15 @@
     // Localize buttons on homepage
     const locBtn = document.getElementById("link-locators");
     const depBtn = document.getElementById("link-deps");
+    const cookbookBtn = document.getElementById("link-cookbook");
     if (locBtn)
       locBtn.textContent =
         lang === "en" ? "Locators (XPath & CSS)" : "Локаторы (XPath & CSS)";
     if (depBtn)
       depBtn.textContent =
         lang === "en" ? "Dependencies (Java)" : "Зависимости (Java)";
+    if (cookbookBtn)
+      cookbookBtn.textContent = lang === "en" ? "Cookbook" : "Книга рецептов";
     // Miro link title is language-neutral
     const miroBtn = document.getElementById("link-miro");
     if (miroBtn) miroBtn.textContent = "Java Collection Framework";
@@ -116,12 +122,15 @@
       const lang = e.detail;
       const locBtn = document.getElementById("link-locators");
       const depBtn = document.getElementById("link-deps");
+      const cookbookBtn = document.getElementById("link-cookbook");
       if (locBtn)
         locBtn.textContent =
           lang === "en" ? "Locators (XPath & CSS)" : "Локаторы (XPath & CSS)";
       if (depBtn)
         depBtn.textContent =
           lang === "en" ? "Dependencies (Java)" : "Зависимости (Java)";
+      if (cookbookBtn)
+        cookbookBtn.textContent = lang === "en" ? "Cookbook" : "Книга рецептов";
     });
   });
 })();
