@@ -19,7 +19,7 @@
     <h1>Конфигурации</h1>
 
     <div class="code-block">
-      <pre><code>package api.configs;
+      <pre><code>package common.configs;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -210,6 +210,65 @@ export ADMIN_PASSWORD=admin123</code></pre>
         <pre><code>apiBaseUrl=http://localhost:3000
 admin.username=admin
 admin.password=admin123</code></pre>
+      </div>
+
+      <h3>Шаги реализации:</h3>
+      <ol>
+        <li>
+          Создать пакет <code>common/configs</code> в структуре фреймворка
+        </li>
+        <li>
+          Создать в нем класс <code>Config.java</code> с содержимым из примера
+        </li>
+        <li>
+          Создать файл <code>config.properties</code> в папке
+          <code>src/main/resources</code> (пример прилагается)
+        </li>
+        <li>
+          Добавить в тесты метод <code>Config.getProperty()</code>, в места где
+          надо достать переменные из файла config.properties (пример
+          прилагается)
+        </li>
+      </ol>
+
+      <h4>Пример config.properties:</h4>
+      <div class="code-block">
+        <pre><code># API Configuration
+apiBaseUrl=http://localhost:4111
+uiBaseUrl=http://localhost
+apiVersion=/api/v1
+
+# Browser Configuration
+browser=chrome
+browserSize=1920x1080
+
+# Admin Credentials
+admin.username=admin
+admin.password=admin
+
+# Selenoid Configuration
+uiRemote=http://localhost:4444/wd/hub
+
+# Database Configuration
+db.url=jdbc:postgresql://localhost:5433/nbank
+db.username=postgres
+db.password=postgres
+db.driver=org.postgresql.Driver
+db.table.customers=customers</code></pre>
+      </div>
+
+      <h4>Пример использования в тестах:</h4>
+      <div class="code-block">
+        <pre><code>public class BaseUiTest extends BaseApiTest {
+    @BeforeAll
+    static void globalSelenideSetup() {
+        Configuration.remote = Config.getProperty("uiRemote");
+        Configuration.baseUrl = Config.getProperty("uiBaseUrl");
+        Configuration.browser = Config.getProperty("browser");
+        Configuration.browserSize = Config.getProperty("browserSize");
+        // и так далее...
+    }
+}</code></pre>
       </div>
     </div>
 
