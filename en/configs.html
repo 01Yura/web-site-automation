@@ -103,25 +103,6 @@ if not there either — get from config.properties.</span></span>;
         <li>Caches configuration in memory for fast access</li>
       </ul>
 
-      <h3>Eager Initialization</h3>
-      <p>
-        The single class instance is created during class loading (eager
-        initialization). Advantages:
-      </p>
-      <ul>
-        <li>Simple implementation</li>
-        <li>Thread safety (JVM guarantees static field initialization)</li>
-        <li>No need for synchronization</li>
-      </ul>
-
-      <h3>Private Constructor</h3>
-      <p>Private constructor is a key part of the Singleton pattern:</p>
-      <ul>
-        <li>Prevents external instantiation of the class</li>
-        <li>Guarantees only one Config instance exists in the application</li>
-        <li>Provides control over object creation process</li>
-      </ul>
-
       <h3>Configuration Priority System</h3>
       <p>
         The getProperty() method implements a priority system (highest to
