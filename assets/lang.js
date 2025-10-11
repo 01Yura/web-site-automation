@@ -26,6 +26,7 @@
     const title = document.getElementById("home-title");
     const desc = document.getElementById("home-desc");
     const homeLabel = document.getElementById("home-switcher-label");
+    const attribution = document.getElementById("attribution-text");
     if (loc) loc.href = lang === "en" ? "en/locators.html" : "ru/locators.html";
     if (deps)
       deps.href =
@@ -33,7 +34,7 @@
     if (cookbook)
       cookbook.href = lang === "en" ? "en/cookbook.html" : "ru/cookbook.html";
     // Go straight to the Selenoid landing for the selected language
-    if (sel) sel.href = lang === "en" ? "en/index.html" : "ru/index.html";
+    if (sel) sel.href = lang === "en" ? "en/selenoid.html" : "ru/selenoid.html";
     if (title)
       title.textContent =
         lang === "en" ? "Test Automation Materials" : "Материалы по автотестам";
@@ -41,6 +42,15 @@
       desc.textContent =
         lang === "en" ? "Choose a section:" : "Выберите раздел:";
     if (homeLabel) homeLabel.textContent = lang === "en" ? "Home" : "Дом";
+    if (attribution) {
+      if (lang === "en") {
+        attribution.innerHTML =
+          'Materials prepared for training employees on test automation project. Author: Yura Primyshev (<a href="https://www.linkedin.com/in/yura-primyshev" target="_blank" rel="noopener">www.linkedin.com/in/yura-primyshev</a>). May 2022';
+      } else {
+        attribution.innerHTML =
+          'Материалы подготовлены для целей обучения сотрудников на проекте автоматизации тестирования. Автор: Yura Primyshev (<a href="https://www.linkedin.com/in/yura-primyshev" target="_blank" rel="noopener">www.linkedin.com/in/yura-primyshev</a>). Май 2022';
+      }
+    }
   }
 
   function initLanguageSwitcher() {
@@ -52,7 +62,7 @@
         const href = a.getAttribute("href") || "";
         const lang =
           href.includes("/en/") ||
-          href.endsWith("en/index.html") ||
+          href.endsWith("en/selenoid.html") ||
           a.textContent.trim() === "EN"
             ? "en"
             : "ru";

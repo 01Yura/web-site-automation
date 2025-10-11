@@ -88,7 +88,9 @@ key.toUpperCase() → admin.password → ADMIN.PASSWORD
       </p>
       <ul>
         <li>
-          Загружает настройки из файла config.properties при инициализации (объект создаётся сразу при загрузке класса, а не в момент первого обращения. Это называется "eager initialization")
+          Загружает настройки из файла config.properties при инициализации
+          (объект создаётся сразу при загрузке класса, а не в момент первого
+          обращения. Это называется "eager initialization")
         </li>
         <li>
           Поддерживает приоритетную систему получения конфигурации (системные
@@ -108,9 +110,9 @@ key.toUpperCase() → admin.password → ADMIN.PASSWORD
       <ol>
         <li>
           <strong>Системные свойства Java</strong> (System.getProperty) -
-          передаются через -D параметры при запуске JVM. Это удобно для 
-          запуска тестов или jar’ника напрямую, когда ты хочешь быстро 
-          подменить значение (например, на другой URL).
+          передаются через -D параметры при запуске JVM. Это удобно для запуска
+          тестов или jar’ника напрямую, когда ты хочешь быстро подменить
+          значение (например, на другой URL).
         </li>
         <li>
           <strong>Переменные окружения</strong> (System.getenv) -
@@ -256,16 +258,5 @@ db.table.customers=customers</code></pre>
 }</code></pre>
       </div>
     </div>
-
-    <p class="attribution">
-      Это внутренний обучающий материал, подготовленный для целей обучения
-      сотрудников на текущем проекте. Автор
-      <a
-        href="https://www.linkedin.com/in/yura-primyshev"
-        target="_blank"
-        rel="noopener"
-        >www.linkedin.com/in/yura-primyshev</a
-      >.
-    </p>
   </body>
 </html>
