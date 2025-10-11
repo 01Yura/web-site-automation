@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Login via JS</title>
+    <link rel="icon" type="image/png" href="../favicon.png" />
+    <link rel="stylesheet" href="../assets/styles.css" />
+    <script src="../assets/copy-code.js"></script>
+  </head>
+  <body>
+    <div class="language-switcher">
+      <a href="../index.html" class="lang-link">Home</a>
+      <span class="lang-separator">|</span>
+      <a href="../ru/js-login.html" class="lang-link">RU</a>
+      <span class="lang-separator">|</span>
+      <a href="js-login.html" class="lang-link active">EN</a>
+    </div>
+
+    <h1>Login via JS</h1>
+
+    <p>
+      In UI tests, there's often a need to authenticate users. Instead of the
+      slow and unstable process of entering login/password through the web
+      interface, you can use API to get a token and set it in the browser via
+      JavaScript. This significantly speeds up and stabilizes tests.
+    </p>
+
+    <div class="tips">
+      <h2>Why login via API in UI tests</h2>
+
+      <ul>
+        <li>
+          <strong>Faster</strong> — we don't waste time entering login/password
+          in each test. If you have hundreds of tests, this can take dozens of
+          minutes.
+        </li>
+        <li>
+          <strong>More stable</strong> — no risk of failing due to captcha,
+          redirects, or slow loading. If your goal is to test "how functionality
+          works after login", not the login process itself, then such UI login
+          only gets in the way.
+        </li>
+        <li>
+          <strong>Focus on functionality</strong> — we test business scenarios,
+          not the login process itself. If your test, for example, checks "order
+          creation in UI", it doesn't matter how the login form works — it
+          should start already as an authenticated user.
+        </li>
+        <li>
+          <strong>Unification</strong> — you can use the same token in UI and
+          API tests.
+        </li>
+        <li>
+          <strong>Bypass limitations</strong> — Sometimes the login form is
+          protected (e.g., captcha or SSO through external service). Tests in CI
+          won't pass such scenarios. In such cases, token or cookie via API is
+          almost the only way to "login automatically".
+        </li>
+      </ul>
+
+      <h3>Implementation and usage example</h3>
+
+      <h4
+        style="
+          border-bottom: 2px solid #2c7be5;
+          padding-bottom: 8px;
+          margin-bottom: 16px;
+        "
+      >
+        1. Authentication method in BaseUiTest
+      </h4>
+      <p>
+        In BaseUiTest you need to create a static method that opens the browser,
+        gets a token via API (which is significantly faster than through UI) and
+        adds it to the browser's localStorage:
+      </p>
+      <div class="code-block">
+        <pre><code>public static void authAsUser(String username, String password) {
+    Selenide.open("/");
+    String userAuthToken = RequestSpecs.getUserAuthHeader(username, password);
+    executeJavaScript("localStorage.setItem('authToken', arguments[0]);", userAuthToken);
+}</code></pre>
+      </div>
+
+      <h4
+        style="
+          border-bottom: 2px solid #2c7be5;
+          padding-bottom: 8px;
+          margin-bottom: 16px;
+        "
+      >
+        2. Token retrieval method in RequestSpecs
+      </h4>
+      <p>
+        The getUserAuthHeader method from RequestSpecs class performs API login
+        and returns a token (if the token is already in storage, it doesn't even
+        make a request):
+      </p>
+      <div class="code-block">
+        <pre><code>public static String getUserAuthHeader(String username, String password) {
+    String userAuthToken;
+
+    if (!authHeaders.containsKey(username)) {
+        userAuthToken = new CrudRequester(RequestSpecs.unauthSpec(),
+                ResponseSpecs.responseReturns200Spec(),
+                Endpoint.AUTH_LOGIN)
+                .post(LoginUserRequestModel.builder().username(username).password(password).build())
+                .extract()
+                .header("Authorization");
+
+        authHeaders.put(username, userAuthToken);
+    } else {
+        userAuthToken = authHeaders.get(username);
+    }
+
+    return userAuthToken;
+}</code></pre>
+      </div>
+
+      <h4
+        style="
+          border-bottom: 2px solid #2c7be5;
+          padding-bottom: 8px;
+          margin-bottom: 16px;
+        "
+      >
+        3. Usage in tests
+      </h4>
+      <p>
+        Accordingly, in the test itself we first create a user and login using
+        it:
+      </p>
+      <div class="code-block">
+        <pre><code>@Test
+void userCanCreateAccount() {
+    CreateUserRequestModel user = AdminSteps.createUser();  // create user
+    authAsUser(user.getUsername(), user.getPassword());    // login
+    // then test steps follow
+}</code></pre>
+      </div>
+    </div>
+
+    <p class="attribution">
+      This is internal training material prepared for employee training purposes
+      on the current project. Author
+      <a
+        href="https://www.linkedin.com/in/yura-primyshev"
+        target="_blank"
+        rel="noopener"
+        >www.linkedin.com/in/yura-primyshev</a
+      >.
+    </p>
+  </body>
+</html>

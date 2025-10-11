@@ -108,7 +108,9 @@ key.toUpperCase() → admin.password → ADMIN.PASSWORD
       <ol>
         <li>
           <strong>Системные свойства Java</strong> (System.getProperty) -
-          передаются через -D параметры при запуске JVM
+          передаются через -D параметры при запуске JVM. Это удобно для 
+          запуска тестов или jar’ника напрямую, когда ты хочешь быстро 
+          подменить значение (например, на другой URL).
         </li>
         <li>
           <strong>Переменные окружения</strong> (System.getenv) -

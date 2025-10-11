@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Логин через JS</title>
+    <link rel="icon" type="image/png" href="../favicon.png" />
+    <link rel="stylesheet" href="../assets/styles.css" />
+    <script src="../assets/copy-code.js"></script>
+  </head>
+  <body>
+    <div class="language-switcher">
+      <a href="../index.html" class="lang-link">Home</a>
+      <span class="lang-separator">|</span>
+      <a href="js-login.html" class="lang-link active">RU</a>
+      <span class="lang-separator">|</span>
+      <a href="../en/js-login.html" class="lang-link">EN</a>
+    </div>
+
+    <h1>Логин через JS</h1>
+
+    <p>
+      В UI-тестах часто возникает необходимость авторизации пользователя. Вместо
+      медленного и нестабильного процесса ввода логина/пароля через
+      веб-интерфейс, можно использовать API для получения токена и установки его
+      в браузер через JavaScript. Это значительно ускоряет и стабилизирует
+      тесты.
+    </p>
+
+    <div class="tips">
+      <h2>Зачем логиниться через API в UI-тестах</h2>
+
+      <ul>
+        <li>
+          <strong>Быстрее</strong> — не тратим время на ввод логина/пароля в
+          каждом тесте. Если у тебя сотни тестов, это может занимать десятки
+          минут.
+        </li>
+        <li>
+          <strong>Стабильнее</strong> — нет риска упасть из-за капчи, редиректов
+          или медленной загрузки. Если у тебя цель протестировать «как работает
+          функционал после входа», а не сам процесс логина, то такой UI-логин
+          только мешает.
+        </li>
+        <li>
+          <strong>Фокус на функционале</strong> — тестируем бизнес-сценарий, а
+          не сам процесс входа. Если твой тест, например, проверяет «создание
+          заказа в UI», ему не важно, правильно ли работает форма входа — он
+          должен стартовать уже от имени авторизованного пользователя.
+        </li>
+        <li>
+          <strong>Унификация</strong> — можно использовать один и тот же токен в
+          UI и API-тестах.
+        </li>
+        <li>
+          <strong>Обход ограничений</strong> — Бывает, что форма логина защищена
+          (например, captcha или SSO через внешний сервис). Тесты в CI не
+          пройдут такой сценарий. В таких случаях токен или cookie через API —
+          почти единственный способ «залогиниться автоматически».
+        </li>
+      </ul>
+
+      <h3>Пример реализации и использования</h3>
+
+      <h4
+        style="
+          border-bottom: 2px solid #2c7be5;
+          padding-bottom: 8px;
+          margin-bottom: 16px;
+        "
+      >
+        1. Метод авторизации в BaseUiTest
+      </h4>
+      <p>
+        В BaseUiTest нужно создать статический метод, который открывает браузер,
+        получает токен по API (что значительно быстрее, чем через UI) и
+        добавляет его в localStorage браузера:
+      </p>
+      <div class="code-block">
+        <pre><code>public static void authAsUser(String username, String password) {
+    Selenide.open("/");
+    String userAuthToken = RequestSpecs.getUserAuthHeader(username, password);
+    executeJavaScript("localStorage.setItem('authToken', arguments[0]);", userAuthToken);
+}</code></pre>
+      </div>
+
+      <h4
+        style="
+          border-bottom: 2px solid #2c7be5;
+          padding-bottom: 8px;
+          margin-bottom: 16px;
+        "
+      >
+        2. Метод получения токена в RequestSpecs
+      </h4>
+      <p>
+        Метод getUserAuthHeader из класса RequestSpecs делает логин по API и
+        возвращает токен (если токен уже в хранилище, то даже не делает запрос):
+      </p>
+      <div class="code-block">
+        <pre><code>public static String getUserAuthHeader(String username, String password) {
+    String userAuthToken;
+
+    if (!authHeaders.containsKey(username)) {
+        userAuthToken = new CrudRequester(RequestSpecs.unauthSpec(),
+                ResponseSpecs.responseReturns200Spec(),
+                Endpoint.AUTH_LOGIN)
+                .post(LoginUserRequestModel.builder().username(username).password(password).build())
+                .extract()
+                .header("Authorization");
+
+        authHeaders.put(username, userAuthToken);
+    } else {
+        userAuthToken = authHeaders.get(username);
+    }
+
+    return userAuthToken;
+}</code></pre>
+      </div>
+
+      <h4
+        style="
+          border-bottom: 2px solid #2c7be5;
+          padding-bottom: 8px;
+          margin-bottom: 16px;
+        "
+      >
+        3. Использование в тестах
+      </h4>
+      <p>
+        Соответственно в самом тесте мы сначала создаем юзера и логинимся с
+        помощью него:
+      </p>
+      <div class="code-block">
+        <pre><code>@Test
+void userCanCreateAccount() {
+    CreateUserRequestModel user = AdminSteps.createUser();  // создаем юзера
+    authAsUser(user.getUsername(), user.getPassword());    // логинимся
+    // далее уже идут шаги теста
+}</code></pre>
+      </div>
+    </div>
+
+    <p class="attribution">
+      Это внутренний обучающий материал, подготовленный для целей обучения
+      сотрудников на текущем проекте. Автор
+      <a
+        href="https://www.linkedin.com/in/yura-primyshev"
+        target="_blank"
+        rel="noopener"
+        >www.linkedin.com/in/yura-primyshev</a
+      >.
+    </p>
+  </body>
+</html>
