@@ -34,7 +34,10 @@
     if (cookbook)
       cookbook.href = lang === "en" ? "en/cookbook.html" : "ru/cookbook.html";
     // Go straight to the Selenoid landing for the selected language
-    if (sel) sel.href = lang === "en" ? "en/selenoid.html" : "ru/selenoid.html";
+    if (sel) {
+      sel.href = lang === "en" ? "en/selenoid.html" : "ru/selenoid.html";
+      console.log("Updated Selenoid link to:", sel.href);
+    }
     if (title)
       title.textContent =
         lang === "en" ? "Test Automation Materials" : "Материалы по автотестам";
@@ -92,11 +95,15 @@
 
   function applyInitial() {
     const lang = getLang();
+    console.log("Initial language:", lang);
     updateHomeLinks(lang);
     // Localize buttons on homepage
     const locBtn = document.getElementById("link-locators");
     const depBtn = document.getElementById("link-deps");
     const cookbookBtn = document.getElementById("link-cookbook");
+    const selBtn = document.getElementById("link-selenoid");
+    console.log("Selenoid button found:", !!selBtn);
+    if (selBtn) console.log("Selenoid button href:", selBtn.href);
     if (locBtn)
       locBtn.textContent =
         lang === "en" ? "Locators (XPath & CSS)" : "Локаторы (XPath & CSS)";
@@ -105,6 +112,7 @@
         lang === "en" ? "Dependencies (Java)" : "Зависимости (Java)";
     if (cookbookBtn)
       cookbookBtn.textContent = lang === "en" ? "Cookbook" : "Книга рецептов";
+    if (selBtn) selBtn.textContent = lang === "en" ? "Selenoid" : "Selenoid";
     // Miro link title is language-neutral
     const miroBtn = document.getElementById("link-miro");
     if (miroBtn) miroBtn.textContent = "Java Collection Framework";
@@ -133,6 +141,7 @@
       const locBtn = document.getElementById("link-locators");
       const depBtn = document.getElementById("link-deps");
       const cookbookBtn = document.getElementById("link-cookbook");
+      const selBtn = document.getElementById("link-selenoid");
       if (locBtn)
         locBtn.textContent =
           lang === "en" ? "Locators (XPath & CSS)" : "Локаторы (XPath & CSS)";
@@ -141,6 +150,7 @@
           lang === "en" ? "Dependencies (Java)" : "Зависимости (Java)";
       if (cookbookBtn)
         cookbookBtn.textContent = lang === "en" ? "Cookbook" : "Книга рецептов";
+      if (selBtn) selBtn.textContent = lang === "en" ? "Selenoid" : "Selenoid";
     });
   });
 })();
