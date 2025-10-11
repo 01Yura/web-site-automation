@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Custom Generator</title>
+    <link rel="icon" type="image/png" href="../favicon.png" />
+    <link rel="stylesheet" href="../assets/styles.css" />
+    <script src="../assets/copy-code.js"></script>
+  </head>
+  <body>
+    <div class="language-switcher">
+      <a href="../index.html" class="lang-link">Home</a>
+      <span class="lang-separator">|</span>
+      <a href="../ru/custom-generator.html" class="lang-link">RU</a>
+      <span class="lang-separator">|</span>
+      <a href="custom-generator.html" class="lang-link active">EN</a>
+    </div>
+
+    <h1>Custom Entity Generator</h1>
+
+    <p>
+      In tests, we often create entities like users and set their field values
+      either manually or using data generation. However, we always have to do
+      this by manually writing the logic, as we cannot create an entity with
+      already generated fields.
+    </p>
+
+    <div class="tips">
+      <h2>Current Approach Problem</h2>
+
+      <p>For example, this is how it looks in a test:</p>
+      <div class="code-block">
+        <pre><code>User user = User.builder()
+                .username(RandomData.getUsername())
+                .password(RandomData.getPassword())
+                .role(UserRole.USER.toString())
+                .build();</code></pre>
+      </div>
+
+      <p>Here (above), by the way, we use a custom RandomData class:</p>
+      <div class="code-block">
+        <pre><code>public class RandomData {
+    private RandomData() {
+    }
+
+    public static String getUsername() {
+        return RandomStringUtils.randomAlphabetic(4, 15);
+    }
+
+    public static String getPassword() {
+        return RandomStringUtils.randomAlphabetic(6).toLowerCase() +
+                RandomStringUtils.randomAlphabetic(3).toUpperCase() +
+                RandomStringUtils.randomNumeric(3) + "!";
+    }
+}</code></pre>
+      </div>
+
+      <p>
+        But this is not the best approach. Ideally, we need to create an entity
+        with already generated field values in one line of code. This is exactly
+        why we create our custom entity generator. Generally, it's more
+        convenient to do this through AI now, by passing context and setting the
+        prompt correctly.
+      </p>
+
+      <h3>Solution: Custom Generator</h3>
+      <p>
+        Now let's consider what classes and annotations need to be created for
+        this, and then we'll write a prompt for AI.
+      </p>
+
+      <h4
+        style="
+          border-bottom: 2px solid #2c7be5;
+          padding-bottom: 8px;
+          margin-bottom: 16px;
+        "
+      >
+        1. RandomModelGenerator Utility Class
+      </h4>
+      <p>
+        First, you need to create a RandomModelGenerator utility class with
+        corresponding static methods. Mine looks like this, don't spend too much
+        time understanding it, it's needed as an example for AI.
+      </p>
+      <p>
+        This class is a random data generator for testing. It automatically
+        creates objects of any classes and fills their fields with random
+        values.
+      </p>
+
+      <h4>How it works in simple terms:</h4>
+      <ol>
+        <li>
+          <strong>Main task</strong><br />
+          Imagine you have a User class with fields name, age, email. Instead of
+          manually creating test data:
+          <div class="code-block">
+            <pre><code>User user = new User();
+user.setName("John");
+user.setAge(25);
+user.setEmail("john@test.com");</code></pre>
+          </div>
+          This class does it automatically:
+          <div class="code-block">
+            <pre><code>User user = RandomModelGenerator.generateRandomModel(User.class);
+// You get an object with already filled random data</code></pre>
+          </div>
+        </li>
+        <li>
+          <strong>How it works step by step:</strong>
+          <ul>
+            <li>
+              <strong>Step 1: Object creation</strong> - Takes any class (e.g.,
+              User) and creates a new instance of that class
+            </li>
+            <li>
+              <strong>Step 2: Field analysis</strong> - Goes through all class
+              fields (including parent class fields), ignores static fields and
+              already filled fields
+            </li>
+            <li>
+              <strong>Step 3: Field filling</strong> - For each field there are
+              two options:
+              <ul>
+                <li>
+                  <strong>Option A: Field with @RegexGen annotation</strong> -
+                  Generates a string using regular expression with a certain
+                  probability can make the field null
+                </li>
+                <li>
+                  <strong>Option B: Regular field</strong> - Generates random
+                  value by field type
+                </li>
+              </ul>
+            </li>
+            <li>
+              <strong>Step 4: Recursive filling</strong> - If a field is another
+              object, it recursively fills it too
+            </li>
+          </ul>
+        </li>
+      </ol>
+
+      <div class="code-block">
+        <pre><code>public final class RandomModelGenerator {
+    private static final ThreadLocalRandom RND = ThreadLocalRandom.current();
+
+    private RandomModelGenerator() {}
+
+    public static &lt;T&gt; T generateRandomModel(Class&lt;T&gt; clazz) {
+        try {
+            T instance = newInstance(clazz);
+            fillObject(instance);
+            return instance;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate model for " + clazz.getName(), e);
+        }
+    }
+
+    // --- internals ---
+
+    private static void fillObject(Object obj) throws Exception {
+        if (obj == null) return;
+
+        for (Field f : getAllFields(obj.getClass())) {
+            if (Modifier.isStatic(f.getModifiers())) continue;
+            f.setAccessible(true);
+
+            // don't touch already set values (if someone set them via builder beforehand)
+            if (f.get(obj) != null) continue;
+
+            Class&lt;?&gt; type = f.getType();
+            RegexGen rg = f.getAnnotation(RegexGen.class);
+
+            if (rg != null) {
+                // null probability
+                if (rg.nullProbability() &gt; 0 && RND.nextDouble() &lt; rg.nullProbability()) {
+                    f.set(obj, null);
+                    continue;
+                }
+
+                String generated = new Generex(rg.value()).random();
+                Object coerced = coerceToType(generated, type);
+                f.set(obj, coerced);
+                continue;
+            }
+
+            // without annotation — set default random/empty values or recursively fill nested model
+            f.set(obj, defaultValueFor(type));
+        }
+    }
+
+    private static Object coerceToType(String s, Class&lt;?&gt; type) throws Exception {
+        if (type == String.class) return s;
+        if (type == Integer.class || type == int.class) return Integer.parseInt(s);
+        if (type == Long.class || type == long.class) return Long.parseLong(s);
+        if (type == Double.class || type == double.class) return Double.parseDouble(s);
+        if (type == Boolean.class || type == boolean.class) return Boolean.parseBoolean(s);
+
+        if (type == LocalDate.class) return LocalDate.parse(s);             // expect ISO format yyyy-MM-dd
+        if (type == LocalDateTime.class) return LocalDateTime.parse(s);     // expect ISO format yyyy-MM-ddTHH:mm:ss
+
+        if (type.isEnum()) {
+            @SuppressWarnings({"rawtypes", "unchecked"})
+            Enum value = Enum.valueOf((Class&lt;Enum&gt;) type, s);
+            return value;
+        }
+
+        // Nested object: if string can't be converted — try to recursively create object
+        Object nested = tryCreateAndFillNested(type);
+        if (nested != null) return nested;
+
+        // fallback — leave string if field is String, otherwise null
+        return type == String.class ? s : null;
+    }
+
+    private static Object defaultValueFor(Class&lt;?&gt; type) throws Exception {
+        if (type == String.class) return randomAlphaNum(8);
+        if (type == Integer.class || type == int.class) return RND.nextInt(0, 10_000);
+        if (type == Long.class || type == long.class) return Math.abs(RND.nextLong());
+        if (type == Double.class || type == double.class) return RND.nextDouble();
+        if (type == Boolean.class || type == boolean.class) return RND.nextBoolean();
+        if (type == LocalDate.class) return LocalDate.now().plusDays(RND.nextInt(0, 30));
+        if (type == LocalDateTime.class) return LocalDateTime.now().plusMinutes(RND.nextInt(0, 60));
+        if (type.isEnum()) {
+            Object[] constants = type.getEnumConstants();
+            return constants.length == 0 ? null : constants[RND.nextInt(constants.length)];
+        }
+
+        // Collections and arrays — simply: empty
+        if (Collection.class.isAssignableFrom(type)) return Collections.emptyList();
+        if (type.isArray()) return Array.newInstance(type.getComponentType(), 0);
+
+        // Consider it a nested model
+        return tryCreateAndFillNested(type);
+    }
+
+    private static Object tryCreateAndFillNested(Class&lt;?&gt; type) throws Exception {
+        try {
+            Object nested = newInstance(type);
+            fillObject(nested);
+            return nested;
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private static &lt;T&gt; T newInstance(Class&lt;T&gt; type) throws Exception {
+        Constructor&lt;T&gt; ctor = type.getDeclaredConstructor();
+        ctor.setAccessible(true);
+        return ctor.newInstance();
+    }
+
+    private static List&lt;Field&gt; getAllFields(Class&lt;?&gt; type) {
+        List&lt;Field&gt; fields = new ArrayList&lt;&gt;();
+        for (Class&lt;?&gt; c = type; c != null && c != Object.class; c = c.getSuperclass()) {
+            fields.addAll(Arrays.asList(c.getDeclaredFields()));
+        }
+        return fields;
+    }
+
+    private static String randomAlphaNum(int len) {
+        final String alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        StringBuilder sb = new StringBuilder(len);
+        for (int i = 0; i &lt; len; i++) sb.append(alphabet.charAt(RND.nextInt(alphabet.length())));
+        return sb.toString();
+    }
+}</code></pre>
+      </div>
+
+      <h4
+        style="
+          border-bottom: 2px solid #2c7be5;
+          padding-bottom: 8px;
+          margin-bottom: 16px;
+        "
+      >
+        2. @RegexGen Annotation
+      </h4>
+      <p>
+        We need to create a custom annotation that we will attach to DTO class
+        fields to specify the logic for generating field values:
+      </p>
+      <div class="code-block">
+        <pre><code>@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface RegexGen {
+    /** Regular expression for generating field value */
+    String value();
+
+    /** Probability to make field null (0.0..1.0). By default not null. */
+    double nullProbability() default 0.0;
+}</code></pre>
+      </div>
+
+      <h4
+        style="
+          border-bottom: 2px solid #2c7be5;
+          padding-bottom: 8px;
+          margin-bottom: 16px;
+        "
+      >
+        3. Usage in DTO Class
+      </h4>
+      <p>
+        In the DTO class, place this annotation and regexp above each field that
+        needs to be generated:
+      </p>
+      <div class="code-block">
+        <pre><code>@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class BookingModel extends BaseModel{
+    @RegexGen("[A-Z][a-z]{3,10}")
+    public String firstname;
+
+    @RegexGen("[A-Z][a-z]{3,12}")
+    public String lastname;
+
+    @RegexGen("\\d{2,4}")
+    public Integer totalprice;
+
+    @RegexGen("true|false")
+    public Boolean depositpaid;
+
+    public BookingdatesModel bookingdates;
+
+    @RegexGen("Breakfast|Dinner|Late checkout")
+    public String additionalneeds;
+}</code></pre>
+      </div>
+
+      <h4
+        style="
+          border-bottom: 2px solid #2c7be5;
+          padding-bottom: 8px;
+          margin-bottom: 16px;
+        "
+      >
+        4. Usage in Tests
+      </h4>
+      <p>In tests, simply write:</p>
+      <div class="code-block">
+        <pre><code>BookingModel model = RandomModelGenerator.generateRandomModel(BookingModel.class);</code></pre>
+      </div>
+
+      <h3>Benefits of this approach</h3>
+      <ul>
+        <li>
+          <strong>One line of code</strong> — creating an object with filled
+          fields
+        </li>
+        <li>
+          <strong>Flexibility</strong> — can configure generation through
+          regular expressions
+        </li>
+        <li>
+          <strong>Automation</strong> — no need to manually write logic for each
+          field
+        </li>
+        <li>
+          <strong>Recursiveness</strong> — automatically fills nested objects
+        </li>
+        <li><strong>Type safety</strong> — works with any data types</li>
+      </ul>
+    </div>
+
+    <p class="attribution">
+      This is internal training material prepared for employee training purposes
+      on the current project. Author
+      <a
+        href="https://www.linkedin.com/in/yura-primyshev"
+        target="_blank"
+        rel="noopener"
+        >www.linkedin.com/in/yura-primyshev</a
+      >.
+    </p>
+  </body>
+</html>

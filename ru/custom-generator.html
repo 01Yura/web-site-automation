@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Кастомный генератор</title>
+    <link rel="icon" type="image/png" href="../favicon.png" />
+    <link rel="stylesheet" href="../assets/styles.css" />
+    <script src="../assets/copy-code.js"></script>
+  </head>
+  <body>
+    <div class="language-switcher">
+      <a href="../index.html" class="lang-link">Home</a>
+      <span class="lang-separator">|</span>
+      <a href="custom-generator.html" class="lang-link active">RU</a>
+      <span class="lang-separator">|</span>
+      <a href="../en/custom-generator.html" class="lang-link">EN</a>
+    </div>
+
+    <h1>Кастомный генератор сущностей</h1>
+
+    <p>
+      В тестах мы частенько создавая какую-то сущность, например юзера, задаем
+      значения его полей или вручную или с помощью генерации данных. Однако нам
+      всегда надо это делать, прописывая руками логику, так как мы не можем
+      создать сущность с уже сгенерированными полями.
+    </p>
+
+    <div class="tips">
+      <h2>Проблема текущего подхода</h2>
+
+      <p>Например, так это выглядит в тесте:</p>
+      <div class="code-block">
+        <pre><code>User user = User.builder()
+                .username(RandomData.getUsername())
+                .password(RandomData.getPassword())
+                .role(UserRole.USER.toString())
+                .build();</code></pre>
+      </div>
+
+      <p>Тут (выше), кстати, мы используем самописный класс RandomData:</p>
+      <div class="code-block">
+        <pre><code>public class RandomData {
+    private RandomData() {
+    }
+
+    public static String getUsername() {
+        return RandomStringUtils.randomAlphabetic(4, 15);
+    }
+
+    public static String getPassword() {
+        return RandomStringUtils.randomAlphabetic(6).toLowerCase() +
+                RandomStringUtils.randomAlphabetic(3).toUpperCase() +
+                RandomStringUtils.randomNumeric(3) + "!";
+    }
+}</code></pre>
+      </div>
+
+      <p>
+        Но это не лучший подход. В идеале нужно одной строчкой кода создавать
+        сущность с уже сгенерированными значениями для полей. Для этого как раз
+        мы и создаем свой кастомный генератор сущностей. Вообще сейчас удобнее
+        делать это через AI, передав контекст и правильно задав промпт.
+      </p>
+
+      <h3>Решение: Кастомный генератор</h3>
+      <p>
+        Сейчас рассмотрим что для этого надо создать из классов и аннотаций и
+        потом пропишем промпт для AI.
+      </p>
+
+      <h4
+        style="
+          border-bottom: 2px solid #2c7be5;
+          padding-bottom: 8px;
+          margin-bottom: 16px;
+        "
+      >
+        1. Утилитарный класс RandomModelGenerator
+      </h4>
+      <p>
+        Сначала надо создать утилитарный класс RandomModelGenerator с
+        соответствующими static методами. Мой например выглядит так, не стоит
+        долго в нем разбираться, он нужен в качестве примера для AI.
+      </p>
+      <p>
+        Этот класс - генератор случайных данных для тестирования. Он
+        автоматически создает объекты любых классов и заполняет их поля
+        случайными значениями.
+      </p>
+
+      <h4>Как это работает простыми словами:</h4>
+      <ol>
+        <li>
+          <strong>Основная задача</strong><br />
+          Представьте, что у вас есть класс User с полями name, age, email.
+          Вместо того чтобы вручную создавать тестовые данные:
+          <div class="code-block">
+            <pre><code>User user = new User();
+user.setName("Иван");
+user.setAge(25);
+user.setEmail("ivan@test.com");</code></pre>
+          </div>
+          Этот класс делает это автоматически:
+          <div class="code-block">
+            <pre><code>User user = RandomModelGenerator.generateRandomModel(User.class);
+// Получаете объект с уже заполненными случайными данными</code></pre>
+          </div>
+        </li>
+        <li>
+          <strong>Как он работает пошагово:</strong>
+          <ul>
+            <li>
+              <strong>Шаг 1: Создание объекта</strong> - Берет любой класс
+              (например, User) и создает новый экземпляр этого класса
+            </li>
+            <li>
+              <strong>Шаг 2: Анализ полей</strong> - Проходит по всем полям
+              класса (включая поля родительских классов), игнорирует статические
+              поля и уже заполненные поля
+            </li>
+            <li>
+              <strong>Шаг 3: Заполнение полей</strong> - Для каждого поля есть
+              два варианта:
+              <ul>
+                <li>
+                  <strong>Вариант А: Поле с аннотацией @RegexGen</strong> -
+                  Генерирует строку по регулярному выражению с определенной
+                  вероятностью может сделать поле null
+                </li>
+                <li>
+                  <strong>Вариант Б: Обычное поле</strong> - Генерирует
+                  случайное значение по типу поля
+                </li>
+              </ul>
+            </li>
+            <li>
+              <strong>Шаг 4: Рекурсивное заполнение</strong> - Если поле - это
+              другой объект, то рекурсивно заполняет и его тоже
+            </li>
+          </ul>
+        </li>
+      </ol>
+
+      <div class="code-block">
+        <pre><code>public final class RandomModelGenerator {
+    private static final ThreadLocalRandom RND = ThreadLocalRandom.current();
+
+    private RandomModelGenerator() {}
+
+    public static &lt;T&gt; T generateRandomModel(Class&lt;T&gt; clazz) {
+        try {
+            T instance = newInstance(clazz);
+            fillObject(instance);
+            return instance;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate model for " + clazz.getName(), e);
+        }
+    }
+
+    // --- внутренности ---
+
+    private static void fillObject(Object obj) throws Exception {
+        if (obj == null) return;
+
+        for (Field f : getAllFields(obj.getClass())) {
+            if (Modifier.isStatic(f.getModifiers())) continue;
+            f.setAccessible(true);
+
+            // не трогаем уже установленные значения (если кто-то builder-ом подставил заранее)
+            if (f.get(obj) != null) continue;
+
+            Class&lt;?&gt; type = f.getType();
+            RegexGen rg = f.getAnnotation(RegexGen.class);
+
+            if (rg != null) {
+                // вероятность null
+                if (rg.nullProbability() &gt; 0 && RND.nextDouble() &lt; rg.nullProbability()) {
+                    f.set(obj, null);
+                    continue;
+                }
+
+                String generated = new Generex(rg.value()).random();
+                Object coerced = coerceToType(generated, type);
+                f.set(obj, coerced);
+                continue;
+            }
+
+            // без аннотации — ставим дефолтные случайные/пустые значения или рекурсивно заполняем вложенную модель
+            f.set(obj, defaultValueFor(type));
+        }
+    }
+
+    private static Object coerceToType(String s, Class&lt;?&gt; type) throws Exception {
+        if (type == String.class) return s;
+        if (type == Integer.class || type == int.class) return Integer.parseInt(s);
+        if (type == Long.class || type == long.class) return Long.parseLong(s);
+        if (type == Double.class || type == double.class) return Double.parseDouble(s);
+        if (type == Boolean.class || type == boolean.class) return Boolean.parseBoolean(s);
+
+        if (type == LocalDate.class) return LocalDate.parse(s);             // ожидаем ISO-формат yyyy-MM-dd
+        if (type == LocalDateTime.class) return LocalDateTime.parse(s);     // ожидаем ISO-формат yyyy-MM-ddTHH:mm:ss
+
+        if (type.isEnum()) {
+            @SuppressWarnings({"rawtypes", "unchecked"})
+            Enum value = Enum.valueOf((Class&lt;Enum&gt;) type, s);
+            return value;
+        }
+
+        // Вложенный объект: если строку нельзя привести — пробуем рекурсивно создать объект
+        Object nested = tryCreateAndFillNested(type);
+        if (nested != null) return nested;
+
+        // fallback — оставить строку, если поле String, иначе null
+        return type == String.class ? s : null;
+    }
+
+    private static Object defaultValueFor(Class&lt;?&gt; type) throws Exception {
+        if (type == String.class) return randomAlphaNum(8);
+        if (type == Integer.class || type == int.class) return RND.nextInt(0, 10_000);
+        if (type == Long.class || type == long.class) return Math.abs(RND.nextLong());
+        if (type == Double.class || type == double.class) return RND.nextDouble();
+        if (type == Boolean.class || type == boolean.class) return RND.nextBoolean();
+        if (type == LocalDate.class) return LocalDate.now().plusDays(RND.nextInt(0, 30));
+        if (type == LocalDateTime.class) return LocalDateTime.now().plusMinutes(RND.nextInt(0, 60));
+        if (type.isEnum()) {
+            Object[] constants = type.getEnumConstants();
+            return constants.length == 0 ? null : constants[RND.nextInt(constants.length)];
+        }
+
+        // Коллекции и массивы — по-простому: пустые
+        if (Collection.class.isAssignableFrom(type)) return Collections.emptyList();
+        if (type.isArray()) return Array.newInstance(type.getComponentType(), 0);
+
+        // Считаем, что это вложенная модель
+        return tryCreateAndFillNested(type);
+    }
+
+    private static Object tryCreateAndFillNested(Class&lt;?&gt; type) throws Exception {
+        try {
+            Object nested = newInstance(type);
+            fillObject(nested);
+            return nested;
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private static &lt;T&gt; T newInstance(Class&lt;T&gt; type) throws Exception {
+        Constructor&lt;T&gt; ctor = type.getDeclaredConstructor();
+        ctor.setAccessible(true);
+        return ctor.newInstance();
+    }
+
+    private static List&lt;Field&gt; getAllFields(Class&lt;?&gt; type) {
+        List&lt;Field&gt; fields = new ArrayList&lt;&gt;();
+        for (Class&lt;?&gt; c = type; c != null && c != Object.class; c = c.getSuperclass()) {
+            fields.addAll(Arrays.asList(c.getDeclaredFields()));
+        }
+        return fields;
+    }
+
+    private static String randomAlphaNum(int len) {
+        final String alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        StringBuilder sb = new StringBuilder(len);
+        for (int i = 0; i &lt; len; i++) sb.append(alphabet.charAt(RND.nextInt(alphabet.length())));
+        return sb.toString();
+    }
+}</code></pre>
+      </div>
+
+      <h4
+        style="
+          border-bottom: 2px solid #2c7be5;
+          padding-bottom: 8px;
+          margin-bottom: 16px;
+        "
+      >
+        2. Аннотация @RegexGen
+      </h4>
+      <p>
+        Нужно создать кастомную аннотацию, которую будем навешивать на поля DTO
+        класса, чтобы указать логику генерации значений для полей:
+      </p>
+      <div class="code-block">
+        <pre><code>@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface RegexGen {
+    /** Регулярное выражение для генерации значения поля */
+    String value();
+
+    /** Вероятность сделать поле null (0.0..1.0). По умолчанию не null. */
+    double nullProbability() default 0.0;
+}</code></pre>
+      </div>
+
+      <h4
+        style="
+          border-bottom: 2px solid #2c7be5;
+          padding-bottom: 8px;
+          margin-bottom: 16px;
+        "
+      >
+        3. Использование в DTO классе
+      </h4>
+      <p>
+        В DTO классе проставить данную аннотацию и regexp над каждым полем,
+        которое нужно генерировать:
+      </p>
+      <div class="code-block">
+        <pre><code>@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class BookingModel extends BaseModel{
+    @RegexGen("[A-Z][a-z]{3,10}")
+    public String firstname;
+
+    @RegexGen("[A-Z][a-z]{3,12}")
+    public String lastname;
+
+    @RegexGen("\\d{2,4}")
+    public Integer totalprice;
+
+    @RegexGen("true|false")
+    public Boolean depositpaid;
+
+    public BookingdatesModel bookingdates;
+
+    @RegexGen("Breakfast|Dinner|Late checkout")
+    public String additionalneeds;
+}</code></pre>
+      </div>
+
+      <h4
+        style="
+          border-bottom: 2px solid #2c7be5;
+          padding-bottom: 8px;
+          margin-bottom: 16px;
+        "
+      >
+        4. Использование в тестах
+      </h4>
+      <p>В тестах просто пишем:</p>
+      <div class="code-block">
+        <pre><code>BookingModel model = RandomModelGenerator.generateRandomModel(BookingModel.class);</code></pre>
+      </div>
+
+      <h3>Преимущества подхода</h3>
+      <ul>
+        <li>
+          <strong>Одна строка кода</strong> — создание объекта с заполненными
+          полями
+        </li>
+        <li>
+          <strong>Гибкость</strong> — можно настроить генерацию через регулярные
+          выражения
+        </li>
+        <li>
+          <strong>Автоматизация</strong> — не нужно вручную прописывать логику
+          для каждого поля
+        </li>
+        <li>
+          <strong>Рекурсивность</strong> — автоматически заполняет вложенные
+          объекты
+        </li>
+        <li>
+          <strong>Типобезопасность</strong> — работает с любыми типами данных
+        </li>
+      </ul>
+    </div>
+
+    <p class="attribution">
+      Это внутренний обучающий материал, подготовленный для целей обучения
+      сотрудников на текущем проекте. Автор
+      <a
+        href="https://www.linkedin.com/in/yura-primyshev"
+        target="_blank"
+        rel="noopener"
+        >www.linkedin.com/in/yura-primyshev</a
+      >.
+    </p>
+  </body>
+</html>
