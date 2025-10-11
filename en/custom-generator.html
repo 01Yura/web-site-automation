@@ -92,7 +92,7 @@
           rel="noopener"
           >Generex</a
         >
-        for generating strings by regular expressions. Alternatively, you can
+        for generating strings from regular expressions. Alternatively, you can
         use the library
         <a
           href="https://mvnrepository.com/artifact/com.github.curious-odd-man/rgxgen"
@@ -139,12 +139,12 @@ user.setEmail("john@test.com");</code></pre>
               <ul>
                 <li>
                   <strong>Option A: Field with @RegexGen annotation</strong> -
-                  Generates a string using regular expression with a certain
-                  probability can make the field null
+                  Generates a string from a regular expression and, with a
+                  certain probability, may set the field to null
                 </li>
                 <li>
-                  <strong>Option B: Regular field</strong> - Generates random
-                  value by field type
+                  <strong>Option B: Regular field</strong> - Generates a random
+                  value based on the field type
                 </li>
               </ul>
             </li>
@@ -379,6 +379,40 @@ public class BookingModel extends BaseModel{
         </li>
         <li><strong>Type safety</strong> — works with any data types</li>
       </ul>
+
+      <h3>Ready prompt for AI</h3>
+      <p>
+        Create a custom entity generator RandomModelGenerator with a static
+        method generateRandomModel(), which takes a DTO class as a parameter and
+        creates an object of this class while immediately generating values for
+        its fields based on the @RegexGen annotation applied to the field of
+        this class with a specified regexp, for example:<br />
+
+        @RegexGen("[A-Z][a-z]{3,10}")<br />
+        &nbsp;&nbsp;public String firstname;<br />
+
+        If there is no annotation, do not generate any value for the field. So
+        that I can write<br />
+    
+        &nbsp;&nbsp;User user =
+        &nbsp;&nbsp;RandomModelGenerator.generateRandomModel(User.class)<br />
+      
+        and an object of the User class with generated fields will be created.
+        You can use the third-party library com.github.curious-odd-man/rgxgen.<br />
+      
+        Also add the ability to randomly choose values from existing Enums in
+        the project. And if a nested class is used as a field in the DTO class,
+        then values should be generated for it as well.
+      </p>
+      <p>
+        This prompt generates everything needed + usage examples. Moreover,
+        later you can always extend the functionality of this class by asking to
+        add the ability to generate dates and times in a specific format, and so
+        on.<br />
+      
+        Ideally, you should use AI with the context of your project (like
+        Cursor).
+      </p>
     </div>
   </body>
 </html>
