@@ -64,10 +64,6 @@
       </p>
 
       <h3>Solution: Custom Generator</h3>
-      <p>
-        Now let's consider what classes and annotations need to be created for
-        this, and then we'll write a prompt for AI.
-      </p>
 
       <h4
         style="
@@ -87,6 +83,24 @@
         This class is a random data generator for testing. It automatically
         creates objects of any classes and fills their fields with random
         values.
+      </p>
+      <p>
+        <strong>Important:</strong> The class uses a third-party library
+        <a
+          href="https://mvnrepository.com/artifact/com.github.mifmif/generex"
+          target="_blank"
+          rel="noopener"
+          >Generex</a
+        >
+        for generating strings by regular expressions. Alternatively, you can
+        use the library
+        <a
+          href="https://mvnrepository.com/artifact/com.github.curious-odd-man/rgxgen"
+          target="_blank"
+          rel="noopener"
+          >RgxGen</a
+        >. The main thing is to specify this in the prompt for AI when
+        generating code.
       </p>
 
       <h4>How it works in simple terms:</h4>
