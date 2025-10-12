@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Кастомный компаратор сущностей</title>
+    <link rel="icon" type="image/png" href="../favicon.png" />
+    <link rel="stylesheet" href="../assets/styles.css" />
+    <script src="../assets/copy-code.js"></script>
+  </head>
+  <body>
+    <div class="language-switcher">
+      <a href="../index.html" class="lang-link">Home</a>
+      <span class="lang-separator">|</span>
+      <a href="custom-comparator.html" class="lang-link active">RU</a>
+      <span class="lang-separator">|</span>
+      <a href="../en/custom-comparator.html" class="lang-link">EN</a>
+    </div>
+
+    <h1>Кастомный компаратор сущностей</h1>
+
+    <p>
+      В тестах мы часто сравниваем 2 DTO класса, например который отправляли в POST запросе и который получили как ответ. 
+      Иногда они содержат одинаковые поля, иногда разные, иногда частично одинаковые. По хорошему нам нужно делать ассерт 
+      каждого поля, по той или иной логике. Это просто если JSON ответ состоит из 3-5 полей, но что если полей 200 и более. 
+      Это занимает кучу места в тесте. Дабы избавить нас от траты времени постоянно прописывая логику сравнения в каждом тесте, 
+      можно создать кастомный компаратор, один раз задать логику сравнения в отдельном файле и в тестах делать проверку всех 
+      200-х полей в одну строку.
+    </p>
+
+    <div class="tips">
+      <h2>1) Утилитарный класс UniversalComparator</h2>
+      <p>Данный класс содержит всю логику сравнения объектов.</p>
+
+    <div class="code-block">
+      <pre><code>public final class UniversalComparator {
+
+    private static final String PROPS_PATH = "/model-comparison.properties";
+    private static final Set<String> TWO_CHAR_OPS = Set.of("==", "!=", ">=", "<=", "=*", "*=");
+    private static final Set<String> ONE_CHAR_OPS = Set.of(">", "<");
+
+    private UniversalComparator() {
+    }
+
+    /**
+     * Основной метод: сам создаёт SoftAssertions и бросает aggregated-ошибки в конце.
+     */
+    public static boolean match(Object left, Object right) {
+        SoftAssertions softly = new SoftAssertions();
+        boolean ok = match(left, right, softly);
+        softly.assertAll(); // упадёт после всех проверок, если были несоответствия
+        return ok;
+    }
+
+    /**
+     * Вариант с внешним SoftAssertions — удобно для батч-сценариев.
+     */
+    public static boolean match(Object left, Object right, SoftAssertions softly) {
+        Objects.requireNonNull(left, "left object is null");
+        Objects.requireNonNull(right, "right object is null");
+
+        Properties props = loadProps();
+
+        // Ключ для правил: "LeftClass=RightClass"
+        String key = findRuleKey(props, left.getClass(), right.getClass());
+        if (key == null) {
+            softly.fail("No comparison rule found for pair: %s = %s",
+                    left.getClass().getName(), right.getClass().getName());
+            return false;
+        }
+
+        String ruleBlock = extractRuleBlock(key, props.getProperty(key));
+        if (ruleBlock == null || ruleBlock.isBlank()) {
+            softly.fail("Rule block is empty for key: %s", key);
+            return false;
+        }
+
+        boolean allOk = true;
+        for (String rawRule : splitByComma(ruleBlock)) {
+            String rule = rawRule.trim();
+            if (rule.isEmpty()) continue;
+
+            // Парсим один маппинг: leftPath OP rightPath
+            Mapping m = parseMapping(rule);
+
+            Object leftVal = resolvePath(left, m.leftPath);
+            Object rightVal = resolvePath(right, m.rightPath);
+
+            boolean thisOk = applyOperator(softly, m.op, key, m.leftPath, m.rightPath, leftVal, rightVal);
+            allOk &= thisOk;
+        }
+        return allOk;
+    }
+
+    // ===== загрузка и поиск правил =====
+
+    private static Properties loadProps() {
+        try (InputStream in = UniversalComparator.class.getResourceAsStream(PROPS_PATH)) {
+            if (in == null) throw new IllegalStateException("Properties not found at " + PROPS_PATH);
+            Properties p = new Properties();
+            p.load(in);
+            return p;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load " + PROPS_PATH, e);
+        }
+    }
+
+    /**
+     * Поддерживаем ключи:
+     * - "SimpleLeft" (значение начинается с "SimpleRight:")
+     * - "FqnLeft" (значение начинается с "FqnRight:")
+     * Ищем в таком порядке.
+     */
+    private static String findRuleKey(Properties p, Class<?> left, Class<?> right) {
+        String k1 = left.getSimpleName();
+        if (p.containsKey(k1)) {
+            String value = p.getProperty(k1);
+            if (value != null && value.startsWith(right.getSimpleName() + ":")) {
+                return k1;
+            }
+        }
+
+        String k2 = left.getName();
+        if (p.containsKey(k2)) {
+            String value = p.getProperty(k2);
+            if (value != null && value.startsWith(right.getName() + ":")) {
+                return k2;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Свой формат: после знака равенства идёт список правил.
+     */
+    private static String extractRuleBlock(String key, String value) {
+        // ожидаем: BookingModel=BookingModel:firstname=firstname,...
+        int idx = value.indexOf(':');
+        if (idx < 0) return value; // допустим без двоеточия (целиком список)
+        return value.substring(idx + 1).trim();
+    }
+
+    private static List<String> splitByComma(String s) {
+        // простое разделение по запятым (без кавычек и экранирования)
+        String[] parts = s.split("\\s*,\\s*");
+        return Arrays.asList(parts);
+    }
+
+    // ===== парсинг одного правила =====
+
+    private static Mapping parseMapping(String rule) {
+        // Ищем сначала двухсимвольные операторы, затем односимвольные. По приоритету.
+        for (String op : TWO_CHAR_OPS) {
+            int pos = rule.indexOf(op);
+            if (pos > 0 && pos < rule.length() - op.length()) {
+                String left = rule.substring(0, pos).trim();
+                String right = rule.substring(pos + op.length()).trim();
+                return new Mapping(left, op, right);
+            }
+        }
+        for (String op : ONE_CHAR_OPS) {
+            int pos = rule.indexOf(op);
+            if (pos > 0 && pos < rule.length() - op.length()) {
+                String left = rule.substring(0, pos).trim();
+                String right = rule.substring(pos + op.length()).trim();
+                return new Mapping(left, op, right);
+            }
+        }
+        // по умолчанию — равенство (==), если оператор не указан: a=b  ИЛИ просто a=b без явного "=="
+        int eq = rule.indexOf('=');
+        if (eq > 0 && eq < rule.length() - 1) {
+            String left = rule.substring(0, eq).trim();
+            String right = rule.substring(eq + 1).trim();
+            return new Mapping(left, "==", right);
+        }
+        throw new IllegalArgumentException("Bad rule mapping: " + rule);
+    }
+
+    private static Object resolvePath(Object root, String path) {
+        if (root == null || path == null || path.isEmpty()) return null;
+        String[] parts = path.split(Pattern.quote("."));
+        Object cur = root;
+        for (String part : parts) {
+            if (cur == null) return null;
+            cur = getProperty(cur, part);
+        }
+        return cur;
+    }
+
+    // ===== резолвинг полей по пути a.b.c =====
+
+    private static Object getProperty(Object obj, String name) {
+        Class<?> c = obj.getClass();
+
+        // 1) getter: getName()/isName()
+        String cap = name.substring(0, 1).toUpperCase() + name.substring(1);
+        Method m = findMethod(c, "get" + cap);
+        if (m == null) m = findMethod(c, "is" + cap);
+        if (m != null) {
+            try {
+                return m.invoke(obj);
+            } catch (Exception ignored) {
+            }
+        }
+
+        // 2) поле
+        Field f = findField(c, name);
+        if (f != null) {
+            try {
+                f.setAccessible(true);
+                return f.get(obj);
+            } catch (Exception ignored) {
+            }
+        }
+
+        return null;
+    }
+
+    private static Method findMethod(Class<?> c, String name) {
+        Class<?> cur = c;
+        while (cur != null && cur != Object.class) {
+            for (Method m : cur.getDeclaredMethods()) {
+                if (m.getName().equals(name) && m.getParameterCount() == 0) {
+                    m.setAccessible(true);
+                    return m;
+                }
+            }
+            cur = cur.getSuperclass();
+        }
+        return null;
+    }
+
+    private static Field findField(Class<?> c, String name) {
+        Class<?> cur = c;
+        while (cur != null && cur != Object.class) {
+            for (Field f : cur.getDeclaredFields()) {
+                if (f.getName().equals(name)) return f;
+            }
+            cur = cur.getSuperclass();
+        }
+        return null;
+    }
+
+    private static boolean applyOperator(SoftAssertions softly,
+                                         String op, String key,
+                                         String lPath, String rPath,
+                                         Object lVal, Object rVal) {
+
+        String ctx = "[" + key + " :: " + lPath + " " + op + " " + rPath + "]";
+
+        switch (op) {
+            case "==": {
+                boolean ok = Objects.equals(lVal, rVal);
+                softly.assertThat(ok)
+                        .as("%s expected EQUALS, but was: left=%s right=%s", ctx, lVal, rVal)
+                        .isTrue();
+                return ok;
+            }
+            case "!=": {
+                boolean ok = !Objects.equals(lVal, rVal);
+                softly.assertThat(ok)
+                        .as("%s expected NOT EQUALS, but both were: %s", ctx, lVal)
+                        .isTrue();
+                return ok;
+            }
+            case "*=": { // left contains right
+                boolean ok = contains(asString(lVal), asString(rVal));
+                softly.assertThat(ok)
+                        .as("%s expected LEFT CONTAINS RIGHT, left=%s right=%s", ctx, lVal, rVal)
+                        .isTrue();
+                return ok;
+            }
+            case "=*": { // right contains left
+                boolean ok = contains(asString(rVal), asString(lVal));
+                softly.assertThat(ok)
+                        .as("%s expected RIGHT CONTAINS LEFT, left=%s right=%s", ctx, lVal, rVal)
+                        .isTrue();
+                return ok;
+            }
+            case ">":
+            case ">=":
+            case "<":
+            case "<=": {
+                BigDecimal ln = toNumber(lVal);
+                BigDecimal rn = toNumber(rVal);
+                boolean ok;
+                if (ln == null || rn == null) {
+                    ok = false;
+                } else {
+                    int cmp = ln.compareTo(rn);
+                    ok = switch (op) {
+                        case ">" -> cmp > 0;
+                        case ">=" -> cmp >= 0;
+                        case "<" -> cmp < 0;
+                        case "<=" -> cmp <= 0;
+                        default -> false;
+                    };
+                }
+                softly.assertThat(ok)
+                        .as("%s expected NUMERIC %s, left=%s right=%s", ctx, op, lVal, rVal)
+                        .isTrue();
+                return ok;
+            }
+            default:
+                softly.fail("%s unknown operator: %s", ctx, op);
+                return false;
+        }
+    }
+
+    // ===== применение операторов =====
+
+    private static String asString(Object o) {
+        return o == null ? null : String.valueOf(o);
+    }
+
+    private static boolean contains(String a, String b) {
+        if (a == null || b == null) return false;
+        return a.contains(b);
+    }
+
+    private static BigDecimal toNumber(Object o) {
+        if (o == null) return null;
+        if (o instanceof BigDecimal bd) return bd;
+        if (o instanceof Number n) return new BigDecimal(n.toString());
+        try {
+            return new BigDecimal(o.toString().trim());
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private record Mapping(String leftPath, String op, String rightPath) {
+    }
+}</code></pre>
+    </div>
+
+      <h2>2) Файл src/main/resources/model-comparison.properties</h2>
+
+    <div class="code-block">
+      <pre><code>#############################################
+# model-comparison.properties - Конфигурация правил сравнения моделей
+#
+# Этот файл определяет правила для сравнения объектов разных классов
+# с помощью UniversalComparator.match().
+#
+# СИНТАКСИС:
+#   LeftClass=RightClass: rule1, rule2, ...
+#
+# ПРАВИЛА СРАВНЕНИЯ:
+# 1) Сопоставление полей (сравнение значений полей):
+#    leftPath OP rightPath
+#      OP (операторы):
+#        ==   равенство (Objects.equals)
+#        !=   неравенство
+#        *=   LEFT содержит RIGHT   (left.toString contains right.toString)
+#        =*   RIGHT содержит LEFT
+#        >,<,>=,<= для числовых сравнений (конвертация в BigDecimal)
+#    Если OP не указан (например "a=b"), то по умолчанию используется "==".
+#
+#    Пути к полям:
+#      - вложенные поля через точку: bookingdates.checkin
+#      - доступ через getter'ы (getX/isX) или напрямую к полям
+#
+# 2) Предикаты (проверка свойств полей без сравнения значений):
+#    side.path ? predicate
+#      side:  left | right     <-- указывает, какую сторону проверять
+#      predicate:
+#        notNull | nonNull | "not null"  - проверка на не-null
+#        type:<TYPES>          (разделители: '|' или ',')
+#          Поддерживаемые типы: String, Integer, Long, Double, Number, BigDecimal,
+#                               Boolean, Enum, UUID, и другие,
+#                               либо simpleName класса (без пакета)
+#
+#    Примеры:
+#      left.referenceId ? notNull
+#      left.amount ? type:Integer|Long|BigDecimal
+#      right.meta.id ? type:Long
+#
+# КЛЮЧИ ПРАВИЛ:
+#   - Простой: "LeftSimpleName=RightSimpleName" (например: BookingModel=BookingModel)
+#   - Полный: "LeftFqn=RightFqn" (например: api.models.BookingModel=api.models.BookingModel)
+#
+# ПРИМЕРЫ:
+#   # Сравнение всех полей BookingModel с BookingModel
+#   BookingModel=BookingModel:firstname=firstname, lastname=lastname, totalprice=totalprice
+#
+#   # Сравнение с проверкой типов
+#   UserModel=UserModel:id=id, name=name, left.email ? type:String, right.phone ? notNull
+#
+#   # Сравнение с числовыми операторами
+#   OrderModel=OrderModel:amount>=minAmount, quantity<=maxQuantity
+#
+#   # Сравнение с частичным совпадением
+#   ProductModel=ProductModel:name=*description, left.category ? notNull
+#############################################
+
+BookingModel=BookingModel:firstname=firstname, lastname=lastname, totalprice=totalprice, depositpaid=depositpaid, bookingdates.checkin=bookingdates.checkin, bookingdates.checkout=bookingdates.checkout, additionalneeds=additionalneeds</code></pre>
+    </div>
+
+      <h2>3) Пример использования в тестах</h2>
+
+    <div class="code-block">
+      <pre><code>void userCanCreateBookingWithValidData() {
+    // какая то логика теста, создаем requestModel, отправляем ее на сервер и получаем в ответ responseModel
+
+    UniversalComparator.match(requestModel, responseModel);
+}</code></pre>
+    </div>
+
+      <h2>Готовый промпт для AI</h2>
+
+   
+      Создай универсальный компаратор сущностей в виде утилитарного класса UniversalComparator со статическим методом match(), 
+      который в качестве аргументов принимает 2 объекта одного или разных классов и сравнивает их по полям на равенство, 
+      не равенство, содержит ли поле первого объекта часть из поля второго объекта, или наоборот, больше или меньше поле, 
+      если это цифры. Логику сравнения хочу описывать в файле src/test/resources/model-comparison.properties. 
+      Там я буду описывать это таким образом: <br>
+      BookingModel=BookingModel:firstname=firstname,lastname=lastname,totalprice=totalprice,depositpaid=depositpaid,bookingdates.checkin=bookingdates.checkin,bookingdates.checkout=bookingdates.checkout,additionalneeds=additionalneeds
+   
+      <br>Вначале описываю первый класс, затем равно, затем второй класс, затем двоеточие и перечисляю поля (они не всегда одинаково называются) 
+      и логику сравнения. Причем в комментариях этого файла опиши всю логику сравнения что будет, чтобы я мог пользоваться этой документацией. 
+      Если поля вложенные, то они написаны через точку как например bookingdates.checkout=bookingdates.checkout.
+   
+
+
+      Добавь еще логику не сравнения а просто прописывания что какое то поле может иметь тип данных String или Integer или Long или быть не null, 
+      так как иногда в ответе или запросе может быть отдельное поле, которое не с чем сравнивать у другого класса.
+
+
+  
+      Используй внутри soft assertions из assertJ чтобы при несоответствии тест не падал сразу.
+    </p>
+
+      <p>
+        Данный промпт генерирует все что надо + примеры использования. Кроме того, потом вы всегда можете расширить функциональность 
+        данного класса, попросив добавить возможность сравнения по другим критериям. В идеале надо использовать AI с контекстом вашего проекта (типа Cursor).
+      </p>
+    </div>
+  </body>
+</html>

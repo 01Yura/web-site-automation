@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Custom Entity Comparator</title>
+    <link rel="icon" type="image/png" href="../favicon.png" />
+    <link rel="stylesheet" href="../assets/styles.css" />
+    <script src="../assets/copy-code.js"></script>
+  </head>
+  <body>
+    <div class="language-switcher">
+      <a href="../index.html" class="lang-link">Home</a>
+      <span class="lang-separator">|</span>
+      <a href="custom-comparator.html" class="lang-link active">EN</a>
+      <span class="lang-separator">|</span>
+      <a href="../ru/custom-comparator.html" class="lang-link">RU</a>
+    </div>
+
+    <h1>Custom Entity Comparator</h1>
+
+    <p>
+      In tests, we often compare 2 DTO classes, for example, the one we sent in a POST request and the one we received as a response. 
+      Sometimes they contain the same fields, sometimes different, sometimes partially the same. Ideally, we need to assert each field 
+      according to one or another logic. This is simple if the JSON response consists of 3-5 fields, but what if there are 200 or more fields. 
+      This takes up a lot of space in the test. To save us from constantly writing comparison logic in each test, we can create a custom 
+      comparator, set the comparison logic once in a separate file, and in tests check all 200 fields in one line.
+    </p>
+
+    <div class="tips">
+      <h2>1) Utility class UniversalComparator</h2>
+      <p>This class contains all the object comparison logic.</p>
+
+    <div class="code-block">
+      <pre><code>public final class UniversalComparator {
+
+    private static final String PROPS_PATH = "/model-comparison.properties";
+    private static final Set<String> TWO_CHAR_OPS = Set.of("==", "!=", ">=", "<=", "=*", "*=");
+    private static final Set<String> ONE_CHAR_OPS = Set.of(">", "<");
+
+    private UniversalComparator() {
+    }
+
+    /**
+     * Main method: creates SoftAssertions internally and throws aggregated errors at the end.
+     */
+    public static boolean match(Object left, Object right) {
+        SoftAssertions softly = new SoftAssertions();
+        boolean ok = match(left, right, softly);
+        softly.assertAll(); // will fail after all checks if there were mismatches
+        return ok;
+    }
+
+    /**
+     * Variant with external SoftAssertions — convenient for batch scenarios.
+     */
+    public static boolean match(Object left, Object right, SoftAssertions softly) {
+        Objects.requireNonNull(left, "left object is null");
+        Objects.requireNonNull(right, "right object is null");
+
+        Properties props = loadProps();
+
+        // Key for rules: "LeftClass=RightClass"
+        String key = findRuleKey(props, left.getClass(), right.getClass());
+        if (key == null) {
+            softly.fail("No comparison rule found for pair: %s = %s",
+                    left.getClass().getName(), right.getClass().getName());
+            return false;
+        }
+
+        String ruleBlock = extractRuleBlock(key, props.getProperty(key));
+        if (ruleBlock == null || ruleBlock.isBlank()) {
+            softly.fail("Rule block is empty for key: %s", key);
+            return false;
+        }
+
+        boolean allOk = true;
+        for (String rawRule : splitByComma(ruleBlock)) {
+            String rule = rawRule.trim();
+            if (rule.isEmpty()) continue;
+
+            // Parse one mapping: leftPath OP rightPath
+            Mapping m = parseMapping(rule);
+
+            Object leftVal = resolvePath(left, m.leftPath);
+            Object rightVal = resolvePath(right, m.rightPath);
+
+            boolean thisOk = applyOperator(softly, m.op, key, m.leftPath, m.rightPath, leftVal, rightVal);
+            allOk &= thisOk;
+        }
+        return allOk;
+    }
+
+    // ===== loading and finding rules =====
+
+    private static Properties loadProps() {
+        try (InputStream in = UniversalComparator.class.getResourceAsStream(PROPS_PATH)) {
+            if (in == null) throw new IllegalStateException("Properties not found at " + PROPS_PATH);
+            Properties p = new Properties();
+            p.load(in);
+            return p;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load " + PROPS_PATH, e);
+        }
+    }
+
+    /**
+     * Supported keys:
+     * - "SimpleLeft" (value starts with "SimpleRight:")
+     * - "FqnLeft" (value starts with "FqnRight:")
+     * Search in this order.
+     */
+    private static String findRuleKey(Properties p, Class<?> left, Class<?> right) {
+        String k1 = left.getSimpleName();
+        if (p.containsKey(k1)) {
+            String value = p.getProperty(k1);
+            if (value != null && value.startsWith(right.getSimpleName() + ":")) {
+                return k1;
+            }
+        }
+
+        String k2 = left.getName();
+        if (p.containsKey(k2)) {
+            String value = p.getProperty(k2);
+            if (value != null && value.startsWith(right.getName() + ":")) {
+                return k2;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Custom format: after equals sign goes the list of rules.
+     */
+    private static String extractRuleBlock(String key, String value) {
+        // expect: BookingModel=BookingModel:firstname=firstname,...
+        int idx = value.indexOf(':');
+        if (idx < 0) return value; // allow without colon (entire list)
+        return value.substring(idx + 1).trim();
+    }
+
+    private static List<String> splitByComma(String s) {
+        // simple splitting by commas (without quotes and escaping)
+        String[] parts = s.split("\\s*,\\s*");
+        return Arrays.asList(parts);
+    }
+
+    // ===== parsing one rule =====
+
+    private static Mapping parseMapping(String rule) {
+        // Search first for two-character operators, then one-character. By priority.
+        for (String op : TWO_CHAR_OPS) {
+            int pos = rule.indexOf(op);
+            if (pos > 0 && pos < rule.length() - op.length()) {
+                String left = rule.substring(0, pos).trim();
+                String right = rule.substring(pos + op.length()).trim();
+                return new Mapping(left, op, right);
+            }
+        }
+        for (String op : ONE_CHAR_OPS) {
+            int pos = rule.indexOf(op);
+            if (pos > 0 && pos < rule.length() - op.length()) {
+                String left = rule.substring(0, pos).trim();
+                String right = rule.substring(pos + op.length()).trim();
+                return new Mapping(left, op, right);
+            }
+        }
+        // by default — equality (==), if operator not specified: a=b  OR just a=b without explicit "=="
+        int eq = rule.indexOf('=');
+        if (eq > 0 && eq < rule.length() - 1) {
+            String left = rule.substring(0, eq).trim();
+            String right = rule.substring(eq + 1).trim();
+            return new Mapping(left, "==", right);
+        }
+        throw new IllegalArgumentException("Bad rule mapping: " + rule);
+    }
+
+    private static Object resolvePath(Object root, String path) {
+        if (root == null || path == null || path.isEmpty()) return null;
+        String[] parts = path.split(Pattern.quote("."));
+        Object cur = root;
+        for (String part : parts) {
+            if (cur == null) return null;
+            cur = getProperty(cur, part);
+        }
+        return cur;
+    }
+
+    // ===== resolving fields by path a.b.c =====
+
+    private static Object getProperty(Object obj, String name) {
+        Class<?> c = obj.getClass();
+
+        // 1) getter: getName()/isName()
+        String cap = name.substring(0, 1).toUpperCase() + name.substring(1);
+        Method m = findMethod(c, "get" + cap);
+        if (m == null) m = findMethod(c, "is" + cap);
+        if (m != null) {
+            try {
+                return m.invoke(obj);
+            } catch (Exception ignored) {
+            }
+        }
+
+        // 2) field
+        Field f = findField(c, name);
+        if (f != null) {
+            try {
+                f.setAccessible(true);
+                return f.get(obj);
+            } catch (Exception ignored) {
+            }
+        }
+
+        return null;
+    }
+
+    private static Method findMethod(Class<?> c, String name) {
+        Class<?> cur = c;
+        while (cur != null && cur != Object.class) {
+            for (Method m : cur.getDeclaredMethods()) {
+                if (m.getName().equals(name) && m.getParameterCount() == 0) {
+                    m.setAccessible(true);
+                    return m;
+                }
+            }
+            cur = cur.getSuperclass();
+        }
+        return null;
+    }
+
+    private static Field findField(Class<?> c, String name) {
+        Class<?> cur = c;
+        while (cur != null && cur != Object.class) {
+            for (Field f : cur.getDeclaredFields()) {
+                if (f.getName().equals(name)) return f;
+            }
+            cur = cur.getSuperclass();
+        }
+        return null;
+    }
+
+    private static boolean applyOperator(SoftAssertions softly,
+                                         String op, String key,
+                                         String lPath, String rPath,
+                                         Object lVal, Object rVal) {
+
+        String ctx = "[" + key + " :: " + lPath + " " + op + " " + rPath + "]";
+
+        switch (op) {
+            case "==": {
+                boolean ok = Objects.equals(lVal, rVal);
+                softly.assertThat(ok)
+                        .as("%s expected EQUALS, but was: left=%s right=%s", ctx, lVal, rVal)
+                        .isTrue();
+                return ok;
+            }
+            case "!=": {
+                boolean ok = !Objects.equals(lVal, rVal);
+                softly.assertThat(ok)
+                        .as("%s expected NOT EQUALS, but both were: %s", ctx, lVal)
+                        .isTrue();
+                return ok;
+            }
+            case "*=": { // left contains right
+                boolean ok = contains(asString(lVal), asString(rVal));
+                softly.assertThat(ok)
+                        .as("%s expected LEFT CONTAINS RIGHT, left=%s right=%s", ctx, lVal, rVal)
+                        .isTrue();
+                return ok;
+            }
+            case "=*": { // right contains left
+                boolean ok = contains(asString(rVal), asString(lVal));
+                softly.assertThat(ok)
+                        .as("%s expected RIGHT CONTAINS LEFT, left=%s right=%s", ctx, lVal, rVal)
+                        .isTrue();
+                return ok;
+            }
+            case ">":
+            case ">=":
+            case "<":
+            case "<=": {
+                BigDecimal ln = toNumber(lVal);
+                BigDecimal rn = toNumber(rVal);
+                boolean ok;
+                if (ln == null || rn == null) {
+                    ok = false;
+                } else {
+                    int cmp = ln.compareTo(rn);
+                    ok = switch (op) {
+                        case ">" -> cmp > 0;
+                        case ">=" -> cmp >= 0;
+                        case "<" -> cmp < 0;
+                        case "<=" -> cmp <= 0;
+                        default -> false;
+                    };
+                }
+                softly.assertThat(ok)
+                        .as("%s expected NUMERIC %s, left=%s right=%s", ctx, op, lVal, rVal)
+                        .isTrue();
+                return ok;
+            }
+            default:
+                softly.fail("%s unknown operator: %s", ctx, op);
+                return false;
+        }
+    }
+
+    // ===== applying operators =====
+
+    private static String asString(Object o) {
+        return o == null ? null : String.valueOf(o);
+    }
+
+    private static boolean contains(String a, String b) {
+        if (a == null || b == null) return false;
+        return a.contains(b);
+    }
+
+    private static BigDecimal toNumber(Object o) {
+        if (o == null) return null;
+        if (o instanceof BigDecimal bd) return bd;
+        if (o instanceof Number n) return new BigDecimal(n.toString());
+        try {
+            return new BigDecimal(o.toString().trim());
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private record Mapping(String leftPath, String op, String rightPath) {
+    }
+}</code></pre>
+    </div>
+
+      <h2>2) File src/main/resources/model-comparison.properties</h2>
+
+    <div class="code-block">
+      <pre><code>#############################################
+# model-comparison.properties - Model comparison rules configuration
+#
+# This file defines rules for comparing objects of different classes
+# using UniversalComparator.match().
+#
+# SYNTAX:
+#   LeftClass=RightClass: rule1, rule2, ...
+#
+# COMPARISON RULES:
+# 1) Field mapping (comparing field values):
+#    leftPath OP rightPath
+#      OP (operators):
+#        ==   equality (Objects.equals)
+#        !=   inequality
+#        *=   LEFT contains RIGHT   (left.toString contains right.toString)
+#        =*   RIGHT contains LEFT
+#        >,<,>=,<= for numeric comparisons (conversion to BigDecimal)
+#    If OP is not specified (e.g. "a=b"), "==" is used by default.
+#
+#    Field paths:
+#      - nested fields through dot: bookingdates.checkin
+#      - access through getters (getX/isX) or directly to fields
+#
+# 2) Predicates (checking field properties without comparing values):
+#    side.path ? predicate
+#      side:  left | right     <-- specifies which side to check
+#      predicate:
+#        notNull | nonNull | "not null"  - null check
+#        type:<TYPES>          (separators: '|' or ',')
+#          Supported types: String, Integer, Long, Double, Number, BigDecimal,
+#                           Boolean, Enum, UUID, and others,
+#                           or class simpleName (without package)
+#
+#    Examples:
+#      left.referenceId ? notNull
+#      left.amount ? type:Integer|Long|BigDecimal
+#      right.meta.id ? type:Long
+#
+# RULE KEYS:
+#   - Simple: "LeftSimpleName=RightSimpleName" (e.g.: BookingModel=BookingModel)
+#   - Full: "LeftFqn=RightFqn" (e.g.: api.models.BookingModel=api.models.BookingModel)
+#
+# EXAMPLES:
+#   # Comparing all BookingModel fields with BookingModel
+#   BookingModel=BookingModel:firstname=firstname, lastname=lastname, totalprice=totalprice
+#
+#   # Comparison with type checking
+#   UserModel=UserModel:id=id, name=name, left.email ? type:String, right.phone ? notNull
+#
+#   # Comparison with numeric operators
+#   OrderModel=OrderModel:amount>=minAmount, quantity<=maxQuantity
+#
+#   # Comparison with partial matching
+#   ProductModel=ProductModel:name=*description, left.category ? notNull
+#############################################
+
+BookingModel=BookingModel:firstname=firstname, lastname=lastname, totalprice=totalprice, depositpaid=depositpaid, bookingdates.checkin=bookingdates.checkin, bookingdates.checkout=bookingdates.checkout, additionalneeds=additionalneeds</code></pre>
+    </div>
+
+      <h2>3) Example usage in tests</h2>
+
+    <div class="code-block">
+      <pre><code>void userCanCreateBookingWithValidData() {
+    // some test logic, create requestModel, send it to server and get responseModel in response
+
+    UniversalComparator.match(requestModel, responseModel);
+}</code></pre>
+    </div>
+
+      <h2>Ready prompt for AI</h2>
+
+    <p>
+      Create a universal entity comparator as a utility class UniversalComparator with a static method match(), 
+      which takes 2 objects of the same or different classes as arguments and compares them by fields for equality, 
+      inequality, whether the field of the first object contains part of the field of the second object, or vice versa, 
+      greater or less field, if these are numbers. I want to describe the comparison logic in the file src/test/resources/model-comparison.properties. 
+      There I will describe it like this: 
+      <code>BookingModel=BookingModel:firstname=firstname,lastname=lastname,totalprice=totalprice,depositpaid=depositpaid,bookingdates.checkin=bookingdates.checkin,bookingdates.checkout=bookingdates.checkout,additionalneeds=additionalneeds</code>
+    </p>
+
+    <p>
+      First I describe the first class, then equals, then the second class, then colon and list the fields (they are not always named the same) 
+      and comparison logic. And in the comments of this file describe all the comparison logic that will be, so I can use this documentation. 
+      If fields are nested, they are written through a dot like bookingdates.checkout=bookingdates.checkout.
+    </p>
+
+    <p>
+      Add also logic not for comparison but just for specifying that some field can have data type String or Integer or Long or be not null, 
+      since sometimes in the response or request there can be a separate field that has nothing to compare with in another class.
+    </p>
+
+    <p>
+      Use soft assertions from assertJ inside so that when there is a mismatch, the test does not fail immediately.
+    </p>
+
+      <p>
+        This prompt generates everything needed + usage examples. Moreover, you can always extend the functionality of this class later, 
+        asking to add the ability to compare by other criteria. Ideally, you should use AI with the context of your project (like Cursor).
+      </p>
+    </div>
+  </body>
+</html>
