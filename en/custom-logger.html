@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Custom Framework Logger for IDE</title>
+    <link rel="icon" type="image/png" href="../favicon.png" />
+    <link rel="stylesheet" href="../assets/styles.css" />
+    <script src="../assets/copy-code.js"></script>
+  </head>
+  <body>
+    <div class="language-switcher">
+      <a href="../index.html" class="lang-link">Home</a>
+      <span class="lang-separator">|</span>
+      <a href="../ru/custom-logger.html" class="lang-link">RU</a>
+      <span class="lang-separator">|</span>
+      <a href="custom-logger.html" class="lang-link active">EN</a>
+    </div>
+
+    <h1>Custom Framework Logger for IDE</h1>
+
+    <p>
+      Adding a custom logger to make it convenient to read requests-responses
+      and visually separate headers, method body, etc. Instead of using default
+      .addFilters(List.of( new RequestLoggingFilter(), new
+      ResponseLoggingFilter()));
+    </p>
+
+    <div class="tips">
+      <h2>Implementation</h2>
+
+      <p>
+        Add the <code>CustomLoggingFilter</code> class to the
+        <code>common/loggers</code> package with the following content:
+      </p>
+
+      <div class="code-block">
+        <pre><code>public class CustomLoggingFilter implements Filter {
+
+    private final ObjectWriter prettyPrinter = new ObjectMapper().writerWithDefaultPrettyPrinter();
+
+    @Override
+    public Response filter(FilterableRequestSpecification requestSpec,
+                           FilterableResponseSpecification responseSpec,
+                           FilterContext ctx) {
+
+        System.out.println("---------- REQUEST >>>>>>>>>>");
+        System.out.println(requestSpec.getMethod() + " " + requestSpec.getURI());
+        System.out.println();
+
+        System.out.println("Request Headers:");
+        requestSpec.getHeaders().forEach(header ->
+                System.out.println(header.getName() + ": " + header.getValue())
+        );
+
+        if (requestSpec.getBody() != null) {
+            System.out.println();
+            System.out.println("Request Body:");
+            try {
+                String prettyBody = prettyPrinter.writeValueAsString(
+                        new ObjectMapper().readTree(requestSpec.getBody().toString()));
+                System.out.println(prettyBody);
+            } catch (Exception e) {
+                System.out.println("Raw body (could not format as JSON):\n" + requestSpec.getBody());
+            }
+        }
+
+
+        Response response = ctx.next(requestSpec, responseSpec);
+
+        System.out.println();
+        System.out.println("<<<<<<<<<< RESPONSE ----------");
+        System.out.println("Status Code: " + response.getStatusCode());
+        System.out.println();
+
+        System.out.println("Response Headers:");
+        Headers responseHeaders = response.getHeaders();
+        responseHeaders.forEach(header ->
+                System.out.println(header.getName() + ": " + header.getValue())
+        );
+        System.out.println();
+        System.out.println("Response Body:");
+        System.out.println(response.getBody().asPrettyString());
+        System.out.println("------------------------------");
+        System.out.println();
+        System.out.println();
+
+        return response;
+    }
+}</code></pre>
+      </div>
+
+      <h3>Usage Examples</h3>
+
+      <p>Then you can use it in requestSpecification as a filter:</p>
+
+      <h4
+        style="
+          border-bottom: 2px solid #2c7be5;
+          padding-bottom: 8px;
+          margin-bottom: 16px;
+        "
+      >
+        1. In RequestSpecBuilder
+      </h4>
+
+      <div class="code-block">
+        <pre><code>private static RequestSpecBuilder defaultRequestSpecBuilder() {
+    return new RequestSpecBuilder()
+            .setBaseUri(Config.getProperty("apiBaseUrl"))
+            .setContentType(ContentType.JSON)
+            .setAccept(ContentType.JSON)
+            .addFilters(List.of(new CustomLoggingFilter())); 
+}</code></pre>
+      </div>
+
+      <h4
+        style="
+          border-bottom: 2px solid #2c7be5;
+          padding-bottom: 8px;
+          margin-bottom: 16px;
+        "
+      >
+        2. In given() method
+      </h4>
+
+      <div class="code-block">
+        <pre><code>given()
+        .baseUri("https://restful-booker.herokuapp.com")
+        .contentType(ContentType.JSON)
+        .filters(List.of(new CustomLoggingFilter()))
+        .body()
+        // ... rest of the request</code></pre>
+      </div>
+
+      <h3>Benefits</h3>
+
+      <ul>
+        <li>
+          <strong>Visual separation</strong> — clear distinction between request
+          and response sections, URL, headers and request body and -----------
+          between requests makes reading logs visually convenient when dealing
+          with a large sequence of requests
+        </li>
+        <li>
+          <strong>Customizable</strong> — you can modify the output format as
+          needed
+        </li>
+      </ul>
+
+      <h3>Required Dependencies</h3>
+
+      <p>
+        Make sure you have the following dependencies in your
+        <code>pom.xml</code>:
+      </p>
+
+      <div class="code-block">
+        <pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;io.rest-assured&lt;/groupId&gt;
+    &lt;artifactId&gt;rest-assured&lt;/artifactId&gt;
+    &lt;version&gt;5.3.2&lt;/version&gt;
+&lt;/dependency&gt;
+
+&lt;dependency&gt;
+    &lt;groupId&gt;com.fasterxml.jackson.core&lt;/groupId&gt;
+    &lt;artifactId&gt;jackson-databind&lt;/artifactId&gt;
+    &lt;version&gt;2.15.2&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+      </div>
+
+      <h3>Result</h3>
+
+      <p>
+        As a result, the log in IDE will look not like this (default logging)
+        and like this (with CustomLoggingFilter):
+      </p>
+
+      <div style="display: flex; gap: 20px; flex-wrap: wrap">
+        <div style="flex: 1; min-width: 300px">
+          <h4 style="margin-bottom: 10px; color: #e74c3c">Default Logging</h4>
+          <div class="code-block">
+            <pre><code>Request method:	POST
+Request URI:	https://restful-booker.herokuapp.com/booking
+Proxy:			&lt;none&gt;
+Request params:	&lt;none&gt;
+Query params:	&lt;none&gt;
+Form params:	&lt;none&gt;
+Path params:	&lt;none&gt;
+Headers:		Accept=*/*
+			Content-Type=application/json
+Cookies:		&lt;none&gt;
+Multiparts:		&lt;none&gt;
+Body:
+{
+    "firstname": "Vasya",
+    "lastname": "Pupkin",
+    "totalprice": 1000,
+    "depositpaid": true,
+    "bookingdates": {
+        "checkin": "2023-01-01",
+        "checkout": "2024-01-01"
+    },
+    "additionalneeds": "Breakfast"
+}
+HTTP/1.1 200 OK
+Content-Length: 201
+Content-Type: application/json; charset=utf-8
+Date: Tue, 14 Oct 2025 19:57:39 GMT
+Etag: W/"c9-MmRgxFHC82j44Z0wVuen81mDM4g"
+Nel: {"report_to":"heroku-nel"...}
+Report-To: {"group":"heroku-nel"...}
+Reporting-Endpoints: heroku-nel="https://nel.heroku.com/..."
+Server: Heroku
+Via: 1.1 heroku-router
+X-Powered-By: Express
+
+{
+    "bookingid": 3709,
+    "booking": {
+        "firstname": "Vasya",
+        "lastname": "Pupkin",
+        "totalprice": 1000,
+        "depositpaid": true,
+        "bookingdates": {
+            "checkin": "2023-01-01",
+            "checkout": "2024-01-01"
+        },
+        "additionalneeds": "Breakfast"
+    }
+}</code></pre>
+          </div>
+        </div>
+
+        <div style="flex: 1; min-width: 300px">
+          <h4 style="margin-bottom: 10px; color: #27ae60">
+            CustomLoggingFilter
+          </h4>
+          <div class="code-block">
+            <pre><code>---------- REQUEST >>>>>>>>>>
+POST https://restful-booker.herokuapp.com/booking
+
+Request Headers:
+Accept: */*
+Content-Type: application/json
+
+Request Body:
+{
+  "firstname" : "Vasya",
+  "lastname" : "Pupkin",
+  "totalprice" : 1000,
+  "depositpaid" : true,
+  "bookingdates" : {
+    "checkin" : "2023-01-01",
+    "checkout" : "2024-01-01"
+  },
+  "additionalneeds" : "Breakfast"
+}
+
+&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt; RESPONSE ----------
+Status Code: 200
+
+Response Headers:
+Content-Length: 201
+Content-Type: application/json; charset=utf-8
+Date: Tue, 14 Oct 2025 20:04:35 GMT
+Etag: W/"c9-FuOr6xR9Pvkbr3f8jfaOmAWNlz4"
+Nel: {"report_to":"heroku-nel"...}
+Report-To: {"group":"heroku-nel"...}
+Reporting-Endpoints: heroku-nel="https://nel.heroku.com/..."
+Server: Heroku
+Via: 1.1 heroku-router
+X-Powered-By: Express
+
+Response Body:
+{
+    "bookingid": 1846,
+    "booking": {
+        "firstname": "Vasya",
+        "lastname": "Pupkin",
+        "totalprice": 1000,
+        "depositpaid": true,
+        "bookingdates": {
+            "checkin": "2023-01-01",
+            "checkout": "2024-01-01"
+        },
+        "additionalneeds": "Breakfast"
+    }
+}
+------------------------------</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <p style="margin-top: 20px; font-style: italic; color: #666">
+        Of course, you can ask AI to add additional elements to logging like
+        Cookies and so on and customize the log for yourself
+      </p>
+    </div>
+  </body>
+</html>
