@@ -91,17 +91,17 @@
           <tr>
             <td>contains() (attr)</td>
             <td><code>//tag[contains(@attr,"value")]</code></td>
-            <td><code>//input[contains(@placeholder,"usern")]</code></td>
+            <td><code>//input[contains(@placeholder,"Usern")]</code></td>
             <td>Partial attribute match</td>
             <td>
               <code>$("input[placeholder*='user']")</code><br />
               <code>$(byAttribute("placeholder","user"))</code>
               <span class="tiny">(contains)</span><br />
-              <code>$(byXpath("//input[contains(@placeholder,'usern')]"))</code>
+              <code>$(byXpath("//input[contains(@placeholder,'Usern')]"))</code>
             </td>
             <td>
               <code
-                >driver.findElement(By.xpath("//input[contains(@placeholder,'usern')]"))</code
+                >driver.findElement(By.xpath("//input[contains(@placeholder,'Usern')]"))</code
               >
             </td>
           </tr>

@@ -83,7 +83,6 @@ if not there either — get from config.properties.</span></span>;
     <div class="tips">
       <h2>Code Explanation</h2>
 
-      <h3>Singleton Pattern</h3>
       <p>
         The Config class implements the Singleton pattern for centralized
         application configuration management. Key features:
@@ -91,6 +90,8 @@ if not there either — get from config.properties.</span></span>;
       <ul>
         <li>
           Loads settings from config.properties file during initialization
+          (object is created immediately when the class is loaded, not on first
+          access. This is called "eager initialization")
         </li>
         <li>
           Supports priority-based configuration retrieval (system properties >
@@ -111,11 +112,13 @@ if not there either — get from config.properties.</span></span>;
       <ol>
         <li>
           <strong>Java System Properties</strong> (System.getProperty) - passed
-          via -D parameters when starting JVM
+          via -D parameters when starting JVM. This is convenient for running
+          tests or jar directly when you want to quickly override a value (for
+          example, to a different URL).
         </li>
         <li>
-          <strong>Environment Variables</strong> (System.getenv) - set in OS or
-          container
+          <strong>Environment Variables</strong> (System.getenv) - set in OS,
+          container or CI/CD pipeline
         </li>
         <li>
           <strong>config.properties file</strong> - standard method for local
@@ -123,7 +126,7 @@ if not there either — get from config.properties.</span></span>;
         </li>
       </ol>
 
-      <h3>Usage Examples</h3>
+      <h3>Configuration Priority Usage Examples</h3>
 
       <h4
         style="
