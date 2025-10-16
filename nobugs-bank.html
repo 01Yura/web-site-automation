@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>NoBugs Bank</title>
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <link rel="stylesheet" href="assets/styles.css" />
+    <script src="assets/copy-code.js"></script>
+  </head>
+  <body>
+    <div class="language-switcher">
+      <a href="index.html" class="lang-link">Home</a>
+      <span class="lang-separator">|</span>
+      <a href="ru/selenoid.html" class="lang-link">RU</a>
+      <span class="lang-separator">|</span>
+      <a href="en/selenoid.html" class="lang-link">EN</a>
+    </div>
+
+    <h1>NoBugs Bank</h1>
+
+    <div class="info-section">
+   
+        <a
+          href="http://194.87.199.75/"
+          target="_blank"
+          rel="noopener"
+          class="app-link"
+        >
+          <strong>Открыть NoBugs Bank приложение</strong>
+        </a>
+      </p>
+    </div>
+
+    <div class="info-section">
+      <p>
+        Данное приложение поднято в докере, используя следующий
+        docker-compose.yml:
+      </p>
+
+      <div class="code-block">
+        <pre><code>services:
+  backend:
+    image: nobugsme/nbank:with_username_error_fix
+    ports:
+      - "4111:4111"
+
+  frontend:
+    image: nobugsme/nbank-ui:with_nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - backend</code></pre>
+      </div>
+    </div>
+
+    <div class="warning">
+      <strong>Важное замечание!</strong>
+      <br />
+        Обращаю внимание, что здесь используется образ бэкенда <strong>"nobugsme/nbank:with_username_error_fix"</strong> от 11.10.2025 (<a
+        href="https://hub.docker.com/r/nobugsme/nbank/tags"
+        target="_blank"
+        rel="noopener"
+      >
+        https://hub.docker.com/r/nobugsme/nbank/tags </a
+      >). Образы с точно таким же названием, но более ранней датой, которые
+      вполне возможно скачаны у вас локально, совсем немного отличаются
+      (например сообщением ошибок, отправляемых бэкендом), поэтому не
+      удивляйтесь если какие-то тесты, которые успешно проходят у вас локально,
+      не будут проходить тут. Это потому, что вы скорее всего писали тесты на
+      предыдущую версию образа. Они отличаются немного!
+      <br />
+      Следующий образ, который с базой данных, отличается еще сильнее. Там
+      контракт одной из ручек изменен (добавлены пару новых полей в JSON'е
+      ответа).
+    </div>
+  </body>
+</html>
