@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>NoBugs Bank</title>
+    <link rel="icon" type="image/png" href="../favicon.png" />
+    <link rel="stylesheet" href="../assets/styles.css" />
+    <script src="../assets/copy-code.js"></script>
+  </head>
+  <body>
+    <div class="language-switcher">
+      <a href="../index.html" class="lang-link">Home</a>
+      <span class="lang-separator">|</span>
+      <a href="../ru/nobugs-bank.html" class="lang-link">RU</a>
+      <span class="lang-separator">|</span>
+      <a href="nobugs-bank.html" class="lang-link active">EN</a>
+    </div>
+
+    <h1>NoBugs Bank</h1>
+
+    <div class="info-section">
+   
+        <a
+          href="http://194.87.199.75/"
+          target="_blank"
+          rel="noopener"
+          class="app-link"
+        >
+          <strong>Open NoBugs Bank Application</strong>
+        </a>
+      </p>
+    </div>
+
+    <div class="info-section">
+      <p>
+        This application is deployed in Docker using the following
+        docker-compose.yml:
+      </p>
+
+      <div class="code-block">
+        <pre><code>services:
+  backend:
+    image: nobugsme/nbank:with_username_error_fix
+    ports:
+      - "4111:4111"
+
+  frontend:
+    image: nobugsme/nbank-ui:with_nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - backend</code></pre>
+      </div>
+    </div>
+
+    <div class="warning">
+      <strong>Important Notice!</strong>
+      <br />
+        Please note that here we use the backend image <strong>"nobugsme/nbank:with_username_error_fix"</strong> from 11.10.2025 (<a
+        href="https://hub.docker.com/r/nobugsme/nbank/tags"
+        target="_blank"
+        rel="noopener"
+      >
+        https://hub.docker.com/r/nobugsme/nbank/tags </a
+      >). Images with exactly the same name but an earlier date, which may have been downloaded locally, 
+      differ slightly (for example, in error messages sent by the backend), so don't be surprised 
+      if some tests that pass successfully locally won't pass here. This is because you most likely 
+      wrote tests for the previous version of the image. They differ slightly!
+      <br />
+      The next image, which includes the database, differs even more. There the contract of one of the 
+      endpoints has been changed (a couple of new fields have been added to the JSON response).
+    </div>
+  </body>
+</html>
