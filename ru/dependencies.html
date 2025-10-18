@@ -112,7 +112,7 @@
         </tr>
         <tr>
           <td class="pkg"><strong>rgxgen</strong></td>
-          <td>Генерация строк по regex (валидные тестовые данные).</td>
+          <td>Генерация строк по regex. Можно использовать для генерации случайных данных для полей DTO классов.</td>
           <td>
             <a
               href="https://mvnrepository.com/artifact/com.github.curious-odd-man/rgxgen"
@@ -136,7 +136,7 @@
         </tr>
         <tr>
           <td class="pkg"><strong>Lombok</strong></td>
-          <td>Автогенерация геттеров, сеттеров, конструкторов, билдера.</td>
+          <td>Автогенерация геттеров, сеттеров, конструкторов, билдера. Must have! (Иначе придется писать много рутинного кода).</td>
           <td>
             <a
               href="https://mvnrepository.com/artifact/org.projectlombok/lombok"
@@ -150,7 +150,7 @@
           <td class="pkg">
             <strong>Apache Commons Lang (commons-lang3)</strong>
           </td>
-          <td>Набор утилит: строки, числа, объекты, коллекции и др.</td>
+          <td>Набор утилит: строки, числа, объекты, коллекции и др. Удобно использовать для генерации случайных данных.</td>
           <td>
             <a
               href="https://mvnrepository.com/artifact/org.apache.commons/commons-lang3"
@@ -162,7 +162,7 @@
         </tr>
         <tr>
           <td class="pkg"><strong>AssertJ</strong></td>
-          <td>Читаемые fluent-ассерты (<code>assertThat</code>).</td>
+          <td>Удобные ассерты. Так же нужен для создания soft assertions. (<code>assertThat</code>).</td>
           <td>
             <a
               href="https://mvnrepository.com/artifact/org.assertj/assertj-core"
@@ -177,8 +177,8 @@
           <td>
             Простая реализация логирования для вывода в консоль. Добавлять не
             обязательно. Просто чтобы сообщение об отсутствии SLF4J провайдера
-            не мозолило глаза
-          </td>
+            не мозолило глаза в логах при запуске тестов в IDE.
+            </td>
           <td>
             <a
               href="https://mvnrepository.com/artifact/org.slf4j/slf4j-simple"
