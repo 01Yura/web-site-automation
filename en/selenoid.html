@@ -82,8 +82,8 @@
           >
           <ul>
             <li>
-              Selenoid <em>does not</em> download them automatically, and tests
-              don't start due to missing images. Download the required images
+              Selenoid does not download them automatically, and tests don't
+              start due to missing images. Download the required images
               manually.
             </li>
           </ul>
@@ -93,11 +93,10 @@
           <strong>Syntax errors in <code>browsers.json</code>.</strong>
           <ul>
             <li>
-              For <code>"chrome"</code> and <code>"opera"</code> the
-              <code>path</code> key in <code>browsers.json</code> must be
-              <code>"/"</code>, not <code>"/wd/hub"</code>. For
-              <code>"firefox"</code> keep <code>"/wd/hub"</code>. Be careful,
-              otherwise the browser will not start.
+              For "chrome" and "opera" the <code>path</code> key in
+              <code>browsers.json</code> must be <code>"/"</code>, not
+              <code>"/wd/hub"</code>. For "firefox" keep <code>"/wd/hub"</code>.
+              Be careful, otherwise the browser will not start.
             </li>
             <li>
               Typos in image name/version tag (often confusion in the placement
@@ -127,8 +126,8 @@
           <strong>Video recording is configured incorrectly.</strong>
           <ul>
             <li>
-              Essentially, in <code>docker-compose</code> you just need to add
-              an environment variable with an <u>absolute path</u> to the
+              Essentially, in docker-compose.yml you just need to add an
+              environment variable with an <u>absolute path</u> to the
               <code>video</code> folder:
               <pre>
 environment:
@@ -184,8 +183,8 @@ environment:
           <ul>
             <li>
               In a container, you can't use <code>localhost</code> to access an
-              application running <em>outside</em> the container - specify the
-              real host IP address. <br />Correct example:
+              application running outside the container - specify the real host
+              IP address. <br />Correct example:
               <pre>Configuration.baseUrl = "http://192.168.0.127:3000";</pre>
               Incorrect example:
               <pre>Configuration.baseUrl = "http://localhost:3000";</pre>
