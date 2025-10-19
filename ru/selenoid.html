@@ -151,7 +151,7 @@ environment:
             <li>
               Плюс часто забывают заранее скачать образ рекордера (Selenoid сам
               его не скачает и видеозапись не будет работать):
-              <code>docker pull selenoid/video-recorder:latest-release</code>.
+              <code>docker pull selenoid/video-recorder:latest-release</code>. Добавлять этот образ в docker-compose.yml не нужно, он запустится автоматически, главное просто скачать его один раз.
             </li>
             <li>
               Забывают что нельзя использовать headless mode в тестах. Если
