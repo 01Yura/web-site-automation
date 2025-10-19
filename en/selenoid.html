@@ -6,6 +6,18 @@
     <link rel="icon" type="image/png" href="../favicon.png" />
     <link rel="stylesheet" href="../assets/styles.css" />
     <script src="../assets/copy-code.js"></script>
+    <style>
+      /* Smaller font size for list items on this page */
+      ul li,
+      ol li {
+        font-size: 0.95em;
+      }
+      /* Ensure nested lists inside tips match surrounding text size */
+      .tips ul,
+      .tips ul li {
+        font-size: inherit;
+      }
+    </style>
   </head>
   <body>
     <div class="language-switcher">
@@ -67,10 +79,14 @@
           <strong
             >Browser images specified in <code>browsers.json</code> are not
             downloaded.</strong
-          ><br />
-          Selenoid <em>does not</em> download them automatically, and tests
-          don't start due to missing images. Download the required images
-          manually.
+          >
+          <ul>
+            <li>
+              Selenoid <em>does not</em> download them automatically, and tests
+              don't start due to missing images. Download the required images
+              manually.
+            </li>
+          </ul>
         </li>
 
         <li>
@@ -96,11 +112,15 @@
         <li>
           <strong
             >Path errors in <code>docker-compose.yml</code> (volumes).</strong
-          ><br />
-          Due to incorrect paths, Selenoid can't see <code>browsers.json</code>,
-          UI doesn't connect to Selenoid, and videos aren't written. Check
-          directory mounting (paths specified in volumes) - this is a common
-          error.
+          >
+          <ul>
+            <li>
+              Due to incorrect paths, Selenoid can't see
+              <code>browsers.json</code>, UI doesn't connect to Selenoid, and
+              videos aren't written. Check directory mounting (paths specified
+              in volumes) - this is a common error.
+            </li>
+          </ul>
         </li>
 
         <li>
@@ -139,50 +159,63 @@ environment:
         </li>
 
         <li>
-          <strong>Problems on Windows 10 and Mac with M1 chip.</strong><br />
-          Containers start, but the browser starts and immediately crashes. For
-          Windows, no stable solution has been found; for Mac, there are
-          workaround options only for Chrome version 91 (<a
-            href="https://gist.github.com/AlexRogalskiy/b266e960606dc565c22c3e6bfd9f48df"
-            target="_blank"
-            rel="noopener"
-            >link</a
-          >). Recommendation: use a Linux host or VM/VPS (e.g., Ubuntu Server
-          22.04, ≥10&nbsp;GB disk, ≥2&nbsp;GB RAM), a newer MacBook, or Windows
-          11.
+          <strong>Problems on Windows 10 and Mac with M1 chip.</strong>
+          <ul>
+            <li>
+              Containers start, but the browser starts and immediately crashes.
+              For Windows, no stable solution has been found; for Mac, there are
+              workaround options only for Chrome version 91 (
+              <a
+                href="https://gist.github.com/AlexRogalskiy/b266e960606dc565c22c3e6bfd9f48df"
+                target="_blank"
+                rel="noopener"
+                >link</a
+              >). Recommendation: use a Linux host or VM/VPS (e.g., Ubuntu
+              Server 22.04, ≥10&nbsp;GB disk, ≥2&nbsp;GB RAM), a newer MacBook,
+              or Windows 11.
+            </li>
+          </ul>
         </li>
 
         <li>
           <strong
             >Incorrect IP address of the tested application in tests.</strong
-          ><br />
-          In a container, you can't use <code>localhost</code> to access an
-          application running <em>outside</em> the container - specify the real
-          host IP address. <br />Correct example:
-          <pre>Configuration.baseUrl = "http://192.168.0.127:3000";</pre>
-          Incorrect example:
-          <pre>Configuration.baseUrl = "http://localhost:3000";</pre>
-          Here you must use an IP address, not localhost, because this URL is
-          substituted into the browser address bar opened in the Docker
-          container, and if you specify localhost, the container will think that
-          the application is also running inside the same container, but it is
-          not running in it.
+          >
+          <ul>
+            <li>
+              In a container, you can't use <code>localhost</code> to access an
+              application running <em>outside</em> the container - specify the
+              real host IP address. <br />Correct example:
+              <pre>Configuration.baseUrl = "http://192.168.0.127:3000";</pre>
+              Incorrect example:
+              <pre>Configuration.baseUrl = "http://localhost:3000";</pre>
+              Here you must use an IP address, not localhost, because this URL
+              is substituted into the browser address bar opened in the Docker
+              container, and if you specify localhost, the container will think
+              that the application is also running inside the same container,
+              but it is not running in it.
+            </li>
+          </ul>
         </li>
 
         <li>
-          <strong>Manual browser check in UI.</strong><br />
-          In general, after installing Selenoid, Selenoid UI and downloading
-          browser images, you need to make sure that browsers can open at least
-          manually, so that later, if something doesn't work, you understand
-          whether it's a problem with tests or Selenoid configuration. For this,
-          after starting Selenoid (docker-compose up -d), go to its
-          ip_address:8080, at the top right there should be 2 CONNECTED labels,
-          then go to the CAPABILITIES tab, select a browser from the dropdown
-          list (if there's no list, then there's a problem with browsers.json or
-          the path to it) and launch it manually. A browser window should
-          appear. If it appears, congratulations - Selenoid is configured, now
-          the main thing is to correctly write everything in the tests
-          themselves.
+          <strong>Manual browser check in UI.</strong>
+          <ul>
+            <li>
+              In general, after installing Selenoid, Selenoid UI and downloading
+              browser images, you need to make sure that browsers can open at
+              least manually, so that later, if something doesn't work, you
+              understand whether it's a problem with tests or Selenoid
+              configuration. For this, after starting Selenoid (docker-compose
+              up -d), go to its ip_address:8080, at the top right there should
+              be 2 CONNECTED labels, then go to the CAPABILITIES tab, select a
+              browser from the dropdown list (if there's no list, then there's a
+              problem with browsers.json or the path to it) and launch it
+              manually. A browser window should appear. If it appears,
+              congratulations - Selenoid is configured, now the main thing is to
+              correctly write everything in the tests themselves.
+            </li>
+          </ul>
         </li>
       </ol>
     </div>
