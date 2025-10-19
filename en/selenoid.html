@@ -27,7 +27,8 @@
         rel="noopener"
         >link</a
       >), but it only works for Chrome version 91. I managed to run it only on
-      Linux (Ubuntu; it will probably work on other Linux distributions too).
+      Linux (Ubuntu; it will probably work on other Linux distributions too), on
+      Windows 11, and on newer MacBooks.
     </div>
 
     <ul>
@@ -77,13 +78,17 @@
           <ul>
             <li>
               For <code>"chrome"</code> and <code>"opera"</code> the
-              <code>path</code> key should be <code>"/"</code>, not
-              <code>"/wd/hub"</code>.
+              <code>path</code> key in <code>browsers.json</code> must be
+              <code>"/"</code>, not <code>"/wd/hub"</code>. For
+              <code>"firefox"</code> keep <code>"/wd/hub"</code>. Be careful,
+              otherwise the browser will not start.
             </li>
             <li>
               Typos in image name/version tag (often confusion in the placement
               of underscores or colons when specifying image version, ChatGPT is
-              guilty of this).
+              guilty of this). For example, instead of
+              <code>selenoid/vnc_chrome:128.0</code> it's written
+              <code>selenoid/vnc_chrome_128.0</code>.
             </li>
           </ul>
         </li>
@@ -129,6 +134,7 @@ environment:
             </li>
             It should be removed completely, or replaced with
             <pre>Configuration.headless = false;</pre>
+            If there's no screen, there's nothing to record.
           </ul>
         </li>
 
@@ -142,7 +148,8 @@ environment:
             rel="noopener"
             >link</a
           >). Recommendation: use a Linux host or VM/VPS (e.g., Ubuntu Server
-          22.04, ≥10&nbsp;GB disk, ≥2&nbsp;GB RAM).
+          22.04, ≥10&nbsp;GB disk, ≥2&nbsp;GB RAM), a newer MacBook, or Windows
+          11.
         </li>
 
         <li>
