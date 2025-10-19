@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Конфигурация Maven для AssertJ</title>
+    <link rel="icon" type="image/png" href="../favicon.png" />
+    <link rel="stylesheet" href="../assets/styles.css" />
+    <script src="../assets/copy-code.js"></script>
+    <style>
+      .back-link {
+        margin-bottom: 20px;
+      }
+      .back-link a {
+        color: #007bff;
+        text-decoration: none;
+      }
+      .back-link a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="language-switcher">
+      <a href="../index.html" class="lang-link">Home</a>
+      <span class="lang-separator">|</span>
+      <a href="dependencies.html" class="lang-link active">RU</a>
+      <span class="lang-separator">|</span>
+      <a href="../en/dependencies.html" class="lang-link">EN</a>
+    </div>
+
+    <div class="back-link">
+      <a href="dependencies.html">← Назад к списку зависимостей</a>
+    </div>
+
+    <h1>Конфигурация Maven для AssertJ</h1>
+
+    <p>
+      <strong>Обратите внимание</strong>, что для работы зависимости необходимо
+      помимо нее добавить в pom.xml следующие строки:
+    </p>
+
+    <h2>В конфигурацию maven-surefire-plugin:</h2>
+    <pre>
+&lt;plugin&gt;
+    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+    &lt;artifactId&gt;maven-surefire-plugin&lt;/artifactId&gt;
+    &lt;version&gt;${maven-surefire-plugin.version}&lt;/version&gt;
+    &lt;configuration&gt;
+        &lt;useModulePath&gt;false&lt;/useModulePath&gt;
+        &lt;argLine&gt;
+            ${argLine}
+            -javaagent:"${settings.localRepository}/org/aspectj/aspectjweaver/1.9.24/aspectjweaver-1.9.24.jar"
+            -Daj.weaving.verbose=false
+        &lt;/argLine&gt;
+    &lt;/configuration&gt;
+&lt;/plugin&gt;</pre
+    >
+    <div class="warning">
+      <strong>Обратите внимание.</strong> Здесь указана версия
+      <code>1.9.24</code>, но на самом деле в параметре
+      <code>-javaagent</code> должна быть та версия <code>aspectjweaver</code>,
+      которую вы добавили в качестве зависимости в проект. Не забудьте исправить
+      этот момент у себя.
+    </div>
+
+    <h2>А так же в properties:</h2>
+    <pre>
+&lt;properties&gt;
+    &lt;!--  чтобы ${argLine} не оставался литералом --&gt;
+    &lt;argLine/&gt;
+&lt;/properties&gt;</pre
+    >
+  </body>
+</html>

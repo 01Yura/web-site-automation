@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Maven configuration for AssertJ</title>
+    <link rel="icon" type="image/png" href="../favicon.png" />
+    <link rel="stylesheet" href="../assets/styles.css" />
+    <script src="../assets/copy-code.js"></script>
+    <style>
+      .back-link {
+        margin-bottom: 20px;
+      }
+      .back-link a {
+        color: #007bff;
+        text-decoration: none;
+      }
+      .back-link a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="language-switcher">
+      <a href="../index.html" class="lang-link">Home</a>
+      <span class="lang-separator">|</span>
+      <a href="../ru/dependencies.html" class="lang-link">RU</a>
+      <span class="lang-separator">|</span>
+      <a href="dependencies.html" class="lang-link active">EN</a>
+    </div>
+
+    <div class="back-link">
+      <a href="dependencies.html">← Back to dependencies</a>
+    </div>
+
+    <h1>Maven configuration for AssertJ</h1>
+
+    <p>
+      <strong>Pay attention</strong>: for the dependency to work you also need
+      to add the following snippets to your pom.xml:
+    </p>
+
+    <h2>Into maven-surefire-plugin configuration:</h2>
+    <pre>
+&lt;plugin&gt;
+    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+    &lt;artifactId&gt;maven-surefire-plugin&lt;/artifactId&gt;
+    &lt;version&gt;${maven-surefire-plugin.version}&lt;/version&gt;
+    &lt;configuration&gt;
+        &lt;useModulePath&gt;false&lt;/useModulePath&gt;
+        &lt;argLine&gt;
+            ${argLine}
+            -javaagent:"${settings.localRepository}/org/aspectj/aspectjweaver/1.9.24/aspectjweaver-1.9.24.jar"
+            -Daj.weaving.verbose=false
+        &lt;/argLine&gt;
+    &lt;/configuration&gt;
+&lt;/plugin&gt;</pre
+    >
+    <div class="warning">
+      <strong>Pay attention.</strong> The version <code>1.9.24</code> above is
+      an example. In the <code>-javaagent</code> parameter you must specify the
+      actual version of <code>aspectjweaver</code> that you added as a
+      dependency. Make sure to update it accordingly in your project.
+    </div>
+
+    <h2>And into properties:</h2>
+    <pre>
+&lt;properties&gt;
+    &lt;!--  so that ${argLine} won't remain a literal --&gt;
+    &lt;argLine/&gt;
+&lt;/properties&gt;</pre
+    >
+  </body>
+</html>
