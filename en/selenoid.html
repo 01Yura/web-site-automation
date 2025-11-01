@@ -32,7 +32,8 @@
 
     <div class="warning">
       <strong>WARNING!</strong> I couldn't get Selenoid running on Windows 10
-      and on MacBook with M1 chip (Apple Silicon), although there's a workaround
+      with Docker Desktop (Docker Engine 26.1.4; after upgrading to 28.1.5 it
+      worked) and on MacBook with M1 chip (Apple Silicon), although there's a workaround
       for Mac (<a
         href="https://gist.github.com/AlexRogalskiy/b266e960606dc565c22c3e6bfd9f48df"
         target="_blank"
@@ -146,6 +147,8 @@ environment:
             <li>
               Often people forget to pre-download the recorder image:
               <code>docker pull selenoid/video-recorder:latest-release</code>.
+              You do not need to add this image to <code>docker-compose.yml</code>;
+              it will start automatically, the main thing is to download it once.
             </li>
             <li>
               People forget that you can't use headless mode:
@@ -158,11 +161,12 @@ environment:
         </li>
 
         <li>
-          <strong>Problems on Windows 10 and Mac with M1 chip.</strong>
+          <strong>Problems on Windows 10 (Docker Engine 26.1.4; after upgrading to 28.1.5 it worked) and Mac with M1 chip.</strong>
           <ul>
             <li>
               Containers start, but the browser starts and immediately crashes.
-              For Windows, no stable solution has been found; for Mac, there are
+              If you use Windows, update Docker; after upgrading to 28.1.5 it
+              worked. For Mac, there are
               workaround options only for Chrome version 91 (
               <a
                 href="https://gist.github.com/AlexRogalskiy/b266e960606dc565c22c3e6bfd9f48df"

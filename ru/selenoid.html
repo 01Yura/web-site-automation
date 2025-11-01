@@ -32,7 +32,7 @@
 
     <div class="warning">
       <strong>ВНИМАНИЕ!</strong> У меня не получилось поднять Selenoid на
-      Windows 10 и на MacBook с чипом M1 (Apple Silicon), хотя на Мак есть
+      Windows 10 c Docker Desktop (версия Docker Engine 26.1.4, после обновления до версии 28.1.5 всё зарабтало) и на MacBook с чипом M1 (Apple Silicon), хотя на Мак есть
       костыль (<a
         href="https://gist.github.com/AlexRogalskiy/b266e960606dc565c22c3e6bfd9f48df"
         target="_blank"
@@ -161,11 +161,10 @@ environment:
         </li>
 
         <li>
-          <strong>Проблемы на Windows 10 и Mac с чипом M1.</strong>
+          <strong>Проблемы на Windows 10 (версия Docker Engine 26.1.4, после обновления до версии 28.1.5 всё зарабтало) и Mac с чипом M1.</strong>
           <ul>
             <li>
-              Контейнеры поднимаются, но браузер стартует и сразу падает. Для
-              Windows устойчивого решения не найдено; для Mac существуют
+              Контейнеры поднимаются, но браузер стартует и сразу падает. Если используете Windows, то обновите докер; для Mac существуют
               костыльные варианты только для Chrome версии 91 (
               <a
                 href="https://gist.github.com/AlexRogalskiy/b266e960606dc565c22c3e6bfd9f48df"
