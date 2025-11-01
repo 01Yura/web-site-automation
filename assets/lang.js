@@ -27,6 +27,7 @@
     const desc = document.getElementById("home-desc");
     const homeLabel = document.getElementById("home-switcher-label");
     const attribution = document.getElementById("attribution-text");
+    const miro = document.getElementById("link-miro");
     if (loc) loc.href = lang === "en" ? "en/locators.html" : "ru/locators.html";
     if (deps)
       deps.href =
@@ -38,6 +39,12 @@
       sel.href = lang === "en" ? "en/selenoid.html" : "ru/selenoid.html";
       console.log("Updated Selenoid link to:", sel.href);
     }
+    // Switch Miro board per language
+    if (miro)
+      miro.href =
+        lang === "en"
+          ? "https://miro.com/app/board/uXjVIWaBpE8=/"
+          : "https://miro.com/app/board/uXjVIQHs0mg=/";
     if (title)
       title.textContent =
         lang === "en" ? "Test Automation Materials" : "Материалы по автотестам";
