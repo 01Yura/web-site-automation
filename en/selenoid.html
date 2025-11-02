@@ -33,8 +33,8 @@
     <div class="warning">
       <strong>WARNING!</strong> I couldn't get Selenoid running on Windows 10
       with Docker Desktop (Docker Engine 26.1.4; after upgrading to 28.1.5 it
-      worked) and on MacBook with M1 chip (Apple Silicon), although there's a workaround
-      for Mac (<a
+      worked) and on MacBook with M1 chip (Apple Silicon), although there's a
+      workaround for Mac (<a
         href="https://gist.github.com/AlexRogalskiy/b266e960606dc565c22c3e6bfd9f48df"
         target="_blank"
         rel="noopener"
@@ -47,7 +47,10 @@
     <ul>
       <li>
         Access to <strong>Selenoid</strong>:
-        <a href="http://176.126.103.46:4444/status" target="_blank" rel="noopener"
+        <a
+          href="http://176.126.103.46:4444/status"
+          target="_blank"
+          rel="noopener"
           >view on page</a
         >
       </li>
@@ -56,8 +59,7 @@
         <a href="http://176.126.103.46:8080" target="_blank" rel="noopener"
           >view on page</a
         >
-        (do not run UI tests in multiple threads, the server may crash due to
-        low RAM)
+        (there is a thread limit: max 1; otherwise the server may crash due to low RAM)
       </li>
       <li>
         <strong>browsers.json</strong>:
@@ -147,8 +149,9 @@ environment:
             <li>
               Often people forget to pre-download the recorder image:
               <code>docker pull selenoid/video-recorder:latest-release</code>.
-              You do not need to add this image to <code>docker-compose.yml</code>;
-              it will start automatically, the main thing is to download it once.
+              You do not need to add this image to
+              <code>docker-compose.yml</code>; it will start automatically, the
+              main thing is to download it once.
             </li>
             <li>
               People forget that you can't use headless mode:
@@ -161,13 +164,16 @@ environment:
         </li>
 
         <li>
-          <strong>Problems on Windows 10 (Docker Engine 26.1.4; after upgrading to 28.1.5 it worked) and Mac with M1 chip.</strong>
+          <strong
+            >Problems on Windows 10 (Docker Engine 26.1.4; after upgrading to
+            28.1.5 it worked) and Mac with M1 chip.</strong
+          >
           <ul>
             <li>
               Containers start, but the browser starts and immediately crashes.
               If you use Windows, update Docker; after upgrading to 28.1.5 it
-              worked. For Mac, there are
-              workaround options only for Chrome version 91 (
+              worked. For Mac, there are workaround options only for Chrome
+              version 91 (
               <a
                 href="https://gist.github.com/AlexRogalskiy/b266e960606dc565c22c3e6bfd9f48df"
                 target="_blank"
