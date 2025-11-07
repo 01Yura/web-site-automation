@@ -30,28 +30,28 @@
 
       <ul>
         <li>
-          <strong>Faster</strong> — we don't waste time entering login/password
+          <strong>Faster</strong> - we don't waste time entering login/password
           in each test. If you have hundreds of tests, this can take dozens of
           minutes.
         </li>
         <li>
-          <strong>More stable</strong> — no risk of failing due to captcha,
+          <strong>More stable</strong> - no risk of failing due to captcha,
           redirects, or slow loading. If your goal is to test "how functionality
           works after login", not the login process itself, then such UI login
           only gets in the way.
         </li>
         <li>
-          <strong>Focus on functionality</strong> — we test business scenarios,
+          <strong>Focus on functionality</strong> - we test business scenarios,
           not the login process itself. If your test, for example, checks "order
-          creation in UI", it doesn't matter how the login form works — it
+          creation in UI", it doesn't matter how the login form works - it
           should start already as an authenticated user.
         </li>
         <li>
-          <strong>Unification</strong> — you can use the same token in UI and
+          <strong>Unification</strong> - you can use the same token in UI and
           API tests.
         </li>
         <li>
-          <strong>Bypass limitations</strong> — Sometimes the login form is
+          <strong>Bypass limitations</strong> - Sometimes the login form is
           protected (e.g., captcha or SSO through external service). Tests in CI
           won't pass such scenarios. In such cases, token or cookie via API is
           almost the only way to "login automatically".

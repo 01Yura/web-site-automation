@@ -200,7 +200,7 @@ user.setEmail("john@test.com");</code></pre>
                 continue;
             }
 
-            // without annotation — set default random/empty values or recursively fill nested model
+            // without annotation - set default random/empty values or recursively fill nested model
             f.set(obj, defaultValueFor(type));
         }
     }
@@ -221,11 +221,11 @@ user.setEmail("john@test.com");</code></pre>
             return value;
         }
 
-        // Nested object: if string can't be converted — try to recursively create object
+        // Nested object: if string can't be converted - try to recursively create object
         Object nested = tryCreateAndFillNested(type);
         if (nested != null) return nested;
 
-        // fallback — leave string if field is String, otherwise null
+        // fallback - leave string if field is String, otherwise null
         return type == String.class ? s : null;
     }
 
@@ -242,7 +242,7 @@ user.setEmail("john@test.com");</code></pre>
             return constants.length == 0 ? null : constants[RND.nextInt(constants.length)];
         }
 
-        // Collections and arrays — simply: empty
+        // Collections and arrays - simply: empty
         if (Collection.class.isAssignableFrom(type)) return Collections.emptyList();
         if (type.isArray()) return Array.newInstance(type.getComponentType(), 0);
 
@@ -363,21 +363,21 @@ public class BookingModel extends BaseModel{
       <h3>Benefits of this approach</h3>
       <ul>
         <li>
-          <strong>One line of code</strong> — creating an object with filled
+          <strong>One line of code</strong> - creating an object with filled
           fields
         </li>
         <li>
-          <strong>Flexibility</strong> — can configure generation through
+          <strong>Flexibility</strong> - can configure generation through
           regular expressions
         </li>
         <li>
-          <strong>Automation</strong> — no need to manually write logic for each
+          <strong>Automation</strong> - no need to manually write logic for each
           field
         </li>
         <li>
-          <strong>Recursiveness</strong> — automatically fills nested objects
+          <strong>Recursiveness</strong> - automatically fills nested objects
         </li>
-        <li><strong>Type safety</strong> — works with any data types</li>
+        <li><strong>Type safety</strong> - works with any data types</li>
       </ul>
 
       <h3>Ready prompt for AI</h3>

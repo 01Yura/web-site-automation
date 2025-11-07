@@ -51,7 +51,7 @@
     }
 
     /**
-     * Variant with external SoftAssertions — convenient for batch scenarios.
+     * Variant with external SoftAssertions - convenient for batch scenarios.
      */
     public static boolean match(Object left, Object right, SoftAssertions softly) {
         Objects.requireNonNull(left, "left object is null");
@@ -165,7 +165,7 @@
                 return new Mapping(left, op, right);
             }
         }
-        // by default — equality (==), if operator not specified: a=b  OR just a=b without explicit "=="
+        // by default - equality (==), if operator not specified: a=b  OR just a=b without explicit "=="
         int eq = rule.indexOf('=');
         if (eq > 0 && eq < rule.length() - 1) {
             String left = rule.substring(0, eq).trim();

@@ -20,7 +20,7 @@
 
     <p>
       There are several robust strategies for storing and selecting
-      configurations — from "custom layer" (like here) to ready-made libraries.
+      configurations - from "custom layer" (like here) to ready-made libraries.
       The example below doesn't use third-party libraries and is simple enough
       to understand.
     </p>
@@ -70,8 +70,8 @@ key.toUpperCase() → admin.password → ADMIN.PASSWORD
 
 Thus you get unified logic for value lookup:
 first we get from System.getProperty("admin.password") (e.g., if you passed -Dadmin.password=1234 when running Java),
-if not found — try from System.getenv("ADMIN_PASSWORD"),
-if not there either — get from config.properties.</span></span>;
+if not found - try from System.getenv("ADMIN_PASSWORD"),
+if not there either - get from config.properties.</span></span>;
         String envValue = System.getenv(envKey);
         if (envValue != null) return envValue;
 

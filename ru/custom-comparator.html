@@ -52,7 +52,7 @@
     }
 
     /**
-     * Вариант с внешним SoftAssertions — удобно для батч-сценариев.
+     * Вариант с внешним SoftAssertions - удобно для батч-сценариев.
      */
     public static boolean match(Object left, Object right, SoftAssertions softly) {
         Objects.requireNonNull(left, "left object is null");
@@ -166,7 +166,7 @@
                 return new Mapping(left, op, right);
             }
         }
-        // по умолчанию — равенство (==), если оператор не указан: a=b  ИЛИ просто a=b без явного "=="
+        // по умолчанию - равенство (==), если оператор не указан: a=b  ИЛИ просто a=b без явного "=="
         int eq = rule.indexOf('=');
         if (eq > 0 && eq < rule.length() - 1) {
             String left = rule.substring(0, eq).trim();

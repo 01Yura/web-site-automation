@@ -198,7 +198,7 @@ user.setEmail("ivan@test.com");</code></pre>
                 continue;
             }
 
-            // без аннотации — ставим дефолтные случайные/пустые значения или рекурсивно заполняем вложенную модель
+            // без аннотации - ставим дефолтные случайные/пустые значения или рекурсивно заполняем вложенную модель
             f.set(obj, defaultValueFor(type));
         }
     }
@@ -219,11 +219,11 @@ user.setEmail("ivan@test.com");</code></pre>
             return value;
         }
 
-        // Вложенный объект: если строку нельзя привести — пробуем рекурсивно создать объект
+        // Вложенный объект: если строку нельзя привести - пробуем рекурсивно создать объект
         Object nested = tryCreateAndFillNested(type);
         if (nested != null) return nested;
 
-        // fallback — оставить строку, если поле String, иначе null
+        // fallback - оставить строку, если поле String, иначе null
         return type == String.class ? s : null;
     }
 
@@ -240,7 +240,7 @@ user.setEmail("ivan@test.com");</code></pre>
             return constants.length == 0 ? null : constants[RND.nextInt(constants.length)];
         }
 
-        // Коллекции и массивы — по-простому: пустые
+        // Коллекции и массивы - по-простому: пустые
         if (Collection.class.isAssignableFrom(type)) return Collections.emptyList();
         if (type.isArray()) return Array.newInstance(type.getComponentType(), 0);
 
@@ -361,23 +361,23 @@ public class BookingModel extends BaseModel{
       <h3>Преимущества подхода</h3>
       <ul>
         <li>
-          <strong>Одна строка кода</strong> — создание объекта с заполненными
+          <strong>Одна строка кода</strong> - создание объекта с заполненными
           полями
         </li>
         <li>
-          <strong>Гибкость</strong> — можно настроить генерацию через регулярные
+          <strong>Гибкость</strong> - можно настроить генерацию через регулярные
           выражения
         </li>
         <li>
-          <strong>Автоматизация</strong> — не нужно вручную прописывать логику
+          <strong>Автоматизация</strong> - не нужно вручную прописывать логику
           для каждого поля
         </li>
         <li>
-          <strong>Рекурсивность</strong> — автоматически заполняет вложенные
+          <strong>Рекурсивность</strong> - автоматически заполняет вложенные
           объекты
         </li>
         <li>
-          <strong>Типобезопасность</strong> — работает с любыми типами данных
+          <strong>Типобезопасность</strong> - работает с любыми типами данных
         </li>
       </ul>
 

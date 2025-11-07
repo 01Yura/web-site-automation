@@ -19,7 +19,7 @@
     <h1>Конфигурации</h1>
 
     <p>
-      Есть несколько устойчивых стратегий для хранения и выбора конфигураций —
+      Есть несколько устойчивых стратегий для хранения и выбора конфигураций -
       от "самописного слоя" (как тут) до готовых библиотек. Пример ниже не
       использует сторонние библиотеки и достаточно прост для понимания.
     </p>
@@ -69,8 +69,8 @@ key.toUpperCase() → admin.password → ADMIN.PASSWORD
 
 Таким образом у тебя появляется единая логика поиска значения:
 сначала берём из System.getProperty("admin.password") (например, если ты передал -Dadmin.password=1234 при запуске Java),
-если нет — пробуем из System.getenv("ADMIN_PASSWORD"),
-если и там нет — берём из config.properties.</span></span>;
+если нет - пробуем из System.getenv("ADMIN_PASSWORD"),
+если и там нет - берём из config.properties.</span></span>;
         String envValue = System.getenv(envKey);
         if (envValue != null) return envValue;
 
