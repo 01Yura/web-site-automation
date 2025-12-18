@@ -23,6 +23,7 @@
     const deps = document.getElementById("link-deps");
     const sel = document.getElementById("link-selenoid");
     const cookbook = document.getElementById("link-cookbook");
+    const api = document.getElementById("link-api");
     const title = document.getElementById("home-title");
     const desc = document.getElementById("home-desc");
     const homeLabel = document.getElementById("home-switcher-label");
@@ -34,6 +35,7 @@
         lang === "en" ? "en/dependencies.html" : "ru/dependencies.html";
     if (cookbook)
       cookbook.href = lang === "en" ? "en/cookbook.html" : "ru/cookbook.html";
+    if (api) api.href = lang === "en" ? "en/api.html" : "ru/api.html";
     // Go straight to the Selenoid landing for the selected language
     if (sel) {
       sel.href = lang === "en" ? "en/selenoid.html" : "ru/selenoid.html";
@@ -109,6 +111,7 @@
     const depBtn = document.getElementById("link-deps");
     const cookbookBtn = document.getElementById("link-cookbook");
     const selBtn = document.getElementById("link-selenoid");
+    const apiBtn = document.getElementById("link-api");
     console.log("Selenoid button found:", !!selBtn);
     if (selBtn) console.log("Selenoid button href:", selBtn.href);
     if (locBtn)
@@ -120,6 +123,9 @@
     if (cookbookBtn)
       cookbookBtn.textContent = lang === "en" ? "Cookbook" : "Книга рецептов";
     if (selBtn) selBtn.textContent = lang === "en" ? "Selenoid" : "Selenoid";
+    if (apiBtn)
+      apiBtn.textContent =
+        lang === "en" ? "Bookstore API" : "API книжного магазина";
     // Miro link title is language-neutral
     const miroBtn = document.getElementById("link-miro");
     if (miroBtn) miroBtn.textContent = "Java Collection Framework";
@@ -149,6 +155,7 @@
       const depBtn = document.getElementById("link-deps");
       const cookbookBtn = document.getElementById("link-cookbook");
       const selBtn = document.getElementById("link-selenoid");
+      const apiBtn = document.getElementById("link-api");
       if (locBtn)
         locBtn.textContent =
           lang === "en" ? "Locators (XPath & CSS)" : "Локаторы (XPath & CSS)";
@@ -158,6 +165,9 @@
       if (cookbookBtn)
         cookbookBtn.textContent = lang === "en" ? "Cookbook" : "Книга рецептов";
       if (selBtn) selBtn.textContent = lang === "en" ? "Selenoid" : "Selenoid";
+      if (apiBtn)
+        apiBtn.textContent =
+          lang === "en" ? "Bookstore API" : "API книжного магазина";
     });
   });
 })();

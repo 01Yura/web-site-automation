@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Spring Digital Bookstore API</title>
+    <link rel="icon" type="image/png" href="../favicon.png" />
+    <link rel="stylesheet" href="../assets/styles.css" />
+  </head>
+  <body>
+    <div class="language-switcher">
+      <a href="../index.html" class="lang-link">Home</a>
+      <span class="lang-separator">|</span>
+      <a href="../ru/api.html" class="lang-link">RU</a>
+      <span class="lang-separator">|</span>
+      <a href="api.html" class="lang-link active">EN</a>
+    </div>
+
+    <div class="card">
+      <h1>Spring Digital Bookstore API</h1>
+      <p>
+        This is a REST API for a digital bookstore. It supports managing books,
+        reviews, ratings, and downloading PDF files. Can be used by QA to
+        practice backend testing together with a database.
+      </p>
+      <p class="warning">
+        <strong>Note.</strong> This project was created solely for self‑learning
+        when studying Spring Boot back in 2023. It may contain (and
+        intentionally contains) bugs. It is not actively maintained, yet it
+        works.
+      </p>
+
+      <h2>Admin login</h2>
+      <ul>
+        <li><strong>Login</strong>: <code>admin@gmail.com</code></li>
+        <li><strong>Password</strong>: <code>admin</code></li>
+      </ul>
+
+      <h2>PostgreSQL connection</h2>
+      <ul>
+        <li><strong>IP</strong>: <code>176.126.103.46</code></li>
+        <li><strong>Database</strong>: <code>spring_digital_bookstore</code></li>
+        <li><strong>Username</strong>: <code>readonly_user</code></li>
+        <li><strong>Password</strong>: <code>pass_123_XYZ!</code></li>
+      </ul>
+      <p>
+        In the database, the password in the <code>password_hash</code> column
+        is stored in plain text <strong>intentionally</strong>, so if you forget
+        your password, you can open the DB and check it manually.
+      </p>
+
+      <h2>Swagger</h2>
+      <p>
+        Open Swagger UI:
+        <a
+          href="http://it-yura.online:8088/swagger-ui/index.html"
+          target="_blank"
+          rel="noopener"
+          >http://it-yura.online:8088/swagger-ui/index.html</a
+        >
+      </p>
+    </div>
+  </body>
+  </html>
+
+

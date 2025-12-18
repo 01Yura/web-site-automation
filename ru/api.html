@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Spring Digital Bookstore API</title>
+    <link rel="icon" type="image/png" href="../favicon.png" />
+    <link rel="stylesheet" href="../assets/styles.css" />
+  </head>
+  <body>
+    <div class="language-switcher">
+      <a href="../index.html" class="lang-link">Home</a>
+      <span class="lang-separator">|</span>
+      <a href="api.html" class="lang-link active">RU</a>
+      <span class="lang-separator">|</span>
+      <a href="../en/api.html" class="lang-link">EN</a>
+    </div>
+
+    <div class="card">
+      <h1>Spring Digital Bookstore API</h1>
+      <p>
+        Это REST API для цифрового книжного магазина. Поддерживает управление
+        книгами, отзывами, рейтингами и скачивание PDF&nbsp;файлов. Может
+        использоваться QA для тренировки тестирования бэкенда в связке с БД.
+      </p>
+      <p class="warning">
+        <strong>Важно.</strong> Данный проект был создан исключительно в целях
+        самообучения при изучении Spring Boot в далеком 2023 году. Может
+        содержать (и умышленно содержит) баги. Активно не поддерживается, однако
+        работает.
+      </p>
+
+      <h2>Доступ администратора</h2>
+      <ul>
+        <li><strong>Логин</strong>: <code>admin@gmail.com</code></li>
+        <li><strong>Пароль</strong>: <code>admin</code></li>
+      </ul>
+
+      <h2>Подключение к базе PostgreSQL</h2>
+      <ul>
+        <li><strong>IP</strong>: <code>176.126.103.46</code></li>
+        <li><strong>Database</strong>: <code>spring_digital_bookstore</code></li>
+        <li><strong>Username</strong>: <code>readonly_user</code></li>
+        <li><strong>Password</strong>: <code>pass_123_XYZ!</code></li>
+      </ul>
+      <p>
+        В БД в колонке <code>password_hash</code> пароль хранится в открытом
+        виде <strong>умышленно</strong>, так что если вы забыли свой пароль, то
+        можно зайти руками в БД и посмотреть.
+      </p>
+
+      <h2>Swagger</h2>
+      <p>
+        Открыть Swagger UI:
+        <a
+          href="http://it-yura.online:8088/swagger-ui/index.html"
+          target="_blank"
+          rel="noopener"
+          >http://it-yura.online:8088/swagger-ui/index.html</a
+        >
+      </p>
+    </div>
+  </body>
+  </html>
+
+
