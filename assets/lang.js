@@ -125,7 +125,7 @@
     if (selBtn) selBtn.textContent = lang === "en" ? "Selenoid" : "Selenoid";
     if (apiBtn)
       apiBtn.textContent =
-        lang === "en" ? "Bookstore API" : "API книжного магазина";
+        lang === "en" ? "Bookstore App" : "Приложение книжного магазина";
     // Miro link title is language-neutral
     const miroBtn = document.getElementById("link-miro");
     if (miroBtn) miroBtn.textContent = "Java Collection Framework";
@@ -167,7 +167,7 @@
       if (selBtn) selBtn.textContent = lang === "en" ? "Selenoid" : "Selenoid";
       if (apiBtn)
         apiBtn.textContent =
-          lang === "en" ? "Bookstore API" : "API книжного магазина";
+          lang === "en" ? "Bookstore App" : "Приложение книжного магазина";
     });
   });
 })();
