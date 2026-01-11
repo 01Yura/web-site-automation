@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kafka Interaction Overview - Spring Digital Bookstore App</title>
+    <link rel="icon" type="image/png" href="../favicon.png" />
+    <link rel="stylesheet" href="../assets/styles.css" />
+  </head>
+  <body>
+    <div class="language-switcher">
+      <a href="../index.html" class="lang-link">Home</a>
+      <span class="lang-separator">|</span>
+      <a href="../ru/kafka.html" class="lang-link">RU</a>
+      <span class="lang-separator">|</span>
+      <a href="kafka.html" class="lang-link active">EN</a>
+    </div>
+
+    <div class="card">
+      <h1>Kafka Interaction - Overview</h1>
+
+      <h2>Interaction Architecture</h2>
+      <div class="code-block">
+        <pre><code>┌─────────────────────────┐           ┌──────────┐         ┌──────────────────────┐
+│  Main Application       │ ───────>  │  Kafka   │────────>│ Analytics Microservice│
+│ (Producer and Consumer) │ Events    │          │ Events  │    (Consumer)        │
+└─────────────────────────┘           └──────────┘         └──────────────────────┘
+         ▲                                                          │
+         │                                                          │
+         │                  ┌──────────┐                            │
+         └──────────────────│  Kafka   │<───────────────────────────┘
+          Aggregated        │          │   Aggregated data
+             data           └──────────┘    (every 1 minute)</code></pre>
+      </div>
+
+      <h2>Forward Flow: Main Application → Kafka → Analytics Microservice</h2>
+
+      <h3>1. Sending Events (Producer)</h3>
+      <p><strong>Main Application</strong> sends events to Kafka when users perform actions:</p>
+      <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+        <thead>
+          <tr style="background: #f5f7fa; border-bottom: 2px solid #e1e6eb;">
+            <th style="padding: 8px; text-align: left; border: 1px solid #e1e6eb;">Action</th>
+            <th style="padding: 8px; text-align: left; border: 1px solid #e1e6eb;">Controller/Service</th>
+            <th style="padding: 8px; text-align: left; border: 1px solid #e1e6eb;">Topic</th>
+            <th style="padding: 8px; text-align: left; border: 1px solid #e1e6eb;">Partitioning Key</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;">View book</td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>BookController.getBookById()</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>book.views</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>bookId</code></td>
+          </tr>
+          <tr style="background: #f9f9f9;">
+            <td style="padding: 8px; border: 1px solid #e1e6eb;">Download book</td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>BookFileController.downloadBook()</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>book.downloads</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>userId</code></td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;">Purchase book</td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>StripeService.handlePaymentSuccess()</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>book.purchases</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>userId</code></td>
+          </tr>
+          <tr style="background: #f9f9f9;">
+            <td style="padding: 8px; border: 1px solid #e1e6eb;">Create/update review</td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>ReviewController</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>book.reviews</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>bookId</code></td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;">Create/update rating</td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>RatingController</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>book.ratings</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>bookId</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>2. Processing Events (Consumer)</h3>
+      <p><strong>Analytics Microservice</strong> subscribes to topics and processes events:</p>
+      <p><strong>What happens:</strong></p>
+      <ul>
+        <li>Kafka distributes events across partitions based on key</li>
+        <li>Consumer reads events from assigned partitions</li>
+        <li>Statistics are updated in memory (ConcurrentHashMap)</li>
+        <li>Kafka tracks offset (reading position)</li>
+      </ul>
+
+      <h2>Reverse Flow: Analytics Microservice → Kafka → Main Application</h2>
+
+      <h3>1. Data Aggregation</h3>
+      <p><strong>Analytics Microservice</strong> aggregates accumulated data every 1 minute:</p>
+      <p><strong>Types of aggregated data:</strong></p>
+      <ul>
+        <li><code>BOOK_STATS</code> - statistics for each book</li>
+        <li><code>SYSTEM_OVERVIEW</code> - overall system statistics</li>
+        <li><code>POPULAR_BOOKS</code> - list of popular books</li>
+      </ul>
+
+      <h3>2. Receiving and Saving (Consumer)</h3>
+      <p><strong>Main Application</strong> receives aggregated data and saves it to the database in the <code>analytics_data</code> table.</p>
+
+      <h2>Key Concepts</h2>
+
+      <h3>Partitioning</h3>
+      <p><strong>Why:</strong> Parallel processing and guaranteed order for related events</p>
+      <p><strong>How it works:</strong></p>
+      <ul>
+        <li>Kafka calculates partition: <code>partition = hash(key) % numberOfPartitions</code></li>
+        <li>Events with the same key go to the same partition</li>
+        <li>Processing order is guaranteed for events of the same book/user</li>
+      </ul>
+      <p><strong>Example:</strong></p>
+      <div class="code-block">
+        <pre><code>Topic book.views (3 partitions):
+Partition 0: [bookId=3] [bookId=6]
+Partition 1: [bookId=1] [bookId=1] ← All bookId=1 events here
+Partition 2: [bookId=2] [bookId=5]</code></pre>
+      </div>
+
+      <h3>Consumer Groups</h3>
+      <p><strong>Why:</strong> Load distribution between multiple service instances</p>
+      <p><strong>How it works:</strong></p>
+      <ul>
+        <li>All consumers in one group share partitions among themselves (there can be multiple microservice instances or different services, but in this case only one)</li>
+        <li>Each message is processed by only one consumer from the group</li>
+        <li>If a consumer fails, its partitions are redistributed</li>
+      </ul>
+      <p><strong>Example:</strong></p>
+      <div class="code-block">
+        <pre><code>Consumer Group: analytics-service-group
+- Consumer 1 → processes Partition 0
+- Consumer 2 → processes Partition 1
+- Consumer 3 → processes Partition 2</code></pre>
+      </div>
+
+      <h3>Offset</h3>
+      <p><strong>Why:</strong> Tracking reading position to avoid losing messages</p>
+      <p><strong>How it works:</strong></p>
+      <ul>
+        <li>Kafka remembers which message has already been read</li>
+        <li>On restart, consumer continues from the last offset</li>
+        <li>Guarantees that each message is processed</li>
+      </ul>
+
+      <h2>Full Data Cycle</h2>
+      <ol>
+        <li><strong>User</strong> performs an action (view, purchase, etc.)</li>
+        <li><strong>Main Application</strong> sends an event to Kafka (this is called asynchronous, as after sending, the main application does not wait for the analytics microservice to process the sent message)</li>
+        <li><strong>Kafka</strong> saves the event in the corresponding topic and partition</li>
+        <li><strong>Analytics Microservice</strong> reads the event and updates statistics in memory (in this case, it has no database, it stores everything in RAM)</li>
+        <li><strong>Every 1 minute</strong> the microservice aggregates data and sends it back to Kafka</li>
+        <li><strong>Main Application</strong> receives aggregated data and saves it to the database</li>
+        <li><strong>Admin Panel</strong> receives statistics via REST API from the database</li>
+      </ol>
+
+      <h2>Kafka Topics</h2>
+      <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+        <thead>
+          <tr style="background: #f5f7fa; border-bottom: 2px solid #e1e6eb;">
+            <th style="padding: 8px; text-align: left; border: 1px solid #e1e6eb;">Topic</th>
+            <th style="padding: 8px; text-align: left; border: 1px solid #e1e6eb;">Partitions</th>
+            <th style="padding: 8px; text-align: left; border: 1px solid #e1e6eb;">Key</th>
+            <th style="padding: 8px; text-align: left; border: 1px solid #e1e6eb;">Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>book.views</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;">3</td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>bookId</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;">Book view events</td>
+          </tr>
+          <tr style="background: #f9f9f9;">
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>book.downloads</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;">3</td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>userId</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;">Book download events</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>book.purchases</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;">2</td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>userId</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;">Book purchase events</td>
+          </tr>
+          <tr style="background: #f9f9f9;">
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>book.reviews</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;">2</td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>bookId</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;">Review creation/update events</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>book.ratings</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;">2</td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>bookId</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;">Rating creation/update events</td>
+          </tr>
+          <tr style="background: #f9f9f9;">
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>analytics.aggregated-stats</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;">2</td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>aggregationType</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;">Aggregated statistics (reverse flow)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Advantages of the Approach</h2>
+      <ul>
+        <li><strong>Non-blocking processing</strong> - main application sends an event and immediately returns a response to the user, without waiting for analytics processing</li>
+        <li><strong>Scalability</strong> - can run multiple microservice instances</li>
+        <li><strong>Reliability</strong> - Kafka saves events, they are not lost if the service fails</li>
+        <li><strong>Separation of concerns</strong> - analytics is separated into a separate microservice</li>
+        <li><strong>Data history</strong> - aggregated data is saved to the database for analysis</li>
+      </ul>
+
+      <h2>Monitoring</h2>
+      <p><strong>Kafka UI</strong> (<a href="http://localhost:8089" target="_blank" rel="noopener">http://localhost:8089</a>) (admin, admin):</p>
+      <ul>
+        <li>View topics and partitions</li>
+        <li>View messages</li>
+        <li>Monitor consumer groups and offsets</li>
+        <li>Track lag (processing delay)</li>
+      </ul>
+    </div>
+  </body>
+</html>

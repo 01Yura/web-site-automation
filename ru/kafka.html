@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Взаимодействие через Kafka - Spring Digital Bookstore</title>
+    <link rel="icon" type="image/png" href="../favicon.png" />
+    <link rel="stylesheet" href="../assets/styles.css" />
+  </head>
+  <body>
+    <div class="language-switcher">
+      <a href="../index.html" class="lang-link">Home</a>
+      <span class="lang-separator">|</span>
+      <a href="kafka.html" class="lang-link active">RU</a>
+      <span class="lang-separator">|</span>
+      <a href="../en/kafka.html" class="lang-link">EN</a>
+    </div>
+
+    <div class="card">
+      <h1>Взаимодействие через Kafka - Краткий обзор</h1>
+
+      <h2>Архитектура взаимодействия</h2>
+      <div class="code-block">
+        <pre><code>┌─────────────────────────┐           ┌──────────┐         ┌──────────────────────┐
+│  Основное приложение    │ ───────>  │  Kafka   │────────>│ Микросервис аналитики│
+│ (Producer and Consumer) │ События   │          │ События │    (Consumer)        │
+└─────────────────────────┘           └──────────┘         └──────────────────────┘
+         ▲                                                          │
+         │                                                          │
+         │                  ┌──────────┐                            │
+         └──────────────────│  Kafka   │<───────────────────────────┘
+          Агрегированные    │          │   Агрегированные данные
+             данные         └──────────┘    (каждую 1 минуту)</code></pre>
+      </div>
+
+      <h2>Прямой поток: Основное приложение → Kafka → Микросервис аналитики</h2>
+
+      <h3>1. Отправка событий (Producer)</h3>
+      <p><strong>Основное приложение</strong> отправляет события в Kafka при действиях пользователей:</p>
+      <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+        <thead>
+          <tr style="background: #f5f7fa; border-bottom: 2px solid #e1e6eb;">
+            <th style="padding: 8px; text-align: left; border: 1px solid #e1e6eb;">Действие</th>
+            <th style="padding: 8px; text-align: left; border: 1px solid #e1e6eb;">Контроллер/Сервис</th>
+            <th style="padding: 8px; text-align: left; border: 1px solid #e1e6eb;">Топик</th>
+            <th style="padding: 8px; text-align: left; border: 1px solid #e1e6eb;">Ключ партиционирования</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;">Просмотр книги</td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>BookController.getBookById()</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>book.views</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>bookId</code></td>
+          </tr>
+          <tr style="background: #f9f9f9;">
+            <td style="padding: 8px; border: 1px solid #e1e6eb;">Скачивание книги</td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>BookFileController.downloadBook()</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>book.downloads</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>userId</code></td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;">Покупка книги</td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>StripeService.handlePaymentSuccess()</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>book.purchases</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>userId</code></td>
+          </tr>
+          <tr style="background: #f9f9f9;">
+            <td style="padding: 8px; border: 1px solid #e1e6eb;">Создание/обновление отзыва</td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>ReviewController</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>book.reviews</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>bookId</code></td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;">Создание/обновление рейтинга</td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>RatingController</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>book.ratings</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>bookId</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>2. Обработка событий (Consumer)</h3>
+      <p><strong>Микросервис аналитики</strong> подписывается на топики и обрабатывает события:</p>
+      <p><strong>Что происходит:</strong></p>
+      <ul>
+        <li>Kafka распределяет события по партициям на основе ключа</li>
+        <li>Consumer читает события из назначенных партиций</li>
+        <li>Статистика обновляется в оперативной памяти (ConcurrentHashMap)</li>
+        <li>Kafka отслеживает offset (позицию чтения)</li>
+      </ul>
+
+      <h2>Обратный поток: Микросервис аналитики → Kafka → Основное приложение</h2>
+
+      <h3>1. Агрегация данных</h3>
+      <p><strong>Микросервис аналитики</strong> каждую 1 минуту агрегирует накопленные данные:</p>
+      <p><strong>Типы агрегированных данных:</strong></p>
+      <ul>
+        <li><code>BOOK_STATS</code> - статистика по каждой книге</li>
+        <li><code>SYSTEM_OVERVIEW</code> - общая статистика системы</li>
+        <li><code>POPULAR_BOOKS</code> - список популярных книг</li>
+      </ul>
+
+      <h3>2. Получение и сохранение (Consumer)</h3>
+      <p><strong>Основное приложение</strong> получает агрегированные данные и сохраняет в БД в таблицу <code>analytics_data</code>.</p>
+
+      <h2>Ключевые концепции</h2>
+
+      <h3>Партиционирование</h3>
+      <p><strong>Зачем:</strong> Параллельная обработка и гарантия порядка для связанных событий</p>
+      <p><strong>Как работает:</strong></p>
+      <ul>
+        <li>Kafka вычисляет партицию: <code>partition = hash(key) % numberOfPartitions</code></li>
+        <li>События с одинаковым ключом попадают в одну партицию</li>
+        <li>Гарантируется порядок обработки событий одной книги/пользователя</li>
+      </ul>
+      <p><strong>Пример:</strong></p>
+      <div class="code-block">
+        <pre><code>Топик book.views (3 партиции):
+Partition 0: [bookId=3] [bookId=6]
+Partition 1: [bookId=1] [bookId=1] ← Все события bookId=1 здесь
+Partition 2: [bookId=2] [bookId=5]</code></pre>
+      </div>
+
+      <h3>Consumer Groups</h3>
+      <p><strong>Зачем:</strong> Распределение нагрузки между несколькими экземплярами сервиса</p>
+      <p><strong>Как работает:</strong></p>
+      <ul>
+        <li>Все consumers в одной группе делят партиции между собой (может быть несколько экземпляров микросервиса или разные сервисы, но в данном случае только один)</li>
+        <li>Каждое сообщение обрабатывается только одним consumer из группы</li>
+        <li>При падении consumer его партиции перераспределяются</li>
+      </ul>
+      <p><strong>Пример:</strong></p>
+      <div class="code-block">
+        <pre><code>Consumer Group: analytics-service-group
+- Consumer 1 → обрабатывает Partition 0
+- Consumer 2 → обрабатывает Partition 1
+- Consumer 3 → обрабатывает Partition 2</code></pre>
+      </div>
+
+      <h3>Offset</h3>
+      <p><strong>Зачем:</strong> Отслеживание позиции чтения, чтобы не потерять сообщения</p>
+      <p><strong>Как работает:</strong></p>
+      <ul>
+        <li>Kafka запоминает, какое сообщение уже прочитано</li>
+        <li>При перезапуске consumer продолжает с последнего offset</li>
+        <li>Гарантирует, что каждое сообщение обработано</li>
+      </ul>
+
+      <h2>Полный цикл данных</h2>
+      <ol>
+        <li><strong>Пользователь</strong> выполняет действие (просмотр, покупка и т.д.)</li>
+        <li><strong>Основное приложение</strong> отправляет событие в Kafka (это называется - асинхронно, так как после отправки основное приложение не ждет обработки отправленного сообщения микросервисом аналитики)</li>
+        <li><strong>Kafka</strong> сохраняет событие в соответствующем топике и партиции</li>
+        <li><strong>Микросервис аналитики</strong> читает событие и обновляет статистику у себя в памяти (в данном случае у него нет БД, он хранит все в RAM)</li>
+        <li><strong>Каждую 1 минуту</strong> микросервис агрегирует данные и отправляет обратно в Kafka</li>
+        <li><strong>Основное приложение</strong> получает агрегированные данные и сохраняет в БД</li>
+        <li><strong>Админ панель</strong> получает статистику через REST API из БД</li>
+      </ol>
+
+      <h2>Топики Kafka</h2>
+      <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+        <thead>
+          <tr style="background: #f5f7fa; border-bottom: 2px solid #e1e6eb;">
+            <th style="padding: 8px; text-align: left; border: 1px solid #e1e6eb;">Топик</th>
+            <th style="padding: 8px; text-align: left; border: 1px solid #e1e6eb;">Партиций</th>
+            <th style="padding: 8px; text-align: left; border: 1px solid #e1e6eb;">Ключ</th>
+            <th style="padding: 8px; text-align: left; border: 1px solid #e1e6eb;">Назначение</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>book.views</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;">3</td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>bookId</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;">События просмотра книг</td>
+          </tr>
+          <tr style="background: #f9f9f9;">
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>book.downloads</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;">3</td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>userId</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;">События скачивания книг</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>book.purchases</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;">2</td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>userId</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;">События покупки книг</td>
+          </tr>
+          <tr style="background: #f9f9f9;">
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>book.reviews</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;">2</td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>bookId</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;">События создания/обновления отзывов</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>book.ratings</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;">2</td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>bookId</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;">События создания/обновления рейтингов</td>
+          </tr>
+          <tr style="background: #f9f9f9;">
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>analytics.aggregated-stats</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;">2</td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;"><code>aggregationType</code></td>
+            <td style="padding: 8px; border: 1px solid #e1e6eb;">Агрегированная статистика (обратный поток)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Преимущества подхода</h2>
+      <ul>
+        <li><strong>Неблокирующая обработка</strong> - основное приложение отправляет событие и сразу возвращает ответ пользователю, не ожидая обработки аналитики</li>
+        <li><strong>Масштабируемость</strong> - можно запустить несколько экземпляров микросервиса</li>
+        <li><strong>Надежность</strong> - Kafka сохраняет события, они не теряются при падении сервиса</li>
+        <li><strong>Разделение ответственности</strong> - аналитика вынесена в отдельный микросервис</li>
+        <li><strong>История данных</strong> - агрегированные данные сохраняются в БД для анализа</li>
+      </ul>
+
+      <h2>Мониторинг</h2>
+      <p><strong>Kafka UI</strong> (<a href="http://localhost:8089" target="_blank" rel="noopener">http://localhost:8089</a>) (admin, admin):</p>
+      <ul>
+        <li>Просмотр топиков и партиций</li>
+        <li>Просмотр сообщений</li>
+        <li>Мониторинг consumer groups и offsets</li>
+        <li>Отслеживание lag (задержки обработки)</li>
+      </ul>
+    </div>
+  </body>
+</html>
