@@ -81,19 +81,38 @@
       </table>
 
       <h3>2. Processing Events (Consumer)</h3>
-      <p><strong>Analytics Microservice</strong> subscribes to topics and processes events:</p>
-      <p><strong>What happens:</strong></p>
+      <p><strong>Analytics Microservice</strong> subscribes to topics and <strong>actively requests</strong> (polls) events from Kafka:</p>
+      <p><strong>How it works:</strong></p>
       <ul>
+        <li>Kafka uses a <strong>pull model</strong> (not push): Consumer requests data itself, rather than receiving it automatically</li>
+        <li>The microservice periodically polls Kafka for new messages in subscribed topics</li>
         <li>Kafka distributes events across partitions based on key</li>
         <li>Consumer reads events from assigned partitions</li>
-        <li>Statistics are updated in memory (ConcurrentHashMap)</li>
-        <li>Kafka tracks offset (reading position)</li>
+        <li>Statistics are updated in the microservice's memory (ConcurrentHashMap)</li>
+        <li>Kafka tracks offset (reading position) for each consumer</li>
       </ul>
+      <p><strong>Important:</strong> Kafka does not send data automatically - the microservice requests it itself through the <code>poll()</code> method</p>
 
       <h2>Reverse Flow: Analytics Microservice → Kafka → Main Application</h2>
 
       <h3>1. Data Aggregation</h3>
-      <p><strong>Analytics Microservice</strong> aggregates accumulated data every 1 minute:</p>
+      <p><strong>Important:</strong> These are two different processes in the analytics microservice:</p>
+      <ol>
+        <li><strong>Continuous event reading</strong> (see "Processing Events" section above):
+          <ul>
+            <li>The microservice <strong>continuously</strong> requests (polls) events from Kafka</li>
+            <li>Each event is processed <strong>immediately</strong> and updates statistics in memory</li>
+            <li>This happens in real-time, not once per minute</li>
+          </ul>
+        </li>
+        <li><strong>Periodic aggregation</strong> (every 1 minute):
+          <ul>
+            <li>A separate scheduled task runs <strong>once per minute</strong></li>
+            <li>Aggregates <strong>already accumulated</strong> data in memory</li>
+            <li>Sends aggregated results back to Kafka</li>
+          </ul>
+        </li>
+      </ol>
       <p><strong>Types of aggregated data:</strong></p>
       <ul>
         <li><code>BOOK_STATS</code> - statistics for each book</li>
@@ -102,7 +121,16 @@
       </ul>
 
       <h3>2. Receiving and Saving (Consumer)</h3>
-      <p><strong>Main Application</strong> receives aggregated data and saves it to the database in the <code>analytics_data</code> table.</p>
+      <p>
+        <strong>Main Application</strong> also uses Kafka Consumer and <strong>actively requests</strong> (polls) aggregated data from the <code>analytics.aggregated-stats</code> topic:
+      </p>
+      <p><strong>How it works:</strong></p>
+      <ul>
+        <li>Main application subscribes to the <code>analytics.aggregated-stats</code> topic</li>
+        <li>Consumer periodically polls Kafka for new aggregated data</li>
+        <li>Upon receiving data, the main application saves it to the database (tables <code>book_analytics</code>, <code>system_analytics</code>)</li>
+        <li>This is also a pull model: the main application requests data itself, rather than receiving it automatically</li>
+      </ul>
 
       <h2>Key Concepts</h2>
 
@@ -152,9 +180,9 @@ Partition 2: [bookId=2] [bookId=5]</code></pre>
         <li><strong>User</strong> performs an action (view, purchase, etc.)</li>
         <li><strong>Main Application</strong> sends an event to Kafka (this is called asynchronous, as after sending, the main application does not wait for the analytics microservice to process the sent message)</li>
         <li><strong>Kafka</strong> saves the event in the corresponding topic and partition</li>
-        <li><strong>Analytics Microservice</strong> reads the event and updates statistics in memory (in this case, it has no database, it stores everything in RAM)</li>
-        <li><strong>Every 1 minute</strong> the microservice aggregates data and sends it back to Kafka</li>
-        <li><strong>Main Application</strong> receives aggregated data and saves it to the database</li>
+        <li><strong>Analytics Microservice</strong> continuously requests (polls) new events from Kafka, receives the event and <strong>immediately</strong> updates statistics in memory (in this case, it has no database, it stores everything in RAM)</li>
+        <li><strong>Every 1 minute</strong> a separate scheduled task aggregates <strong>already accumulated</strong> data in memory and sends aggregated results back to Kafka (to the <code>analytics.aggregated-stats</code> topic)</li>
+        <li><strong>Main Application</strong> continuously requests (polls) aggregated data from the <code>analytics.aggregated-stats</code> topic and saves it to the database</li>
         <li><strong>Admin Panel</strong> receives statistics via REST API from the database</li>
       </ol>
 
