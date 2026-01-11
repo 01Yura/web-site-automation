@@ -133,6 +133,10 @@ pre {
   margin: 0 !important;
   border-radius: 0 !important;
   border: none !important;
+  overflow: visible !important;
+  overflow-x: visible !important;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 /* Copy button styles */

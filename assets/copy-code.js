@@ -3,6 +3,10 @@ function addCopyButtons() {
   const codeBlocks = document.querySelectorAll("pre");
 
   codeBlocks.forEach((block) => {
+    // Only add copy button to blocks inside .copyable containers
+    const parent = block.closest(".copyable");
+    if (!parent) return;
+
     // Skip if already has copy button
     if (block.querySelector(".copy-button")) return;
 

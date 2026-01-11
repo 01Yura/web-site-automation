@@ -21,12 +21,12 @@
       <h1>Local Deployment</h1>
       <ol>
         <li>
-          Create <strong>docker-compose.yml</strong>, copy the following content there and run
-          with the command <code>docker-compose up -d</code>.
+          Create <strong>docker-compose.yml</strong>, copy the following content
+          there and run with the command <code>docker-compose up -d</code>.
         </li>
       </ol>
 
-      <div class="code-block">
+      <div class="code-block copyable">
         <pre><code>services:
   # Zookeeper для Kafka
   zookeeper:
@@ -291,20 +291,23 @@ networks:
       <h2>PostgreSQL database connection via any client (e.g. DBeaver)</h2>
       <ul>
         <li><strong>IP</strong>: <code>localhost:5432</code></li>
-        <li><strong>Database</strong>: <code>spring_digital_bookstore</code></li>
+        <li>
+          <strong>Database</strong>: <code>spring_digital_bookstore</code>
+        </li>
         <li><strong>Username</strong>: <code>admin</code></li>
         <li><strong>Password</strong>: <code>admin</code></li>
       </ul>
 
       <p>
-        2. If you want payment features, ask reviews from users (actually from AI) and tech support to
-        work, you need to create a <strong>.env</strong> file in the same directory where
-        <strong>docker-compose.yml</strong> is located and specify the following variables in
-        it, but you will have to obtain the values yourself (it's free, but
-        will take an extra 15-20 minutes of your time):
+        2. If you want payment features, ask reviews from users (actually from
+        AI) and tech support to work, you need to create a
+        <strong>.env</strong> file in the same directory where
+        <strong>docker-compose.yml</strong> is located and specify the following
+        variables in it, but you will have to obtain the values yourself (it's
+        free, but will take an extra 15-20 minutes of your time):
       </p>
 
-      <div class="code-block">
+      <div class="code-block copyable">
         <pre><code># This is how your .env file should look, but the values for these variables should be yours!
 
 STRIPE_SECRET_KEY=sk_test_...
@@ -315,6 +318,187 @@ GEMINI_API_KEY=AIzaSy...
 
 TELEGRAM_BOT_TOKEN=68915...
 TELEGRAM_CHAT_ID=14310...</code></pre>
+      </div>
+
+      <h2>🟦 Instructions for setting up keys and services</h2>
+
+      <h3>1. Stripe — settings for card payments</h3>
+
+      <h4>1.1 Getting STRIPE_SECRET_KEY</h4>
+      <ol>
+        <li>
+          Go to
+          <a href="https://dashboard.stripe.com" target="_blank" rel="noopener"
+            >https://dashboard.stripe.com</a
+          >
+        </li>
+        <li>Sign in or register</li>
+        <li>
+          After signing in, click SKIP on all prompts, and when prompted to go
+          to Sandbox, click it and you will be redirected to
+          https://dashboard.stripe.com/your_account_number/test/dashboard
+        </li>
+        <li>In the search, type API keys and go to Developers → API keys</li>
+        <li>Find the <strong>Secret key</strong></li>
+        <li>Copy and paste it into the variable:</li>
+      </ol>
+      <div class="code-block">
+        <pre><code>STRIPE_SECRET_KEY=sk_test_...</code></pre>
+      </div>
+
+      <h4>1.2 Getting STRIPE_WEBHOOK_SECRET</h4>
+      <ol>
+        <li>In the search, type Webhooks and go to Webhooks</li>
+        <li>Click <strong>+ Add destination</strong></li>
+        <li>Select the <strong>Your account</strong> option</li>
+        <li>
+          Among events, select
+          <strong
+            >checkout.session.completed, payment_intent.succeeded,
+            payment_intent.payment_failed</strong
+          >
+        </li>
+        <li>Click <strong>Continue</strong></li>
+        <li>
+          Select <strong>Webhook endpoint</strong> and click
+          <strong>Continue</strong> again
+        </li>
+        <li>
+          In the Endpoint URL field, specify:
+          <strong>http://YOUR_EXTERNAL_IP/api/v1/payment/webhook</strong> and
+          click <strong>Create destination</strong>
+        </li>
+        <li>
+          After creating the webhook, copy the
+          <strong>Signing secret</strong> value and paste it into the variable:
+        </li>
+      </ol>
+      <div class="code-block">
+        <pre><code>STRIPE_WEBHOOK_SECRET=whsec_...</code></pre>
+      </div>
+
+      <h4>1.3 Setting up external access to webhook</h4>
+      <p>For Stripe to connect to your server:</p>
+      <ol>
+        <li>
+          Find out your external IP (e.g., via
+          <a href="https://whatismyip.com" target="_blank" rel="noopener"
+            >whatismyip.com</a
+          >)
+        </li>
+        <li>
+          On your router, perform <strong>port forwarding</strong>. If you don't
+          know how to do this, find instructions for your router online. For
+          example, here's a
+          <a
+            href="https://www.howtogeek.com/66214/how-to-forward-ports-on-your-router/"
+            target="_blank"
+            rel="noopener"
+            >link to instructions</a
+          >:
+        </li>
+      </ol>
+      <div class="code-block">
+        <pre><code>external port 80 → to internal port 80 on your computer where the backend is running</code></pre>
+      </div>
+      <p>
+        If you don't set up access, Stripe won't be able to deliver webhooks,
+        and payments won't be confirmed (although the application itself will
+        start).
+      </p>
+
+      <h3>2. OpenAI — getting OPENAI_API_KEY</h3>
+      <ol>
+        <li>
+          Go to:
+          <a
+            href="https://platform.openai.com/settings/organization/api-keys"
+            target="_blank"
+            rel="noopener"
+            >https://platform.openai.com/settings/organization/api-keys</a
+          >
+        </li>
+        <li>Create an organization (if you don't have one yet)</li>
+        <li>Click <strong>Create new secret key</strong></li>
+        <li>Copy the key:</li>
+      </ol>
+      <div class="code-block">
+        <pre><code>OPENAI_API_KEY=sk-proj-...</code></pre>
+      </div>
+      <h4>For free usage:</h4>
+      <ol>
+        <li>
+          Go to:
+          <a
+            href="https://platform.openai.com/settings/organization/data-controls/sharing"
+            target="_blank"
+            rel="noopener"
+            >https://platform.openai.com/settings/organization/data-controls/sharing</a
+          >
+        </li>
+        <li>Enable the <strong>Enable for all projects</strong> option</li>
+      </ol>
+
+      <h3>3. Gemini — getting GEMINI_API_KEY</h3>
+      <ol>
+        <li>
+          Go to:
+          <a
+            href="https://aistudio.google.com/app/api-keys"
+            target="_blank"
+            rel="noopener"
+            >https://aistudio.google.com/app/api-keys</a
+          >
+        </li>
+        <li>Create a new key <strong>Create API key</strong></li>
+        <li>Copy:</li>
+      </ol>
+      <div class="code-block">
+        <pre><code>GEMINI_API_KEY=AIzaSy...</code></pre>
+      </div>
+      <p>
+        <em
+          >Note: Gemini's free quota is very small<br />
+          If you don't specify GEMINI_API_KEY, "uncensored reviews" won't
+          work</em
+        >
+      </p>
+
+      <h3>4. Telegram — settings for notifications</h3>
+
+      <h4>4.1 Getting TELEGRAM_BOT_TOKEN</h4>
+      <ol>
+        <li>In Telegram, find <code>@BotFather</code></li>
+        <li>Send <code>/newbot</code></li>
+        <li>Name the bot</li>
+        <li>Copy the token:</li>
+      </ol>
+      <div class="code-block">
+        <pre><code>TELEGRAM_BOT_TOKEN=123456:ABC-DEF...</code></pre>
+      </div>
+
+      <h4>4.2 Getting TELEGRAM_CHAT_ID</h4>
+      <p>Fastest way:</p>
+      <ol>
+        <li>In Telegram, find <code>@userinfobot</code></li>
+        <li>Send it <code>/start</code></li>
+        <li>In the response, it will show your Chat ID</li>
+        <li>Paste it into the variable:</li>
+      </ol>
+      <div class="code-block">
+        <pre><code>TELEGRAM_CHAT_ID=123456789</code></pre>
+      </div>
+
+      <h3>5. Example of final .env file</h3>
+      <div class="code-block">
+        <pre><code>STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+
+OPENAI_API_KEY=sk-proj-...
+GEMINI_API_KEY=AIzaSy...
+
+TELEGRAM_BOT_TOKEN=your-telegram-bot-token
+TELEGRAM_CHAT_ID=123456789</code></pre>
       </div>
     </div>
   </body>

@@ -26,7 +26,7 @@
         </li>
       </ol>
 
-      <div class="code-block">
+      <div class="code-block copyable">
         <pre><code>services:
   # Zookeeper для Kafka
   zookeeper:
@@ -299,15 +299,16 @@ networks:
       </ul>
 
       <p>
-        2. Если хотите чтобы работали функции оплаты, запрос отзыва о книге у пользователя (по факту у AI) и
-        техподдержка, то необходимо создать в той же директории где лежит
+        2. Если хотите чтобы работали функции оплаты, запрос отзыва о книге у
+        пользователя (по факту у AI) и техподдержка, то необходимо создать в той
+        же директории где лежит
         <strong>docker-compose.yml</strong> еще файл <strong>.env</strong> и
         прописать в нем следующие переменные, но значения вам придется получить
         самим (это бесплатно, но придется потратить лишних 15-20 минут вашего
         времени):
       </p>
 
-      <div class="code-block">
+      <div class="code-block copyable">
         <pre><code># Вот так должен выглядеть ваш .env файл, но значения для данных переменных должны быть ваши!
 
 STRIPE_SECRET_KEY=sk_test_...
@@ -318,6 +319,159 @@ GEMINI_API_KEY=AIzaSy...
 
 TELEGRAM_BOT_TOKEN=68915...
 TELEGRAM_CHAT_ID=14310...</code></pre>
+      </div>
+
+      <h2>🟦 Инструкция по настройке ключей и сервисов</h2>
+
+      <h3>1. Stripe — настройки для оплаты картами</h3>
+
+      <h4>1.1 Получение STRIPE_SECRET_KEY</h4>
+      <ol>
+        <li>
+          Перейдите на
+          <a href="https://dashboard.stripe.com" target="_blank" rel="noopener"
+            >https://dashboard.stripe.com</a
+          >
+        </li>
+        <li>Войдите или зарегистрируйтесь</li>
+        <li>Войдя, на все предложения прокликайте SKIP и когда появится предложение перейти в Sandbox перейдите и вас перебросит на страницу https://dashboard.stripe.com/ваш_номер_аккаунта/test/dashboard</li>
+        <li>В поиске напишите API keys и перейдите на Developers → API keys</li>
+        <li>Найдите ключ <strong>Secret key</strong></li>
+        <li>Скопируйте и вставьте в переменную:</li>
+      </ol>
+      <div class="code-block">
+        <pre><code>STRIPE_SECRET_KEY=sk_test_...</code></pre>
+      </div>
+
+      <h4>1.2 Получение STRIPE_WEBHOOK_SECRET</h4>
+      <ol>
+        <li>
+          В поиске наберите Webhooks и перейдите на Webhooks</strong>
+        </li>
+        <li>Нажмите <strong> + Add destination</strong></li>
+        <li>Выберите окошко <strong>Your account</strong></li>
+        <li>И среди events выберите <strong>checkout.session.completed, payment_intent.succeeded, payment_intent.payment_failed</strong></li>
+        <li>Нажмите <strong>Continue</strong></li>
+        <li>Выберите <strong>Webhook endpoint</strong> и снова нажмите <strong>Continue</strong></li>
+        <li>В поле Endpoint URL укажите:<strong>http://ВАШ_ВНЕШНИЙ_IP/api/v1/payment/webhook</strong> и нажмите <strong>Create destination</strong></li>
+        <li>
+          После создания webhook скопируйте значение <strong>Signing secret</strong> и вставьте в переменную:
+        </li>
+      <div class="code-block">
+        <pre><code>STRIPE_WEBHOOK_SECRET=whsec_...</code></pre>
+      </div>
+
+      <h4>1.3 Настройка внешнего доступа к webhook</h4>
+      <p>Чтобы Stripe мог подключиться к вашему серверу:</p>
+      <ol>
+        <li>
+          Узнайте ваш внешний IP (например через
+          <a href="https://whatismyip.com" target="_blank" rel="noopener"
+            >whatismyip.com</a
+          >)
+        </li>
+        <li>На роутере выполните <strong>port forwarding</strong>. Если не знаете как это сделать, 
+          то найдите в интернете инструкцию для вашего роутера. Например тут  <a href="https://club.dns-shop.ru/blog/t-282-tochki-dostupa/22654-probros-portov-i-nastroika-routera-dlya-vneshnego-dostupa/?utm_referrer=https%3A%2F%2Fwww.google.com%2F" target="_blank" rel="noopener">ссылка на инструкцию</a>:</li>
+      </ol>
+      <div class="code-block">
+        <pre><code>внешний порт 80 → на внутренний порт 80 на ваш компьютер, где работает backend</code></pre>
+      </div>
+      <p>
+        Если не настроить доступ, Stripe не сможет доставлять webhook-и, и
+        платежи не будут подтверждаться (хотя само приложение запустится).
+      </p>
+
+      <h3>2. OpenAI — получение OPENAI_API_KEY</h3>
+      <ol>
+        <li>
+          Перейдите на:
+          <a
+            href="https://platform.openai.com/settings/organization/api-keys"
+            target="_blank"
+            rel="noopener"
+            >https://platform.openai.com/settings/organization/api-keys</a
+          >
+        </li>
+        <li>Создайте организацию (если ещё нет)</li>
+        <li>Нажмите <strong>Create new secret key</strong></li>
+        <li>Скопируйте ключ:</li>
+      </ol>
+      <div class="code-block">
+        <pre><code>OPENAI_API_KEY=sk-proj-...</code></pre>
+      </div>
+      <h4>Для бесплатного использования:</h4>
+      <ol>
+        <li>
+          Перейдите:
+          <a
+            href="https://platform.openai.com/settings/organization/data-controls/sharing"
+            target="_blank"
+            rel="noopener"
+            >https://platform.openai.com/settings/organization/data-controls/sharing</a
+          >
+        </li>
+        <li>Включите опцию <strong>Enable for all projects</strong></li>
+      </ol>
+
+      <h3>3. Gemini — получение GEMINI_API_KEY</h3>
+      <ol>
+        <li>
+          Перейдите:
+          <a
+            href="https://aistudio.google.com/app/api-keys"
+            target="_blank"
+            rel="noopener"
+            >https://aistudio.google.com/app/api-keys</a
+          >
+        </li>
+        <li>Создайте новый ключ <strong>Create API key</strong></li>
+        <li>Скопируйте:</li>
+      </ol>
+      <div class="code-block">
+        <pre><code>GEMINI_API_KEY=AIzaSy...</code></pre>
+      </div>
+      <p>
+        <em
+          >Примечание: Бесплатная квота у Gemini очень мала<br />
+          Если не указать GEMINI_API_KEY, то "отзывы без цензуры" работать не будут</em
+        >
+      </p>
+
+      <h3>4. Telegram — настройки для уведомлений</h3>
+
+      <h4>4.1 Получение TELEGRAM_BOT_TOKEN</h4>
+      <ol>
+        <li>В Telegram найдите <code>@BotFather</code></li>
+        <li>Отправьте <code>/newbot</code></li>
+        <li>Назовите бота</li>
+        <li>Скопируйте токен:</li>
+      </ol>
+      <div class="code-block">
+        <pre><code>TELEGRAM_BOT_TOKEN=123456:ABC-DEF...</code></pre>
+      </div>
+
+      <h4>4.2 Получение TELEGRAM_CHAT_ID</h4>
+      <p>Быстрее всего через:</p>
+      <ol>
+        <li>В Telegram найдите <code>@userinfobot</code></li>
+        <li>Напишите ему /start</li>
+        <li>В ответе он покажет ваш Chat ID</li>
+        <li>Вставьте в переменную:</li>
+      </ol>
+      <div class="code-block">
+        <pre><code>TELEGRAM_CHAT_ID=123456789</code></pre>
+      </div>
+
+      <h3>5. Пример итогового .env файла</h3>
+      <div class="code-block">
+        <pre><code>STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+
+OPENAI_API_KEY=sk-proj-...
+GEMINI_API_KEY=AIzaSy...
+
+TELEGRAM_BOT_TOKEN=your-telegram-bot-token
+TELEGRAM_CHAT_ID=123456789</code></pre>
       </div>
     </div>
   </body>
