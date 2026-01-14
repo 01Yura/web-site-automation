@@ -106,6 +106,19 @@
       - spring-library-network
     restart: unless-stopped
 
+  # MailHog - SMTP сервер для разработки и тестирования email
+  # Веб-интерфейс: http://localhost:8025
+  # SMTP порт: 1025
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: mailhog_email_server
+    ports:
+      - "1025:1025" # SMTP порт
+      - "8025:8025" # Web UI для просмотра писем
+    networks:
+      - spring-library-network
+    restart: unless-stopped
+
   # Analytics Service
   analytics-service:
     image: 01yura/spring-digital-bookstore-analytics-service:latest
@@ -147,7 +160,7 @@
 
   # React UI приложение
   ui:
-    image: 01yura/spring-digital-library-ui:with_analytics_without_https_for_local_run
+    image: 01yura/spring-digital-library-ui:with_analytics_and_email_without_https_for_local_run
     pull_policy: always
     container_name: spring-digital-bookstore-ui
     ports:
@@ -174,7 +187,7 @@
     networks:
       - spring-library-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U admin -d spring_digital_bookstore"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -182,7 +195,7 @@
 
   # Spring Boot приложение для локального запуска без HTTPS
   backend:
-    image: 01yura/spring-digital-bookstore:with_analytics
+    image: 01yura/spring-digital-bookstore:with_email
     pull_policy: always
     container_name: spring-digital-bookstore-app
     environment:
@@ -239,6 +252,19 @@
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-test-value}
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-test-value}
 
+      # SMTP настройки для отправки email через MailHog
+      SPRING_MAIL_HOST: mailhog
+      SPRING_MAIL_PORT: 1025
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME:-}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD:-}
+      SPRING_MAIL_SMTP_AUTH: ${SPRING_MAIL_SMTP_AUTH:-false}
+      SPRING_MAIL_SMTP_STARTTLS_ENABLE: ${SPRING_MAIL_SMTP_STARTTLS_ENABLE:-false}
+      SPRING_MAIL_SMTP_SSL_ENABLE: ${SPRING_MAIL_SMTP_SSL_ENABLE:-false}
+      SPRING_MAIL_FROM: ${SPRING_MAIL_FROM:-noreply@localhost}
+
+      # Base URL для ссылок подтверждения email (должен соответствовать порту, на котором доступен backend)
+      APP_EMAIL_VERIFICATION_BASE_URL: ${APP_EMAIL_VERIFICATION_BASE_URL:-http://localhost:8088}
+
     ports:
       - "8088:8080"
     volumes:
@@ -253,6 +279,8 @@
         condition: service_healthy
       kafka:
         condition: service_healthy
+      mailhog:
+        condition: service_started
     restart: unless-stopped
 
 networks:
@@ -280,6 +308,12 @@ networks:
           >http://localhost:8089</a
         >
         (admin, admin)
+      </p>
+      <p>
+        MailHog (веб-интерфейс для просмотра отправленных email и подтверждения регистрации) по адресу:
+        <a href="http://localhost:8025" target="_blank" rel="noopener"
+          >http://localhost:8025</a
+        >
       </p>
 
       <h2>Credentials администратора в самом приложении</h2>
