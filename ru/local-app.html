@@ -233,7 +233,7 @@
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
 
       # Stripe настройки
-      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-test-value}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-sk_test_51Sn9eKF06mQasm4mhBSG71Wes6rz09BTuQicIu37oRIw5agFgZuGMGZQk4IeftRm2aQGJXFma5IPwm1iT77WlALs00VDZNJkEL}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-test-value}
       STRIPE_SUCCESS_URL: ${STRIPE_SUCCESS_URL:-http://localhost/api/v1/payment/success}
       STRIPE_CANCEL_URL: ${STRIPE_CANCEL_URL:-http://localhost/api/v1/payment/cancel}
@@ -338,7 +338,7 @@ networks:
       </p>
 
       <p>
-        2. Если хотите чтобы работали функции оплаты, запрос отзыва о книге у
+        2. Если хотите чтобы работали функции запроса отзыва о книге у
         пользователя (по факту у AI) и техподдержка, то необходимо создать в той
         же директории где лежит
         <strong>docker-compose.yml</strong> еще файл <strong>.env</strong> и
@@ -350,9 +350,6 @@ networks:
       <div class="code-block copyable">
         <pre><code># Вот так должен выглядеть ваш .env файл, но значения для данных переменных должны быть ваши!
 
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-
 OPENAI_API_KEY=sk-proj-...
 GEMINI_API_KEY=AIzaSy...
 
@@ -362,70 +359,7 @@ TELEGRAM_CHAT_ID=14310...</code></pre>
 
       <h2>Инструкция по получению токенов, API ключей и прочей лабуды для разных сервисов</h2>
 
-      <h3>1. Stripe — настройки для оплаты картами</h3>
-
-      <h4>1.1 Получение STRIPE_SECRET_KEY</h4>
-      <ol>
-        <li>
-          Перейдите на
-          <a href="https://dashboard.stripe.com" target="_blank" rel="noopener"
-            >https://dashboard.stripe.com</a
-          >
-        </li>
-        <li>Войдите или зарегистрируйтесь</li>
-        <li>Войдя, на все предложения прокликайте SKIP и когда появится предложение перейти в Sandbox перейдите и вас перебросит на страницу https://dashboard.stripe.com/ваш_номер_аккаунта/test/dashboard</li>
-        <li>В поиске напишите API keys и перейдите на Developers → API keys</li>
-        <li>Найдите ключ <strong>Secret key</strong></li>
-        <li>Скопируйте и вставьте в переменную:</li>
-      </ol>
-      <div class="code-block">
-        <pre><code>STRIPE_SECRET_KEY=sk_test_...</code></pre>
-      </div>
-
-      <h4>1.2 Получение STRIPE_WEBHOOK_SECRET</h4>
-      <ol>
-        <li>
-          В поиске наберите Webhooks и перейдите на Webhooks</strong>
-        </li>
-        <li>Нажмите <strong> + Add destination</strong></li>
-        <li>Выберите окошко <strong>Your account</strong></li>
-        <li>И среди events выберите <strong>checkout.session.completed, payment_intent.succeeded, payment_intent.payment_failed</strong></li>
-        <li>Нажмите <strong>Continue</strong></li>
-        <li>Выберите <strong>Webhook endpoint</strong> и снова нажмите <strong>Continue</strong></li>
-        <li>В поле Endpoint URL укажите:<strong>http://ВАШ_ВНЕШНИЙ_IP/api/v1/payment/webhook</strong> и нажмите <strong>Create destination</strong></li>
-        <li>
-          После создания webhook скопируйте значение <strong>Signing secret</strong> и вставьте в переменную:
-        </li>
-      <div class="code-block">
-        <pre><code>STRIPE_WEBHOOK_SECRET=whsec_...</code></pre>
-      </div>
-
-      <h4>1.3 Настройка внешнего доступа к webhook</h4>
-      <p>Чтобы Stripe мог подключиться к вашему серверу:</p>
-      <ol>
-        <li>
-          Узнайте ваш внешний IP (например через
-          <a href="https://whatismyip.com" target="_blank" rel="noopener"
-            >whatismyip.com</a
-          >)
-        </li>
-        <li>
-          Ваш IP должен быть <strong>публичным (белым)</strong>, то есть доступным извне (не обязательно статический, динамический тоже подойдет). Но не все провайдеры предоставляют публичный IP. 
-          Чтобы проверить, публичный ли ваш IP (белый), сравните IP-адрес, который видит интернет (найденный на сайтах типа <a href="https://whatismyip.com" target="_blank" rel="noopener"
-          >whatismyip.com</a>), с IP, который видит ваш роутер (в его настройках) – если они совпадают, он белый; если нет, у вас серый IP и подключить платежи не получится.
-        </li>
-        <li>На роутере выполните <strong>port forwarding</strong>. Если не знаете как это сделать, 
-          то найдите в интернете инструкцию для вашего роутера. Например <a href="https://club.dns-shop.ru/blog/t-282-tochki-dostupa/22654-probros-portov-i-nastroika-routera-dlya-vneshnego-dostupa/?utm_referrer=https%3A%2F%2Fwww.google.com%2F" target="_blank" rel="noopener"> тут</a>:</li>
-      </ol>
-      <div class="code-block">
-        <pre><code>внешний порт 80 → на внутренний порт 80 на ваш компьютер, где работает backend</code></pre>
-      </div>
-      <p>
-        Если не настроить доступ, Stripe не сможет доставлять webhook-и, и
-        платежи не будут подтверждаться (хотя само приложение запустится).
-      </p>
-
-      <h3>2. OpenAI — получение OPENAI_API_KEY</h3>
+      <h3>1. OpenAI — получение OPENAI_API_KEY</h3>
       <ol>
         <li>
           Перейдите на:
@@ -457,7 +391,7 @@ TELEGRAM_CHAT_ID=14310...</code></pre>
         <li>Включите опцию <strong>Enable for all projects</strong></li>
       </ol>
 
-      <h3>3. Gemini — получение GEMINI_API_KEY</h3>
+      <h3>2. Gemini — получение GEMINI_API_KEY</h3>
       <ol>
         <li>
           Перейдите:
@@ -481,9 +415,9 @@ TELEGRAM_CHAT_ID=14310...</code></pre>
         >
       </p>
 
-      <h3>4. Telegram — настройки для уведомлений</h3>
+      <h3>3. Telegram — настройки для уведомлений</h3>
 
-      <h4>4.1 Получение TELEGRAM_BOT_TOKEN</h4>
+      <h4>3.1 Получение TELEGRAM_BOT_TOKEN</h4>
       <ol>
         <li>В Telegram найдите <code>@BotFather</code></li>
         <li>Отправьте <code>/newbot</code></li>
@@ -494,7 +428,7 @@ TELEGRAM_CHAT_ID=14310...</code></pre>
         <pre><code>TELEGRAM_BOT_TOKEN=123456:ABC-DEF...</code></pre>
       </div>
 
-      <h4>4.2 Получение TELEGRAM_CHAT_ID</h4>
+      <h4>3.2 Получение TELEGRAM_CHAT_ID</h4>
       <p>Быстрее всего через:</p>
       <ol>
         <li>В Telegram найдите <code>@userinfobot</code></li>
@@ -506,11 +440,9 @@ TELEGRAM_CHAT_ID=14310...</code></pre>
         <pre><code>TELEGRAM_CHAT_ID=123456789</code></pre>
       </div>
 
-      <h3>5. Пример итогового .env файла</h3>
+      <h3>4. Пример итогового .env файла</h3>
       <div class="code-block">
-        <pre><code>STRIPE_SECRET_KEY=sk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-
+        <pre><code>
 OPENAI_API_KEY=sk-proj-...
 GEMINI_API_KEY=AIzaSy...
 
