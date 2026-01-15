@@ -28,7 +28,7 @@
 
       <div class="code-block copyable">
         <pre><code>services:
-  # Zookeeper для Kafka
+  # Zookeeper for Kafka
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: kafka-zookeeper
@@ -65,11 +65,11 @@
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-      KAFKA_LOG_RETENTION_HOURS: 168 # 7 дней
+      KAFKA_LOG_RETENTION_HOURS: 168 # 7 days
       KAFKA_LOG_SEGMENT_BYTES: 1073741824 # 1GB
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      # Ограничение памяти для Kafka (heap memory)
+      # Memory limit for Kafka (heap memory)
       KAFKA_HEAP_OPTS: "-Xmx512M -Xms512M"
     networks:
       - spring-library-network
@@ -85,7 +85,7 @@
       start_period: 120s
     restart: unless-stopped
 
-  # Kafka UI - графический интерфейс для просмотра топиков и сообщений
+  # Kafka UI - graphical interface for viewing topics and messages
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: kafka-ui
@@ -98,10 +98,23 @@
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-broker:29092
       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
-      # Аутентификация через Basic Auth
+      # Authentication via Basic Auth
       AUTH_TYPE: ${KAFKA_UI_AUTH_TYPE:-BASIC}
       SPRING_SECURITY_USER_NAME: ${KAFKA_UI_USERNAME:-admin}
       SPRING_SECURITY_USER_PASSWORD: ${KAFKA_UI_PASSWORD:-admin}
+    networks:
+      - spring-library-network
+    restart: unless-stopped
+
+  # MailHog - SMTP server for email development and testing
+  # Web interface: http://localhost:8025
+  # SMTP port: 1025
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: mailhog_email_server
+    ports:
+      - "1025:1025" # SMTP port
+      - "8025:8025" # Web UI for viewing emails
     networks:
       - spring-library-network
     restart: unless-stopped
@@ -145,9 +158,9 @@
       retries: 5
       start_period: 60s
 
-  # React UI приложение
+  # React UI application
   ui:
-    image: 01yura/spring-digital-library-ui:with_analytics_without_https_for_local_run
+    image: 01yura/spring-digital-library-ui:with_analytics_and_email_without_https_for_local_run
     pull_policy: always
     container_name: spring-digital-bookstore-ui
     ports:
@@ -158,7 +171,7 @@
       - backend
     restart: unless-stopped
 
-  # PostgreSQL база данных для локального запуска
+  # PostgreSQL database for local deployment
   postgres:
     image: postgres:16-alpine
     container_name: spring-digital-library-db
@@ -169,82 +182,95 @@
     ports:
       - "5432:5432"
     volumes:
-      # Хранение данных БД на хосте (для Windows используйте формат C:/path/to/dir)
+      # Database data storage on host (for Windows use format C:/path/to/dir)
       - ${POSTGRES_DATA_PATH:-C:/spring-digital-bookstore/postgres_data}:/var/lib/postgresql/data
     networks:
       - spring-library-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U admin -d spring_digital_bookstore"]
       interval: 10s
       timeout: 5s
       retries: 5
     restart: unless-stopped
 
-  # Spring Boot приложение для локального запуска без HTTPS
+  # Spring Boot application for local deployment without HTTPS
   backend:
-    image: 01yura/spring-digital-bookstore:with_analytics
+    image: 01yura/spring-digital-bookstore:with_email
     pull_policy: always
     container_name: spring-digital-bookstore-app
     environment:
-      # Настройки подключения к БД
+      # Database connection settings
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-spring_digital_bookstore}
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-admin}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-admin}
 
-      # JPA/Hibernate настройки
+      # JPA/Hibernate settings
       SPRING_JPA_DATABASE_PLATFORM: ${SPRING_JPA_DATABASE_PLATFORM:-org.hibernate.dialect.PostgreSQLDialect}
       SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}
       SPRING_JPA_SHOW_SQL: ${SPRING_JPA_SHOW_SQL:-false}
       SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: ${SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL:-true}
 
-      # JWT настройки
+      # JWT settings
       JWT_SECRET: ${JWT_SECRET:-my-secret-key-for-jwt-generation}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-300000}
       JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-86400000}
 
-      # Swagger/OpenAPI настройки
+      # Swagger/OpenAPI settings
       SPRINGDOC_API_DOCS_PATH: ${SPRINGDOC_API_DOCS_PATH:-/v3/api-docs}
       SPRINGDOC_SWAGGER_UI_PATH: ${SPRINGDOC_SWAGGER_UI_PATH:-/swagger-ui.html}
       SPRINGDOC_SWAGGER_UI_OPERATIONS_SORTER: ${SPRINGDOC_SWAGGER_UI_OPERATIONS_SORTER:-method}
       SPRINGDOC_SWAGGER_UI_TAGS_SORTER: ${SPRINGDOC_SWAGGER_UI_TAGS_SORTER:-alpha}
 
-      # JVM настройки
+      # JVM settings
       JAVA_OPTS: ${JAVA_OPTS:--Xmx512m -Xms512m}
 
-      # Путь для хранения изображений книг (внутри контейнера фиксированный)
+      # Path for storing book images (fixed inside container)
       APP_IMAGES_STORAGE_PATH: /opt/spring-digital-bookstore/pictures
-      # Путь для хранения PDF файлов книг (внутри контейнера фиксированный)
+      # Path for storing book PDF files (fixed inside container)
       APP_PDF_STORAGE_PATH: /opt/spring-digital-bookstore/pdf
 
-      # Frontend URL для редиректа после оплаты
+      # Frontend URL for redirect after payment
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
 
-      # Stripe настройки
-      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-test-value}
+      # Stripe settings
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-sk_test_51Sn9eKF06mQasm4mhBSG71Wes6rz09BTuQicIu37oRIw5agFgZuGMGZQk4IeftRm2aQGJXFma5IPwm1iT77WlALs00VDZNJkEL}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-test-value}
       STRIPE_SUCCESS_URL: ${STRIPE_SUCCESS_URL:-http://localhost/api/v1/payment/success}
       STRIPE_CANCEL_URL: ${STRIPE_CANCEL_URL:-http://localhost/api/v1/payment/cancel}
 
-      # OpenAI API настройки
+      # OpenAI API settings
       OPENAI_API_KEY: ${OPENAI_API_KEY:-test-value}
 
-      # Gemini API настройки
+      # Gemini API settings
       GEMINI_API_KEY: ${GEMINI_API_KEY:-test-value}
 
-      # Kafka Configuration для отправки событий
+      # Kafka Configuration for sending events
       KAFKA_BOOTSTRAP_SERVERS: kafka-broker:29092
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka-broker:29092
 
-      # Telegram настройки для отправки сообщений в Telegram Bot
+      # Telegram settings for sending messages to Telegram Bot
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-test-value}
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-test-value}
+
+      # SMTP settings for sending email via MailHog
+      SPRING_MAIL_HOST: mailhog
+      SPRING_MAIL_PORT: 1025
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME:-}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD:-}
+      SPRING_MAIL_SMTP_AUTH: ${SPRING_MAIL_SMTP_AUTH:-false}
+      SPRING_MAIL_SMTP_STARTTLS_ENABLE: ${SPRING_MAIL_SMTP_STARTTLS_ENABLE:-false}
+      SPRING_MAIL_SMTP_SSL_ENABLE: ${SPRING_MAIL_SMTP_SSL_ENABLE:-false}
+      SPRING_MAIL_FROM: ${SPRING_MAIL_FROM:-noreply@localhost}
+
+      # Base URL for email verification links (must match the port where backend is available)
+      APP_EMAIL_VERIFICATION_BASE_URL: ${APP_EMAIL_VERIFICATION_BASE_URL:-http://localhost:8088}
 
     ports:
       - "8088:8080"
     volumes:
-      # Хранение изображений книг в обычной директории на хосте (для Windows используйте формат C:/path/to/dir)
+      # Storing book images in regular directory on host (for Windows use format C:/path/to/dir)
       - ${APP_IMAGES_STORAGE_PATH:-C:/spring-digital-bookstore/pictures}:/opt/spring-digital-bookstore/pictures
-      # Хранение PDF файлов книг в обычной директории на хосте (для Windows используйте формат C:/path/to/dir)
+      # Storing book PDF files in regular directory on host (for Windows use format C:/path/to/dir)
       - ${APP_PDF_STORAGE_PATH:-C:/spring-digital-bookstore/pdf}:/opt/spring-digital-bookstore/pdf
     networks:
       - spring-library-network
@@ -253,6 +279,8 @@
         condition: service_healthy
       kafka:
         condition: service_healthy
+      mailhog:
+        condition: service_started
     restart: unless-stopped
 
 networks:
@@ -280,6 +308,12 @@ networks:
           >http://localhost:8089</a
         >
         (admin, admin)
+      </p>
+      <p>
+        MailHog (web interface for viewing sent emails and registration confirmation) at:
+        <a href="http://localhost:8025" target="_blank" rel="noopener"
+          >http://localhost:8025</a
+        >
       </p>
 
       <h2>Admin credentials in the application</h2>
@@ -315,9 +349,6 @@ networks:
       <div class="code-block copyable">
         <pre><code># This is how your .env file should look, but the values for these variables should be yours!
 
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-
 OPENAI_API_KEY=sk-proj-...
 GEMINI_API_KEY=AIzaSy...
 
@@ -327,92 +358,7 @@ TELEGRAM_CHAT_ID=14310...</code></pre>
 
       <h2>Instructions for setting up keys and services</h2>
 
-      <h3>1. Stripe — settings for card payments</h3>
-
-      <h4>1.1 Getting STRIPE_SECRET_KEY</h4>
-      <ol>
-        <li>
-          Go to
-          <a href="https://dashboard.stripe.com" target="_blank" rel="noopener"
-            >https://dashboard.stripe.com</a
-          >
-        </li>
-        <li>Sign in or register</li>
-        <li>
-          After signing in, click SKIP on all prompts, and when prompted to go
-          to Sandbox, click it and you will be redirected to
-          https://dashboard.stripe.com/your_account_number/test/dashboard
-        </li>
-        <li>In the search, type API keys and go to Developers → API keys</li>
-        <li>Find the <strong>Secret key</strong></li>
-        <li>Copy and paste it into the variable:</li>
-      </ol>
-      <div class="code-block">
-        <pre><code>STRIPE_SECRET_KEY=sk_test_...</code></pre>
-      </div>
-
-      <h4>1.2 Getting STRIPE_WEBHOOK_SECRET</h4>
-      <ol>
-        <li>In the search, type Webhooks and go to Webhooks</li>
-        <li>Click <strong>+ Add destination</strong></li>
-        <li>Select the <strong>Your account</strong> option</li>
-        <li>
-          Among events, select
-          <strong
-            >checkout.session.completed, payment_intent.succeeded,
-            payment_intent.payment_failed</strong
-          >
-        </li>
-        <li>Click <strong>Continue</strong></li>
-        <li>
-          Select <strong>Webhook endpoint</strong> and click
-          <strong>Continue</strong> again
-        </li>
-        <li>
-          In the Endpoint URL field, specify:
-          <strong>http://YOUR_EXTERNAL_IP/api/v1/payment/webhook</strong> and
-          click <strong>Create destination</strong>
-        </li>
-        <li>
-          After creating the webhook, copy the
-          <strong>Signing secret</strong> value and paste it into the variable:
-        </li>
-      </ol>
-      <div class="code-block">
-        <pre><code>STRIPE_WEBHOOK_SECRET=whsec_...</code></pre>
-      </div>
-
-      <h4>1.3 Setting up external access to webhook</h4>
-      <p>For Stripe to connect to your server:</p>
-      <ol>
-        <li>
-          Find out your external IP (e.g., via
-          <a href="https://whatismyip.com" target="_blank" rel="noopener"
-            >whatismyip.com</a
-          >)
-        </li>
-        <li>
-          On your router, perform <strong>port forwarding</strong>. If you don't
-          know how to do this, find instructions for your router online. For
-          example, here's a
-          <a
-            href="https://www.howtogeek.com/66214/how-to-forward-ports-on-your-router/"
-            target="_blank"
-            rel="noopener"
-            >link to instructions</a
-          >:
-        </li>
-      </ol>
-      <div class="code-block">
-        <pre><code>external port 80 → to internal port 80 on your computer where the backend is running</code></pre>
-      </div>
-      <p>
-        If you don't set up access, Stripe won't be able to deliver webhooks,
-        and payments won't be confirmed (although the application itself will
-        start).
-      </p>
-
-      <h3>2. OpenAI — getting OPENAI_API_KEY</h3>
+      <h3>1. OpenAI — getting OPENAI_API_KEY</h3>
       <ol>
         <li>
           Go to:
@@ -444,7 +390,7 @@ TELEGRAM_CHAT_ID=14310...</code></pre>
         <li>Enable the <strong>Enable for all projects</strong> option</li>
       </ol>
 
-      <h3>3. Gemini — getting GEMINI_API_KEY</h3>
+      <h3>2. Gemini — getting GEMINI_API_KEY</h3>
       <ol>
         <li>
           Go to:
@@ -469,9 +415,9 @@ TELEGRAM_CHAT_ID=14310...</code></pre>
         >
       </p>
 
-      <h3>4. Telegram — settings for notifications</h3>
+      <h3>3. Telegram — settings for notifications</h3>
 
-      <h4>4.1 Getting TELEGRAM_BOT_TOKEN</h4>
+      <h4>3.1 Getting TELEGRAM_BOT_TOKEN</h4>
       <ol>
         <li>In Telegram, find <code>@BotFather</code></li>
         <li>Send <code>/newbot</code></li>
@@ -482,7 +428,7 @@ TELEGRAM_CHAT_ID=14310...</code></pre>
         <pre><code>TELEGRAM_BOT_TOKEN=123456:ABC-DEF...</code></pre>
       </div>
 
-      <h4>4.2 Getting TELEGRAM_CHAT_ID</h4>
+      <h4>3.2 Getting TELEGRAM_CHAT_ID</h4>
       <p>Fastest way:</p>
       <ol>
         <li>In Telegram, find <code>@userinfobot</code></li>
@@ -494,12 +440,9 @@ TELEGRAM_CHAT_ID=14310...</code></pre>
         <pre><code>TELEGRAM_CHAT_ID=123456789</code></pre>
       </div>
 
-      <h3>5. Example of final .env file</h3>
+      <h3>4. Example of final .env file</h3>
       <div class="code-block">
-        <pre><code>STRIPE_SECRET_KEY=sk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-
-OPENAI_API_KEY=sk-proj-...
+        <pre><code>OPENAI_API_KEY=sk-proj-...
 GEMINI_API_KEY=AIzaSy...
 
 TELEGRAM_BOT_TOKEN=your-telegram-bot-token
