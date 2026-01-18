@@ -28,273 +28,442 @@
 
       <div class="code-block copyable">
         <pre><code>services:
-  # Zookeeper для Kafka
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.5.0
-    container_name: kafka-zookeeper
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    ports:
-      - "2181:2181"
-    networks:
-      - spring-library-network
-    healthcheck:
-      test: ["CMD-SHELL", "nc -z localhost 2181 || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    restart: unless-stopped
-
-  # Kafka Broker
-  kafka:
-    image: confluentinc/cp-kafka:7.5.0
-    container_name: kafka-broker
-    depends_on:
-      zookeeper:
-        condition: service_healthy
-    ports:
-      - "9092:9092"
-      - "9093:9093"
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_INTERNAL://0.0.0.0:29092
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka-broker:29092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-      KAFKA_LOG_RETENTION_HOURS: 168 # 7 дней
-      KAFKA_LOG_SEGMENT_BYTES: 1073741824 # 1GB
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      # Ограничение памяти для Kafka (heap memory)
-      KAFKA_HEAP_OPTS: "-Xmx512M -Xms512M"
-    networks:
-      - spring-library-network
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "kafka-broker-api-versions --bootstrap-server localhost:9092 || exit 1",
-        ]
-      interval: 30s
-      timeout: 10s
-      retries: 10
-      start_period: 120s
-    restart: unless-stopped
-
-  # Kafka UI - графический интерфейс для просмотра топиков и сообщений
-  kafka-ui:
-    image: provectuslabs/kafka-ui:latest
-    container_name: kafka-ui
-    depends_on:
-      kafka:
-        condition: service_started
-    ports:
-      - "8089:8080"
-    environment:
-      KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-broker:29092
-      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
-      # Аутентификация через Basic Auth
-      AUTH_TYPE: ${KAFKA_UI_AUTH_TYPE:-BASIC}
-      SPRING_SECURITY_USER_NAME: ${KAFKA_UI_USERNAME:-admin}
-      SPRING_SECURITY_USER_PASSWORD: ${KAFKA_UI_PASSWORD:-admin}
-    networks:
-      - spring-library-network
-    restart: unless-stopped
-
-  # MailHog - SMTP сервер для разработки и тестирования email
-  # Веб-интерфейс: http://localhost:8025
-  # SMTP порт: 1025
-  mailhog:
-    image: mailhog/mailhog:latest
-    container_name: mailhog_email_server
-    ports:
-      - "1025:1025" # SMTP порт
-      - "8025:8025" # Web UI для просмотра писем
-    networks:
-      - spring-library-network
-    restart: unless-stopped
-
-  # Analytics Service
-  analytics-service:
-    image: 01yura/spring-digital-bookstore-analytics-service:latest
-    pull_policy: always
-    container_name: analytics-service
-    depends_on:
-      kafka:
-        condition: service_healthy
-    ports:
-      - "8090:8090"
-    environment:
-      # Kafka Configuration
-      KAFKA_BOOTSTRAP_SERVERS: kafka-broker:29092
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka-broker:29092
-      KAFKA_CONSUMER_GROUP_ID: analytics-service-group
-      SPRING_KAFKA_CONSUMER_GROUP_ID: analytics-service-group
-      # Server Configuration
-      SERVER_PORT: 8090
-      # Logging
-      LOGGING_LEVEL_ROOT: INFO
-      LOGGING_LEVEL_ORG_APACHE_KAFKA: WARN
-      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_KAFKA: INFO
-      LOGGING_LEVEL_ONLINE_ITYURA_ANALYTICS: INFO
-      # Aggregation interval
-      ANALYTICS_AGGREGATION_INTERVAL_MS: ${ANALYTICS_AGGREGATION_INTERVAL_MS:-60000}
-    networks:
-      - spring-library-network
-    restart: unless-stopped
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "wget --no-verbose --tries=1 --spider http://localhost:8090/api/analytics/health || exit 1",
-        ]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
-
-  # React UI приложение
-  ui:
-    image: 01yura/spring-digital-library-ui:with_analytics_and_email_without_https_for_local_run
-    pull_policy: always
-    container_name: spring-digital-bookstore-ui
-    ports:
-      - "80:80"
-    networks:
-      - spring-library-network
-    depends_on:
-      - backend
-    restart: unless-stopped
-
-  # PostgreSQL база данных для локального запуска
-  postgres:
-    image: postgres:16-alpine
-    container_name: spring-digital-library-db
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB:-spring_digital_bookstore}
-      POSTGRES_USER: ${POSTGRES_USER:-admin}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin}
-    ports:
-      - "5432:5432"
-    volumes:
-      # Хранение данных БД на хосте (для Windows используйте формат C:/path/to/dir)
-      - ${POSTGRES_DATA_PATH:-C:/spring-digital-bookstore/postgres_data}:/var/lib/postgresql/data
-    networks:
-      - spring-library-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d spring_digital_bookstore"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    restart: unless-stopped
-
-  # Spring Boot приложение для локального запуска без HTTPS
-  backend:
-    image: 01yura/spring-digital-bookstore:with_email
-    pull_policy: always
-    container_name: spring-digital-bookstore-app
-    environment:
-      # Настройки подключения к БД
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-spring_digital_bookstore}
-      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-admin}
-      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-admin}
-
-      # JPA/Hibernate настройки
-      SPRING_JPA_DATABASE_PLATFORM: ${SPRING_JPA_DATABASE_PLATFORM:-org.hibernate.dialect.PostgreSQLDialect}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}
-      SPRING_JPA_SHOW_SQL: ${SPRING_JPA_SHOW_SQL:-false}
-      SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: ${SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL:-true}
-
-      # JWT настройки
-      JWT_SECRET: ${JWT_SECRET:-my-secret-key-for-jwt-generation}
-      JWT_EXPIRATION: ${JWT_EXPIRATION:-300000}
-      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-86400000}
-
-      # Swagger/OpenAPI настройки
-      SPRINGDOC_API_DOCS_PATH: ${SPRINGDOC_API_DOCS_PATH:-/v3/api-docs}
-      SPRINGDOC_SWAGGER_UI_PATH: ${SPRINGDOC_SWAGGER_UI_PATH:-/swagger-ui.html}
-      SPRINGDOC_SWAGGER_UI_OPERATIONS_SORTER: ${SPRINGDOC_SWAGGER_UI_OPERATIONS_SORTER:-method}
-      SPRINGDOC_SWAGGER_UI_TAGS_SORTER: ${SPRINGDOC_SWAGGER_UI_TAGS_SORTER:-alpha}
-
-      # JVM настройки
-      JAVA_OPTS: ${JAVA_OPTS:--Xmx512m -Xms512m}
-
-      # Путь для хранения изображений книг (внутри контейнера фиксированный)
-      APP_IMAGES_STORAGE_PATH: /opt/spring-digital-bookstore/pictures
-      # Путь для хранения PDF файлов книг (внутри контейнера фиксированный)
-      APP_PDF_STORAGE_PATH: /opt/spring-digital-bookstore/pdf
-
-      # Frontend URL для редиректа после оплаты
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
-
-      # Stripe настройки
-      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-sk_test_51Sn9eKF06mQasm4mhBSG71Wes6rz09BTuQicIu37oRIw5agFgZuGMGZQk4IeftRm2aQGJXFma5IPwm1iT77WlALs00VDZNJkEL}
-      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-test-value}
-      STRIPE_SUCCESS_URL: ${STRIPE_SUCCESS_URL:-http://localhost/api/v1/payment/success}
-      STRIPE_CANCEL_URL: ${STRIPE_CANCEL_URL:-http://localhost/api/v1/payment/cancel}
-
-      # OpenAI API настройки
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-test-value}
-
-      # Gemini API настройки
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-test-value}
-
-      # Kafka Configuration для отправки событий
-      KAFKA_BOOTSTRAP_SERVERS: kafka-broker:29092
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka-broker:29092
-
-      # Telegram настройки для отправки сообщений в Telegram Bot
-      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-test-value}
-      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-test-value}
-
-      # SMTP настройки для отправки email через MailHog
-      SPRING_MAIL_HOST: mailhog
-      SPRING_MAIL_PORT: 1025
-      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME:-}
-      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD:-}
-      SPRING_MAIL_SMTP_AUTH: ${SPRING_MAIL_SMTP_AUTH:-false}
-      SPRING_MAIL_SMTP_STARTTLS_ENABLE: ${SPRING_MAIL_SMTP_STARTTLS_ENABLE:-false}
-      SPRING_MAIL_SMTP_SSL_ENABLE: ${SPRING_MAIL_SMTP_SSL_ENABLE:-false}
-      SPRING_MAIL_FROM: ${SPRING_MAIL_FROM:-noreply@localhost}
-
-      # Base URL для ссылок подтверждения email (должен соответствовать порту, на котором доступен backend)
-      APP_EMAIL_VERIFICATION_BASE_URL: ${APP_EMAIL_VERIFICATION_BASE_URL:-http://localhost:8088}
-
-    ports:
-      - "8088:8080"
-    volumes:
-      # Хранение изображений книг в обычной директории на хосте (для Windows используйте формат C:/path/to/dir)
-      - ${APP_IMAGES_STORAGE_PATH:-C:/spring-digital-bookstore/pictures}:/opt/spring-digital-bookstore/pictures
-      # Хранение PDF файлов книг в обычной директории на хосте (для Windows используйте формат C:/path/to/dir)
-      - ${APP_PDF_STORAGE_PATH:-C:/spring-digital-bookstore/pdf}:/opt/spring-digital-bookstore/pdf
-    networks:
-      - spring-library-network
-    depends_on:
-      postgres:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
-      mailhog:
-        condition: service_started
-    restart: unless-stopped
-
-networks:
-  spring-library-network:
-    driver: bridge</code></pre>
+            # Zookeeper для Kafka
+            zookeeper:
+              image: confluentinc/cp-zookeeper:7.5.0
+              container_name: kafka-zookeeper
+              environment:
+                ZOOKEEPER_CLIENT_PORT: 2181
+                ZOOKEEPER_TICK_TIME: 2000
+              ports:
+                - "2181:2181"
+              networks:
+                - spring-library-network
+              healthcheck:
+                test: ["CMD-SHELL", "nc -z localhost 2181 || exit 1"]
+                interval: 10s
+                timeout: 5s
+                retries: 5
+              restart: unless-stopped
+          
+            # Kafka Broker
+            kafka:
+              image: confluentinc/cp-kafka:7.5.0
+              container_name: kafka-broker
+              depends_on:
+                zookeeper:
+                  condition: service_healthy
+              ports:
+                - "9092:9092"
+                - "9093:9093"
+              environment:
+                KAFKA_BROKER_ID: 1
+                KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+                KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_INTERNAL://0.0.0.0:29092
+                KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka-broker:29092
+                KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+                KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
+                KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+                KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+                KAFKA_LOG_RETENTION_HOURS: 168 # 7 дней
+                KAFKA_LOG_SEGMENT_BYTES: 1073741824 # 1GB
+                KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+                KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+                # Ограничение памяти для Kafka (heap memory)
+                KAFKA_HEAP_OPTS: "-Xmx512M -Xms512M"
+              networks:
+                - spring-library-network
+              healthcheck:
+                test:
+                  [
+                    "CMD-SHELL",
+                    "kafka-broker-api-versions --bootstrap-server localhost:9092 || exit 1",
+                  ]
+                interval: 30s
+                timeout: 10s
+                retries: 10
+                start_period: 120s
+              restart: unless-stopped
+          
+            # Kafka UI - графический интерфейс для просмотра топиков и сообщений
+            kafka-ui:
+              image: provectuslabs/kafka-ui:latest
+              container_name: kafka-ui
+              depends_on:
+                kafka:
+                  condition: service_started
+              ports:
+                - "8089:8080"
+              environment:
+                KAFKA_CLUSTERS_0_NAME: local
+                KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-broker:29092
+                KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+                # Аутентификация через Basic Auth
+                AUTH_TYPE: ${KAFKA_UI_AUTH_TYPE:-BASIC}
+                SPRING_SECURITY_USER_NAME: ${KAFKA_UI_USERNAME:-admin}
+                SPRING_SECURITY_USER_PASSWORD: ${KAFKA_UI_PASSWORD:-admin}
+              networks:
+                - spring-library-network
+              restart: unless-stopped
+          
+            # MailHog - SMTP сервер для разработки и тестирования email
+            # Веб-интерфейс: http://localhost:8025
+            # SMTP порт: 1025
+            mailhog:
+              image: mailhog/mailhog:latest
+              container_name: mailhog_email_server
+              ports:
+                - "1025:1025" # SMTP порт
+                - "8025:8025" # Web UI для просмотра писем
+              networks:
+                - spring-library-network
+              restart: unless-stopped
+          
+            # Analytics Service
+            analytics-service:
+              image: 01yura/spring-digital-bookstore-analytics-service:elk
+              pull_policy: always
+              container_name: analytics-service
+              depends_on:
+                kafka:
+                  condition: service_healthy
+              ports:
+                - "8090:8090"
+              environment:
+                # Kafka Configuration
+                KAFKA_BOOTSTRAP_SERVERS: kafka-broker:29092
+                SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka-broker:29092
+                KAFKA_CONSUMER_GROUP_ID: analytics-service-group
+                SPRING_KAFKA_CONSUMER_GROUP_ID: analytics-service-group
+                # Server Configuration
+                SERVER_PORT: 8090
+                # Logging
+                LOGGING_LEVEL_ROOT: INFO
+                LOGGING_LEVEL_ORG_APACHE_KAFKA: WARN
+                LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_KAFKA: INFO
+                LOGGING_LEVEL_ONLINE_ITYURA_ANALYTICS: INFO
+                # Aggregation interval
+                ANALYTICS_AGGREGATION_INTERVAL_MS: ${ANALYTICS_AGGREGATION_INTERVAL_MS:-60000}
+                # ELK Stack настройки для отправки логов в Logstash
+                LOGSTASH_HOST: logstash
+                LOGSTASH_PORT: 5000
+                LOGSTASH_ENABLED: "true"
+              networks:
+                - spring-library-network
+              restart: unless-stopped
+              healthcheck:
+                test:
+                  [
+                    "CMD-SHELL",
+                    "wget --no-verbose --tries=1 --spider http://localhost:8090/api/analytics/health || exit 1",
+                  ]
+                interval: 30s
+                timeout: 10s
+                retries: 5
+                start_period: 60s
+          
+            # React UI приложение
+            ui:
+              image: 01yura/spring-digital-library-ui:with_analytics_and_email_without_https_for_local_run
+              pull_policy: always
+              container_name: spring-digital-bookstore-ui
+              ports:
+                - "80:80"
+              networks:
+                - spring-library-network
+              depends_on:
+                - backend
+              restart: unless-stopped
+          
+            # PostgreSQL база данных для локального запуска
+            postgres:
+              image: postgres:16-alpine
+              container_name: spring-digital-library-db
+              environment:
+                POSTGRES_DB: ${POSTGRES_DB:-spring_digital_bookstore}
+                POSTGRES_USER: ${POSTGRES_USER:-admin}
+                POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin}
+              ports:
+                - "5432:5432"
+              volumes:
+                # Хранение данных БД на хосте (для Windows используйте формат C:/path/to/dir)
+                - ${POSTGRES_DATA_PATH:-C:/spring-digital-bookstore/postgres_data}:/var/lib/postgresql/data
+              networks:
+                - spring-library-network
+              healthcheck:
+                test: ["CMD-SHELL", "pg_isready -U admin -d spring_digital_bookstore"]
+                interval: 10s
+                timeout: 5s
+                retries: 5
+              restart: unless-stopped
+          
+            # Spring Boot приложение для локального запуска без HTTPS
+            backend:
+              image: 01yura/spring-digital-bookstore:elk
+              pull_policy: always
+              container_name: spring-digital-bookstore-app
+              environment:
+                # Настройки подключения к БД
+                SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-spring_digital_bookstore}
+                SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-admin}
+                SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-admin}
+          
+                # JPA/Hibernate настройки
+                SPRING_JPA_DATABASE_PLATFORM: ${SPRING_JPA_DATABASE_PLATFORM:-org.hibernate.dialect.PostgreSQLDialect}
+                SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}
+                SPRING_JPA_SHOW_SQL: ${SPRING_JPA_SHOW_SQL:-false}
+                SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: ${SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL:-true}
+          
+                # JWT настройки
+                JWT_SECRET: ${JWT_SECRET:-my-secret-key-for-jwt-generation}
+                JWT_EXPIRATION: ${JWT_EXPIRATION:-300000}
+                JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-86400000}
+          
+                # Swagger/OpenAPI настройки
+                SPRINGDOC_API_DOCS_PATH: ${SPRINGDOC_API_DOCS_PATH:-/v3/api-docs}
+                SPRINGDOC_SWAGGER_UI_PATH: ${SPRINGDOC_SWAGGER_UI_PATH:-/swagger-ui.html}
+                SPRINGDOC_SWAGGER_UI_OPERATIONS_SORTER: ${SPRINGDOC_SWAGGER_UI_OPERATIONS_SORTER:-method}
+                SPRINGDOC_SWAGGER_UI_TAGS_SORTER: ${SPRINGDOC_SWAGGER_UI_TAGS_SORTER:-alpha}
+          
+                # JVM настройки
+                JAVA_OPTS: ${JAVA_OPTS:--Xmx512m -Xms512m}
+          
+                # Путь для хранения изображений книг (внутри контейнера фиксированный)
+                APP_IMAGES_STORAGE_PATH: /opt/spring-digital-bookstore/pictures
+                # Путь для хранения PDF файлов книг (внутри контейнера фиксированный)
+                APP_PDF_STORAGE_PATH: /opt/spring-digital-bookstore/pdf
+          
+                # Frontend URL для редиректа после оплаты
+                FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
+          
+                # Stripe настройки
+                STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-sk_test_51Sn9eKF06mQasm4mhBSG71Wes6rz09BTuQicIu37oRIw5agFgZuGMGZQk4IeftRm2aQGJXFma5IPwm1iT77WlALs00VDZNJkEL}
+                STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-test-value}
+                STRIPE_SUCCESS_URL: ${STRIPE_SUCCESS_URL:-http://localhost/api/v1/payment/success}
+                STRIPE_CANCEL_URL: ${STRIPE_CANCEL_URL:-http://localhost/api/v1/payment/cancel}
+          
+                # OpenAI API настройки
+                OPENAI_API_KEY: ${OPENAI_API_KEY:-test-value}
+          
+                # Gemini API настройки
+                GEMINI_API_KEY: ${GEMINI_API_KEY:-test-value}
+          
+                # Kafka Configuration для отправки событий
+                KAFKA_BOOTSTRAP_SERVERS: kafka-broker:29092
+                SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka-broker:29092
+          
+                # Telegram настройки для отправки сообщений в Telegram Bot
+                TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-test-value}
+                TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-test-value}
+          
+                # SMTP настройки для отправки email через MailHog
+                SPRING_MAIL_HOST: mailhog
+                SPRING_MAIL_PORT: 1025
+                SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME:-}
+                SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD:-}
+                SPRING_MAIL_SMTP_AUTH: ${SPRING_MAIL_SMTP_AUTH:-false}
+                SPRING_MAIL_SMTP_STARTTLS_ENABLE: ${SPRING_MAIL_SMTP_STARTTLS_ENABLE:-false}
+                SPRING_MAIL_SMTP_SSL_ENABLE: ${SPRING_MAIL_SMTP_SSL_ENABLE:-false}
+                SPRING_MAIL_FROM: ${SPRING_MAIL_FROM:-noreply@localhost}
+          
+                # Base URL для ссылок подтверждения email (должен соответствовать порту, на котором доступен backend)
+                APP_EMAIL_VERIFICATION_BASE_URL: ${APP_EMAIL_VERIFICATION_BASE_URL:-http://localhost}
+          
+                # ELK Stack настройки для отправки логов в Logstash
+                LOGSTASH_HOST: logstash
+                LOGSTASH_PORT: 5000
+          
+                # Включить/выключить Logstash (по умолчанию в application.properties выключен)
+                LOGSTASH_ENABLED: "true"
+                # Включить/выключить Kafka (по умолчанию в application.properties выключен)
+                KAFKA_ENABLED: "true"
+          
+              ports:
+                - "8088:8080"
+              volumes:
+                # Хранение изображений книг в обычной директории на хосте (для Windows используйте формат C:/path/to/dir)
+                - ${APP_IMAGES_STORAGE_PATH:-C:/spring-digital-bookstore/pictures}:/opt/spring-digital-bookstore/pictures
+                # Хранение PDF файлов книг в обычной директории на хосте (для Windows используйте формат C:/path/to/dir)
+                - ${APP_PDF_STORAGE_PATH:-C:/spring-digital-bookstore/pdf}:/opt/spring-digital-bookstore/pdf
+              networks:
+                - spring-library-network
+              depends_on:
+                postgres:
+                  condition: service_healthy
+                kafka:
+                  condition: service_healthy
+                mailhog:
+                  condition: service_started
+              restart: unless-stopped
+          
+            # Elasticsearch для хранения логов
+            elasticsearch:
+              image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+              container_name: elasticsearch
+              environment:
+                - discovery.type=single-node
+                - xpack.security.enabled=false
+                # Увеличиваем память до 1GB для стабильной работы
+                - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+                # Отключаем memory_lock для Windows/Docker (может не работать)
+                - bootstrap.memory_lock=false
+                # Настройки для более быстрой работы в dev окружении
+                - action.auto_create_index=true
+                - cluster.routing.allocation.disk.threshold_enabled=false
+              ulimits:
+                memlock:
+                  soft: -1
+                  hard: -1
+                nofile:
+                  soft: 65536
+                  hard: 65536
+              volumes:
+                - ${ELASTICSEARCH_DATA_PATH:-C:/spring-digital-bookstore/elasticsearch_data}:/usr/share/elasticsearch/data
+              ports:
+                - "9200:9200"
+                - "9300:9300"
+              networks:
+                - spring-library-network
+              healthcheck:
+                test:
+                  [
+                    "CMD-SHELL",
+                    "curl -f http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=30s || exit 1",
+                  ]
+                interval: 30s
+                timeout: 30s
+                retries: 10
+                start_period: 120s
+              restart: unless-stopped
+          
+            # Logstash для приема и обработки логов
+            logstash:
+              image: docker.elastic.co/logstash/logstash:8.11.0
+              container_name: logstash
+              depends_on:
+                elasticsearch:
+                  condition: service_healthy
+              ports:
+                - "5000:5000"
+                - "5044:5044"
+                - "9600:9600"
+              environment:
+                - "LS_JAVA_OPTS=-Xmx256m -Xms256m"
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  mkdir -p /usr/share/logstash/pipeline /usr/share/logstash/config
+                  cat > /usr/share/logstash/config/pipelines.yml << 'PIPELINES_EOF'
+                  # Конфигурация pipelines для Logstash
+                  - pipeline.id: main
+                    path.config: "/usr/share/logstash/pipeline/logstash.conf"
+                  PIPELINES_EOF
+                  cat > /usr/share/logstash/config/logstash.yml << 'LOGSTASH_EOF'
+                  http.host: "0.0.0.0"
+                  xpack.monitoring.elasticsearch.hosts: [ "http://elasticsearch:9200" ]
+                  LOGSTASH_EOF
+                  cat > /usr/share/logstash/pipeline/logstash.conf << 'LOGCONF_EOF'
+                  input {
+                    tcp {
+                      port => 5000
+                      codec => json_lines
+                    }
+                  }
+          
+                  filter {
+                    # logstash-logback-encoder отправляет JSON напрямую через TCP с codec json_lines
+                    # Все поля уже доступны напрямую (level, message, service, @timestamp, logger_name, thread_name и т.д.)
+                    
+                    # Добавление метаданных для индексации на основе поля service
+                    mutate {
+                      add_field => { "[@metadata][index]" => "%{service}-logs-%{+YYYY.MM.dd}" }
+                    }
+                    
+                    # Если service не определен, используем значение по умолчанию
+                    if ![service] {
+                      mutate {
+                        add_field => { "service" => "unknown" }
+                      }
+                    }
+                    
+                    # Фильтрация чувствительных данных (пароли, токены)
+                    # Раскомментируйте, если нужно маскировать чувствительные данные
+                    # mutate {
+                    #   gsub => [
+                    #     "message", "(?i)(password|token|secret|key|api[_-]?key)=[^&\s\"']+", "\1=***",
+                    #     "message", "(?i)(\"password\"\\s*:\\s*\")([^\"]+)(\")", "\1***\3",
+                    #     "message", "(?i)(\"token\"\\s*:\\s*\")([^\"]+)(\")", "\1***\3"
+                    #   ]
+                    # }
+                  }
+          
+                  output {
+                    elasticsearch {
+                      hosts => ["elasticsearch:9200"]
+                      # Динамический индекс на основе поля service
+                      index => "%{[@metadata][index]}"
+                      # Или можно использовать фиксированные индексы:
+                      # index => "%{service}-logs-%{+YYYY.MM.dd}"
+                    }
+                    
+                    # Fallback на stdout для отладки (опционально, можно закомментировать в продакшене)
+                    stdout {
+                      codec => rubydebug
+                    }
+                  }
+                  LOGCONF_EOF
+                  exec /usr/local/bin/docker-entrypoint
+              networks:
+                - spring-library-network
+              healthcheck:
+                test: ["CMD-SHELL", "curl -f http://localhost:9600/_node/stats || exit 1"]
+                interval: 30s
+                timeout: 10s
+                retries: 5
+                start_period: 60s
+              restart: unless-stopped
+          
+            # Kibana для визуализации логов
+            kibana:
+              image: docker.elastic.co/kibana/kibana:8.11.0
+              container_name: kibana
+              depends_on:
+                elasticsearch:
+                  condition: service_healthy
+              ports:
+                - "5601:5601"
+              environment:
+                - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+                # Увеличиваем таймауты для создания индексов
+                - ELASTICSEARCH_REQUEST_TIMEOUT=120000
+                # Настройки для более быстрого старта
+                - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=changeme-changeme-changeme-changeme
+                - XPACK_REPORTING_ENCRYPTIONKEY=changeme-changeme-changeme-changeme
+                - XPACK_SECURITY_ENCRYPTIONKEY=changeme-changeme-changeme-changeme
+              networks:
+                - spring-library-network
+              healthcheck:
+                test: ["CMD-SHELL", "curl -f http://localhost:5601/api/status || exit 1"]
+                interval: 30s
+                timeout: 10s
+                retries: 10
+                start_period: 300s
+              restart: unless-stopped
+          
+          networks:
+            spring-library-network:
+              driver: bridge
+          </code></pre>
       </div>
       <p>
-        Фронтенд будет доступен по адресу
+        <strong>Фронтенд</strong> будет доступен по адресу
         <a href="http://localhost" target="_blank" rel="noopener"
           >http://localhost</a
         >
       </p>
       <p>
-        Swagger по адресу
+        <strong>Swagger</strong> по адресу
         <a
           href="http://localhost:8088/swagger-ui/index.html"
           target="_blank"
@@ -303,17 +472,24 @@ networks:
         >
       </p>
       <p>
-        Kafka UI по адресу:
+        <strong>Kafka UI</strong> по адресу:
         <a href="http://localhost:8089" target="_blank" rel="noopener"
           >http://localhost:8089</a
         >
         (admin, admin)
       </p>
       <p>
-        MailHog (веб-интерфейс для просмотра отправленных email и подтверждения регистрации) по адресу:
+        <strong>MailHog</strong> (веб-интерфейс для просмотра отправленных email и подтверждения регистрации) по адресу:
         <a href="http://localhost:8025" target="_blank" rel="noopener"
           >http://localhost:8025</a
         >
+      </p>
+        <strong>Kibana</strong> (веб-интерфейс для просмотра логов) по адресу:
+        <a href="http://localhost:5601" target="_blank" rel="noopener"
+          >http://localhost:5601</a
+        ><br />
+        Для отображения логов в Kibana необходимо прописать индексы (создать так называемые Data views) прямо в графическом интерфейсе Kibana. Во вкладке Discover при первом включении.</br>
+        Паттерн для индексов: <code>main-app-logs-*</code> и <code>analytics-service-logs-*</code>
       </p>
 
       <h2>Credentials администратора в самом приложении</h2>
