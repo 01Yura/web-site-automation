@@ -7,6 +7,11 @@
     <link rel="icon" type="image/png" href="../favicon.png" />
     <link rel="stylesheet" href="../assets/styles.css" />
     <script src="../assets/copy-code.js"></script>
+    <style>
+      ol.main-steps li::marker {
+        font-weight: bold;
+      }
+    </style>
   </head>
   <body>
     <div class="language-switcher">
@@ -19,13 +24,30 @@
 
     <div class="card">
       <h1>Local Deployment</h1>
-      <ol>
+      <ol class="main-steps">
         <li>
-          Create <strong>docker-compose.yml</strong>, copy the following content
-          there and run with the command <code>docker-compose up -d</code>.
+          Download the <strong>docker-compose.yml</strong> file from GitHub using
+          the link below and run it with the command
+          <code>docker-compose up -d</code>.
         </li>
       </ol>
 
+      <p>
+        <a
+          href="https://github.com/01Yura/backend-spring-digital-bookstore/blob/main/for_local_run_only/docker-compose.yml"
+          target="_blank"
+          rel="noopener"
+          >Download docker-compose.yml from GitHub</a
+        ><br />
+        On the opened GitHub page, click the button on the right
+        <strong>&quot;Download raw file&quot;</strong>.<br />
+        Note: this docker-compose file is quite large because I’ve hardcoded all
+        ELK, Prometheus and Grafana configs into it, so you don’t need to
+        create separate configuration files — everything will start with a
+        single command.
+      </p>
+
+      <!--
       <div class="code-block copyable">
         <pre><code>services:
   # Zookeeper for Kafka
@@ -455,6 +477,7 @@ networks:
   spring-library-network:
     driver: bridge</code></pre>
       </div>
+      -->
       <p>
         Frontend will be available at
         <a href="http://localhost" target="_blank" rel="noopener"
@@ -491,36 +514,49 @@ networks:
         To display logs in Kibana, you need to configure indices (create so-called Data views) directly in the Kibana graphical interface. In the Discover tab when first opened.<br />
         Index patterns: <code>main-app-logs-*</code> and <code>analytics-service-logs-*</code>
       </p>
+      <p>
+        <strong>Prometheus</strong> (monitoring system and metrics collection) at:
+        <a href="http://localhost:9090/query" target="_blank" rel="noopener"
+          >http://localhost:9090/query</a
+        >
+      </p>
+      <p>
+        <strong>Grafana</strong> (web interface for metrics visualization) at:
+        <a href="http://localhost:3001/d/application-metrics/application-metrics-dashboard?orgId=1&from=now-5m&to=now&timezone=browser&refresh=5s" target="_blank" rel="noopener"
+          >http://localhost:3001/d/application-metrics/application-metrics-dashboard?orgId=1&from=now-5m&to=now&timezone=browser&refresh=5s</a
+        >
+        (admin, admin)
+      </p>
 
-      <h2>Admin credentials in the application</h2>
-      <ul>
-        <li><strong>Login</strong>: <code>admin@gmail.com</code></li>
-        <li><strong>Password</strong>: <code>admin</code></li>
-      </ul>
-
-      <h2>PostgreSQL database connection via any client (e.g. DBeaver)</h2>
-      <ul>
-        <li><strong>IP</strong>: <code>localhost:5432</code></li>
-        <li>
-          <strong>Database</strong>: <code>spring_digital_bookstore</code>
-        </li>
-        <li><strong>Username</strong>: <code>admin</code></li>
-        <li><strong>Password</strong>: <code>admin</code></li>
-      </ul>
+      <p>
+        <strong>PostgreSQL</strong> (connection via any client, e.g. DBeaver):<br />
+        IP: <code>localhost:5432</code><br />
+        Database: <code>spring_digital_bookstore</code><br />
+        Username: <code>admin</code><br />
+        Password: <code>admin</code>
+      </p>
+      <p>
+        <strong>Admin credentials in the application</strong>:<br />
+        Login: <code>admin@gmail.com</code><br />
+        Password: <code>admin</code>
+      </p>
 
       <p>
         Want to learn how Kafka interaction works in this application?
         <a href="kafka.html" target="_blank" rel="noopener">Read detailed description</a>
       </p>
 
-      <p>
-        2. If you want payment features, ask reviews from users (actually from
-        AI) and tech support to work, you need to create a
-        <strong>.env</strong> file in the same directory where
-        <strong>docker-compose.yml</strong> is located and specify the following
-        variables in it, but you will have to obtain the values yourself (it's
-        free, but will take an extra 15-20 minutes of your time):
-      </p>
+      <ol class="main-steps" start="2">
+        <li>
+          If you want payment features, ask reviews from users (actually from AI)
+          and tech support to work, you need to create a
+          <strong>.env</strong> file in the same directory where
+          <strong>docker-compose.yml</strong> is located and specify the
+          following variables in it, but you will have to obtain the values
+          yourself (it's free, but will take an extra 15–20 minutes of your
+          time).
+        </li>
+      </ol>
 
       <div class="code-block copyable">
         <pre><code># This is how your .env file should look, but the values for these variables should be yours!

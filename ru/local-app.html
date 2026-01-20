@@ -7,6 +7,11 @@
     <link rel="icon" type="image/png" href="../favicon.png" />
     <link rel="stylesheet" href="../assets/styles.css" />
     <script src="../assets/copy-code.js"></script>
+    <style>
+      ol.main-steps li::marker {
+        font-weight: bold;
+      }
+    </style>
   </head>
   <body>
     <div class="language-switcher">
@@ -19,13 +24,30 @@
 
     <div class="card">
       <h1>Локальное развертывание</h1>
-      <ol>
+      <ol class="main-steps">
         <li>
-          Создай <strong>docker-compose.yml</strong>, скопируй туда данное
-          содержимое и запусти командой <code>docker-compose up -d</code>.
+          Скачай файл <strong>docker-compose.yml</strong> с GitHub по ссылке ниже
+          и просто запусти командой <code>docker-compose up -d</code>. Это всё.
         </li>
       </ol>
 
+      <p>
+        <a
+          href="https://github.com/01Yura/backend-spring-digital-bookstore/blob/main/for_local_run_only/docker-compose.yml"
+          target="_blank"
+          rel="noopener"
+          >Скачать docker-compose.yml с GitHub</a
+        ><br />
+        Тут надо будет нажать кнопку справа
+        <strong>&quot;Download raw file&quot;</strong>.<br />
+        Обрати внимание: этот файл довольно объёмный, потому что я заранее
+        захардкодил в него все настройки для ELK, Prometheus и Grafana — чтобы
+        тебе не приходилось создавать отдельные конфигурационные файлы, а можно
+        было поднять всё одной командой и сразу пользоваться без лишней головной
+        боли.
+      </p>
+
+      <!--
       <div class="code-block copyable">
         <pre><code>services:
   # Zookeeper для Kafka
@@ -456,6 +478,7 @@ networks:
     driver: bridge
 </code></pre>
       </div>
+      -->
       <p>
         <strong>Фронтенд</strong> будет доступен по адресу
         <a href="http://localhost" target="_blank" rel="noopener"
@@ -491,37 +514,49 @@ networks:
         Для отображения логов в Kibana необходимо прописать индексы (создать так называемые Data views) прямо в графическом интерфейсе Kibana. Во вкладке Discover при первом включении.</br>
         Паттерн для индексов: <code>main-app-logs-*</code> и <code>analytics-service-logs-*</code>
       </p>
+      <p>
+        <strong>Prometheus</strong> (система мониторинга и сбора метрик) по адресу:
+        <a href="http://localhost:9090/query" target="_blank" rel="noopener"
+          >http://localhost:9090/query</a
+        >
+      </p>
+      <p>
+        <strong>Grafana</strong> (веб-интерфейс для визуализации метрик) по адресу:
+        <a href="http://localhost:3001/d/application-metrics/application-metrics-dashboard?orgId=1&from=now-5m&to=now&timezone=browser&refresh=5s" target="_blank" rel="noopener"
+          >http://localhost:3001/d/application-metrics/application-metrics-dashboard?orgId=1&from=now-5m&to=now&timezone=browser&refresh=5s</a
+        >
+        (admin, admin)
+      </p>
 
-      <h2>Credentials администратора в самом приложении</h2>
-      <ul>
-        <li><strong>Логин</strong>: <code>admin@gmail.com</code></li>
-        <li><strong>Пароль</strong>: <code>admin</code></li>
-      </ul>
-
-      <h2>Подключение к базе PostgreSQL через любой клиент (н-р: DBeaver)</h2>
-      <ul>
-        <li><strong>IP</strong>: <code>localhost:5432</code></li>
-        <li>
-          <strong>Database</strong>: <code>spring_digital_bookstore</code>
-        </li>
-        <li><strong>Username</strong>: <code>admin</code></li>
-        <li><strong>Password</strong>: <code>admin</code></li>
-      </ul>
+      <p>
+        <strong>PostgreSQL</strong> (подключение через любой клиент, н-р: DBeaver):<br />
+        IP: <code>localhost:5432</code><br />
+        Database: <code>spring_digital_bookstore</code><br />
+        Username: <code>admin</code><br />
+        Password: <code>admin</code>
+      </p>
+      <p>
+        <strong>Credentials администратора в самом приложении</strong>:<br />
+        Логин: <code>admin@gmail.com</code><br />
+        Пароль: <code>admin</code>
+      </p>
 
       <p>
         Хотите узнать как работает взаимодействие через Kafka в этом приложении?
         <a href="kafka.html" target="_blank" rel="noopener">Читайте подробное описание</a>
       </p>
 
-      <p>
-        2. Если хотите чтобы работали функции запроса отзыва о книге у
-        пользователя (по факту у AI) и техподдержка, то необходимо создать в той
-        же директории где лежит
-        <strong>docker-compose.yml</strong> еще файл <strong>.env</strong> и
-        прописать в нем следующие переменные, но значения вам придется получить
-        самим (это бесплатно, но придется потратить лишних 15-20 минут вашего
-        времени):
-      </p>
+      <ol class="main-steps" start="2">
+        <li>
+          Если хотите чтобы работали функции запроса отзыва о книге у
+          пользователя (по факту у AI) и техподдержка, то необходимо создать в той
+          же директории где лежит
+          <strong>docker-compose.yml</strong> еще файл <strong>.env</strong> и
+          прописать в нем следующие переменные, но значения вам придется получить
+          самим (это бесплатно, но придется потратить лишних 15-20 минут вашего
+          времени).
+        </li>
+      </ol>
 
       <div class="code-block copyable">
         <pre><code># Вот так должен выглядеть ваш .env файл, но значения для данных переменных должны быть ваши!
