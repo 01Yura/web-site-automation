@@ -16,6 +16,10 @@
       <a href="custom-generator.html" class="lang-link active">EN</a>
     </div>
 
+    <p class="back-link">
+      <a href="cookbook.html">← На предыдущую страницу</a>
+    </p>
+
     <h1>Custom Entity Generator</h1>
 
     <p>
@@ -393,13 +397,14 @@ public class BookingModel extends BaseModel{
 
         If there is no annotation, do not generate any value for the field. So
         that I can write<br />
-    
+
         &nbsp;&nbsp;User user =
         &nbsp;&nbsp;RandomModelGenerator.generateRandomModel(User.class)<br />
-      
+
         and an object of the User class with generated fields will be created.
-        You can use the third-party library com.github.curious-odd-man/rgxgen.<br />
-      
+        You can use the third-party library
+        com.github.curious-odd-man/rgxgen.<br />
+
         Also add the ability to randomly choose values from existing Enums in
         the project. And if a nested class is used as a field in the DTO class,
         then values should be generated for it as well.
@@ -409,7 +414,7 @@ public class BookingModel extends BaseModel{
         later you can always extend the functionality of this class by asking to
         add the ability to generate dates and times in a specific format, and so
         on.<br />
-      
+
         Ideally, you should use AI with the context of your project (like
         Cursor).
       </p>

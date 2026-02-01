@@ -28,20 +28,24 @@
       <a href="../en/selenoid.html" class="lang-link">EN</a>
     </div>
 
+    <p class="back-link">
+      <a href="../index.html">← На предыдущую страницу</a>
+    </p>
+
     <h1>Доступ к Selenoid и конфигурации</h1>
 
     <div class="warning">
       <strong>ВНИМАНИЕ!</strong> У меня не получилось поднять Selenoid на
-      Windows 10 c Docker Desktop (версия Docker Engine 26.1.4; после обновления до версии 28.1.5 всё заработало) 
-       и на MacBook с чипом M1 (Apple Silicon), хотя на Мак есть
-      костыль (<a
+      Windows 10 c Docker Desktop определенных версий (не помню каких точно, но снижу приложил ссылку на рабочий exe'шник Docker Desktop для Windows версии 4.49.0, он точно работает) и на MacBook с чипом M1 (Apple Silicon),
+      хотя на Мак есть костыль (<a
         href="https://gist.github.com/AlexRogalskiy/b266e960606dc565c22c3e6bfd9f48df"
         target="_blank"
         rel="noopener"
         >ссылка</a
-      >), но он работает только для Chrome версии 91. Удалось запустить только
+      >), но он работает только для Chrome версии 91. Без головняка удалось запустить только
       на Linux (Ubuntu; вероятно, заработает и на других дистрибутивах Linux) и
-      на Windows 11. Ну и на более свежих MacBook'ах. <a
+      на Windows 11. Ну и на более свежих MacBook'ах.
+      <a
         href="https://desktop.docker.com/win/main/amd64/208700/Docker%20Desktop%20Installer.exe?utm_source=docker&utm_medium=webreferral&utm_campaign=docs-driven-download-windows"
         target="_blank"
         rel="noopener"
@@ -52,7 +56,10 @@
     <ul>
       <li>
         Доступ к <strong>Selenoid</strong>:
-        <a href="http://176.126.103.46:4444/status" target="_blank" rel="noopener"
+        <a
+          href="http://176.126.103.46:4444/status"
+          target="_blank"
+          rel="noopener"
           >просмотреть на странице</a
         >
       </li>
@@ -61,8 +68,8 @@
         <a href="http://176.126.103.46:8080" target="_blank" rel="noopener"
           >просмотреть на странице</a
         >
-        (стоит ограничение на количество потоков, максимум 1, так как иначе сервер ляжет из-за
-        небольшого кол-ва RAM)
+        (стоит ограничение на количество потоков, максимум 1, так как иначе
+        сервер ляжет из-за небольшого кол-ва RAM)
       </li>
       <li>
         <strong>browsers.json</strong>:
@@ -123,17 +130,18 @@
           <strong>Ошибки путей в файле docker-compose.yml (volumes).</strong>
           <ul>
             <li>
-              Из-за неверных путей Selenoid не видит
-              файл <code>browsers.json</code>, UI не коннектится к Selenoid, и
-              не пишутся видео. Проверьте монтирование каталогов (пути,
-              указанные как volumes) - это частая ошибка.
+              Из-за неверных путей Selenoid не видит файл
+              <code>browsers.json</code>, UI не коннектится к Selenoid, и не
+              пишутся видео. Проверьте монтирование каталогов (пути, указанные
+              как volumes) - это частая ошибка.
             </li>
           </ul>
         </li>
 
         <li>
           <strong
-            >Видео не пишется, так как запись видео настроена неправильно.</strong
+            >Видео не пишется, так как запись видео настроена
+            неправильно.</strong
           >
           <ul>
             <li>
@@ -156,7 +164,9 @@ environment:
             <li>
               Плюс часто забывают заранее скачать образ рекордера (Selenoid сам
               его не скачает и видеозапись не будет работать):
-              <code>docker pull selenoid/video-recorder:latest-release</code>. Добавлять этот образ в docker-compose.yml не нужно, он запустится автоматически, главное просто скачать его один раз.
+              <code>docker pull selenoid/video-recorder:latest-release</code>.
+              Добавлять этот образ в docker-compose.yml не нужно, он запустится
+              автоматически, главное просто скачать его один раз.
             </li>
             <li>
               В тестах нельзя использовать headless-режим:
@@ -169,11 +179,14 @@ environment:
         </li>
 
         <li>
-          <strong>Проблемы на Windows 10 (версия Docker Engine 26.1.4; после обновления до версии 28.1.5 всё заработало)
-            и Mac с чипом M1.</strong>
+          <strong
+            >Проблемы на Windows 10 с некоторыми версиями Docker Desktop и Mac с чипом
+            M1.</strong
+          >
           <ul>
             <li>
-              Контейнеры поднимаются, но браузер стартует и сразу падает. Если используете Windows, то обновите докер; для Mac существуют
+              Контейнеры поднимаются, но браузер стартует и сразу падает. Если
+              используете Windows, то скачайте Docker Desktop версии 4.49.0; для Mac существуют
               костыльные варианты только для Chrome версии 91 (
               <a
                 href="https://gist.github.com/AlexRogalskiy/b266e960606dc565c22c3e6bfd9f48df"
@@ -217,13 +230,13 @@ environment:
               образов браузеров нужно убедиться, что браузеры просто открываются
               хотя бы вручную, чтобы потом, если что-то не заработает, понять -
               дело в тестах или в конфигурации Selenoid. Для этого после запуска
-              Selenoid (docker-compose up -d) зайдите на его
-              IP-адрес:8080, сверху справа должно быть 2 надписи CONNECTED,
-              затем перейдите во вкладку CAPABILITIES, выберите браузер из
-              выпадающего списка (если списка нет, то проблема в browsers.json
-              или в пути к нему) и запустите его вручную. Должно появиться окно
-              браузера. Если появилось - поздравляю, Selenoid настроен; теперь
-              главное - правильно всё прописать в самих тестах.
+              Selenoid (docker-compose up -d) зайдите на его IP-адрес:8080,
+              сверху справа должно быть 2 надписи CONNECTED, затем перейдите во
+              вкладку CAPABILITIES, выберите браузер из выпадающего списка (если
+              списка нет, то проблема в browsers.json или в пути к нему) и
+              запустите его вручную. Должно появиться окно браузера. Если
+              появилось - поздравляю, Selenoid настроен; теперь главное -
+              правильно всё прописать в самих тестах.
             </li>
           </ul>
         </li>

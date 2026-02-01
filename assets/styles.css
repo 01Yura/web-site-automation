@@ -43,6 +43,21 @@ body {
   font-weight: normal;
 }
 
+/* Back to previous page link */
+.back-link {
+  margin: 0 0 16px 0;
+  font-size: 15px;
+}
+
+.back-link a {
+  color: #007acc;
+  text-decoration: none;
+}
+
+.back-link a:hover {
+  text-decoration: underline;
+}
+
 h1 {
   color: #2c3e50;
   font-size: 36px;

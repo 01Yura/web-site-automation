@@ -28,24 +28,30 @@
       <a href="selenoid.html" class="lang-link active">EN</a>
     </div>
 
+    <p class="back-link">
+      <a href="../index.html">← Back to previous page</a>
+    </p>
+
     <h1>Selenoid and Configuration Access</h1>
 
     <div class="warning">
       <strong>WARNING!</strong> I couldn't get Selenoid running on Windows 10
-      with Docker Desktop (Docker Engine 26.1.4; after upgrading to 28.1.5 it
-      worked) and on MacBook with M1 chip (Apple Silicon), although there's a
-      workaround for Mac (<a
+      with certain versions of Docker Desktop (I don't remember which exactly,
+      but below is a link to a working Docker Desktop for Windows 4.49.0 exe,
+      it definitely works) and on MacBook with M1 chip (Apple Silicon), although
+      there's a workaround for Mac (<a
         href="https://gist.github.com/AlexRogalskiy/b266e960606dc565c22c3e6bfd9f48df"
         target="_blank"
         rel="noopener"
         >link</a
       >), but it only works for Chrome version 91. I managed to run it only on
       Linux (Ubuntu; it will probably work on other Linux distributions too), on
-      Windows 11, and on newer MacBooks. <a
+      Windows 11, and on newer MacBooks.
+      <a
         href="https://desktop.docker.com/win/main/amd64/208700/Docker%20Desktop%20Installer.exe?utm_source=docker&utm_medium=webreferral&utm_campaign=docs-driven-download-windows"
         target="_blank"
         rel="noopener"
-        >Link to 100% working exe installer</a
+        >Link to 100% working Docker Desktop for Windows exe installer</a
       >.
     </div>
 
@@ -64,7 +70,8 @@
         <a href="http://176.126.103.46:8080" target="_blank" rel="noopener"
           >view on page</a
         >
-        (there is a thread limit: max 1; otherwise the server may crash due to low RAM)
+        (there is a limit on the number of threads, max 1; otherwise the server
+        may crash due to low RAM)
       </li>
       <li>
         <strong>browsers.json</strong>:
@@ -81,7 +88,7 @@
     </ul>
 
     <div class="tips">
-      <h1>Common Selenoid Setup and Autotest Launch Errors</h1>
+      <h1>Typical errors when setting up Selenoid and running autotests</h1>
       <ol>
         <li>
           <strong
@@ -90,25 +97,30 @@
           >
           <ul>
             <li>
-              Selenoid does not download them automatically, and tests don't
-              start due to missing images. Download the required images
-              manually.
+              Selenoid does not download browser images automatically, so
+              tests don't start due to missing images. You need to manually
+              download the browser images specified in the
+              <code>browsers.json</code> file.
             </li>
           </ul>
         </li>
 
         <li>
-          <strong>Syntax errors in <code>browsers.json</code>.</strong>
+          <strong
+            >There are syntax errors in <code>browsers.json</code>.</strong
+          >
           <ul>
             <li>
-              For "chrome" and "opera" the <code>path</code> key in
+              For "chrome" and "opera" browsers the <code>path</code> key in
               <code>browsers.json</code> must be <code>"/"</code>, not
-              <code>"/wd/hub"</code>. For "firefox" keep <code>"/wd/hub"</code>.
-              Be careful, otherwise the browser will not start.
+              <code>"/wd/hub"</code>. For "firefox" the key stays
+              <code>"/wd/hub"</code>. Be careful with this, otherwise the
+              browser won't start.
             </li>
             <li>
-              Typos in image name/version tag (often confusion in the placement
-              of underscores or colons when specifying image version, ChatGPT is
+              Typos in the image name or browser version tag in
+              <code>browsers.json</code> (often confusion in the placement of
+              underscores or colons when specifying image version; ChatGPT is
               guilty of this). For example, instead of
               <code>selenoid/vnc_chrome:128.0</code> it's written
               <code>selenoid/vnc_chrome_128.0</code>.
@@ -125,13 +137,16 @@
               Due to incorrect paths, Selenoid can't see
               <code>browsers.json</code>, UI doesn't connect to Selenoid, and
               videos aren't written. Check directory mounting (paths specified
-              in volumes) - this is a common error.
+              as volumes)—this is a common error.
             </li>
           </ul>
         </li>
 
         <li>
-          <strong>Video recording is configured incorrectly.</strong>
+          <strong
+            >Video is not recorded because video recording is configured
+            incorrectly.</strong
+          >
           <ul>
             <li>
               Essentially, in docker-compose.yml you just need to add an
@@ -141,8 +156,8 @@
 environment:
   OVERRIDE_VIDEO_OUTPUT_DIR: /root/selenoid_with_video/video</pre
               >
-              Here you can't use <code>${PWD}</code> or <code>./video</code> -
-              an absolute path is required! You can read more about this in the
+              You can't use <code>${PWD}</code> or <code>./video</code> here—an
+              absolute path is required! You can read more about this in the
               official documentation:
               <a
                 href="https://aerokube.com/selenoid/latest/#_video_recording"
@@ -152,34 +167,33 @@ environment:
               >.
             </li>
             <li>
-              Often people forget to pre-download the recorder image:
+              Plus, people often forget to pre-download the recorder image
+              (Selenoid won't download it itself and video recording won't
+              work):
               <code>docker pull selenoid/video-recorder:latest-release</code>.
-              You do not need to add this image to
-              <code>docker-compose.yml</code>; it will start automatically, the
-              main thing is to download it once.
+              You do not need to add this image to docker-compose.yml; it will
+              start automatically—the main thing is to download it once.
             </li>
             <li>
-              People forget that you can't use headless mode:
+              You can't use headless mode in tests:
               <pre>Configuration.headless = true;</pre>
+              The value should be removed completely or replaced with
+              <pre>Configuration.headless = false;</pre>
+              If there's no screen, there's nothing to record.
             </li>
-            It should be removed completely, or replaced with
-            <pre>Configuration.headless = false;</pre>
-            If there's no screen, there's nothing to record.
           </ul>
         </li>
 
         <li>
           <strong
-            >Problems on Windows 10 (Docker Engine 26.1.4; after upgrading to
-            28.1.5 it worked)
-            and Mac with M1 chip.</strong 
+            >Problems on Windows 10 with some versions of Docker Desktop and Mac
+            with M1 chip.</strong
           >
           <ul>
             <li>
               Containers start, but the browser starts and immediately crashes.
-              If you use Windows, update Docker; after upgrading to 28.1.5 it
-              worked. For Mac, there are workaround options only for Chrome
-              version 91 (
+              If you use Windows, download Docker Desktop version 4.49.0; for
+              Mac there are workaround options only for Chrome version 91 (
               <a
                 href="https://gist.github.com/AlexRogalskiy/b266e960606dc565c22c3e6bfd9f48df"
                 target="_blank"
@@ -194,21 +208,22 @@ environment:
 
         <li>
           <strong
-            >Incorrect IP address of the tested application in tests.</strong
+            >Common error: Incorrect IP address of the tested application in
+            tests.</strong
           >
           <ul>
             <li>
               In a container, you can't use <code>localhost</code> to access an
-              application running outside the container - specify the real host
-              IP address. <br />Correct example:
+              application running outside the container—specify the real host IP
+              address. <br />Correct example:
               <pre>Configuration.baseUrl = "http://192.168.0.127:3000";</pre>
               Incorrect example:
               <pre>Configuration.baseUrl = "http://localhost:3000";</pre>
-              Here you must use an IP address, not localhost, because this URL
-              is substituted into the browser address bar opened in the Docker
-              container, and if you specify localhost, the container will think
-              that the application is also running inside the same container,
-              but it is not running in it.
+              An IP address is required here, not localhost, because this URL
+              is used in the address bar of the browser opened in the Docker
+              container, and if you specify localhost, the container will assume
+              the application is running inside the same container, but it is
+              not.
             </li>
           </ul>
         </li>
@@ -218,17 +233,17 @@ environment:
           <ul>
             <li>
               In general, after installing Selenoid, Selenoid UI and downloading
-              browser images, you need to make sure that browsers can open at
-              least manually, so that later, if something doesn't work, you
-              understand whether it's a problem with tests or Selenoid
-              configuration. For this, after starting Selenoid (docker-compose
-              up -d), go to its ip_address:8080, at the top right there should
-              be 2 CONNECTED labels, then go to the CAPABILITIES tab, select a
-              browser from the dropdown list (if there's no list, then there's a
-              problem with browsers.json or the path to it) and launch it
-              manually. A browser window should appear. If it appears,
-              congratulations - Selenoid is configured, now the main thing is to
-              correctly write everything in the tests themselves.
+              browser images, you need to make sure that browsers open at least
+              manually, so that later, if something doesn't work, you can tell
+              whether the issue is in the tests or in Selenoid configuration. For
+              this, after starting Selenoid (docker-compose up -d), go to its
+              IP_address:8080; at the top right there should be 2 CONNECTED
+              labels, then go to the CAPABILITIES tab, select a browser from the
+              dropdown list (if there's no list, the problem is with
+              browsers.json or the path to it) and launch it manually. A browser
+              window should appear. If it appears—congratulations, Selenoid is
+              configured; now the main thing is to set everything up correctly in
+              the tests themselves.
             </li>
           </ul>
         </li>

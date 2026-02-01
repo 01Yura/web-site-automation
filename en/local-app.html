@@ -22,12 +22,14 @@
       <a href="local-app.html" class="lang-link active">EN</a>
     </div>
 
+    <p class="back-link"><a href="api.html">← На предыдущую страницу</a></p>
+
     <div class="card">
       <h1>Local Deployment</h1>
       <ol class="main-steps">
         <li>
-          Download the <strong>docker-compose.yml</strong> file from GitHub using
-          the link below and run it with the command
+          Download the <strong>docker-compose.yml</strong> file from GitHub
+          using the link below and run it with the command
           <code>docker-compose up -d</code>.
         </li>
       </ol>
@@ -48,9 +50,9 @@
         On the opened GitHub page, click the button on the right
         <strong>&quot;Download raw file&quot;</strong>.<br />
         Note: this docker-compose file is quite large because I’ve hardcoded all
-        ELK, Prometheus and Grafana configs into it, so you don’t need to
-        create separate configuration files — everything will start with a
-        single command.
+        ELK, Prometheus and Grafana configs into it, so you don’t need to create
+        separate configuration files — everything will start with a single
+        command.
       </p>
 
       <!--
@@ -507,7 +509,8 @@ networks:
         (admin, admin)
       </p>
       <p>
-        MailHog (web interface for viewing sent emails and registration confirmation) at:
+        MailHog (web interface for viewing sent emails and registration
+        confirmation) at:
         <a href="http://localhost:8025" target="_blank" rel="noopener"
           >http://localhost:8025</a
         >
@@ -517,25 +520,33 @@ networks:
         <a href="http://localhost:5601" target="_blank" rel="noopener"
           >http://localhost:5601</a
         ><br />
-        To display logs in Kibana, you need to configure indices (create so-called Data views) directly in the Kibana graphical interface. In the Discover tab when first opened.<br />
-        Index patterns: <code>main-app-logs-*</code> and <code>analytics-service-logs-*</code>
+        To display logs in Kibana, you need to configure indices (create
+        so-called Data views) directly in the Kibana graphical interface. In the
+        Discover tab when first opened.<br />
+        Index patterns: <code>main-app-logs-*</code> and
+        <code>analytics-service-logs-*</code>
       </p>
       <p>
-        <strong>Prometheus</strong> (monitoring system and metrics collection) at:
+        <strong>Prometheus</strong> (monitoring system and metrics collection)
+        at:
         <a href="http://localhost:9090/query" target="_blank" rel="noopener"
           >http://localhost:9090/query</a
         >
       </p>
       <p>
         <strong>Grafana</strong> (web interface for metrics visualization) at:
-        <a href="http://localhost:3001/d/application-metrics/application-metrics-dashboard?orgId=1&from=now-5m&to=now&timezone=browser&refresh=5s" target="_blank" rel="noopener"
+        <a
+          href="http://localhost:3001/d/application-metrics/application-metrics-dashboard?orgId=1&from=now-5m&to=now&timezone=browser&refresh=5s"
+          target="_blank"
+          rel="noopener"
           >http://localhost:3001/d/application-metrics/application-metrics-dashboard?orgId=1&from=now-5m&to=now&timezone=browser&refresh=5s</a
         >
         (admin, admin)
       </p>
 
       <p>
-        <strong>PostgreSQL</strong> (connection via any client, e.g. DBeaver):<br />
+        <strong>PostgreSQL</strong> (connection via any client, e.g.
+        DBeaver):<br />
         IP: <code>localhost:5432</code><br />
         Database: <code>spring_digital_bookstore</code><br />
         Username: <code>admin</code><br />
@@ -549,13 +560,15 @@ networks:
 
       <p>
         Want to learn how Kafka interaction works in this application?
-        <a href="kafka.html" target="_blank" rel="noopener">Read detailed description</a>
+        <a href="kafka.html" target="_blank" rel="noopener"
+          >Read detailed description</a
+        >
       </p>
 
       <ol class="main-steps" start="2">
         <li>
-          If you want payment features, ask reviews from users (actually from AI)
-          and tech support to work, you need to create a
+          If you want payment features, ask reviews from users (actually from
+          AI) and tech support to work, you need to create a
           <strong>.env</strong> file in the same directory where
           <strong>docker-compose.yml</strong> is located and specify the
           following variables in it, but you will have to obtain the values
@@ -587,7 +600,15 @@ TELEGRAM_CHAT_ID=14310...</code></pre>
             >https://platform.openai.com/settings/organization/api-keys</a
           >
         </li>
-        <li>Create an organization (if you don't have one yet) at <a href="https://platform.openai.com/settings/organization/general" target="_blank" rel="noopener">https://platform.openai.com/settings/organization/general</a>. Any name will do</li>
+        <li>
+          Create an organization (if you don't have one yet) at
+          <a
+            href="https://platform.openai.com/settings/organization/general"
+            target="_blank"
+            rel="noopener"
+            >https://platform.openai.com/settings/organization/general</a
+          >. Any name will do
+        </li>
         <li>Click <strong>Create new secret key</strong></li>
         <li>Copy the key:</li>
       </ol>
@@ -627,7 +648,8 @@ TELEGRAM_CHAT_ID=14310...</code></pre>
       </div>
       <p>
         <em
-          >Note: Gemini's free quota is very small (about 20 requests per month for the model used in this application)<br />
+          >Note: Gemini's free quota is very small (about 20 requests per month
+          for the model used in this application)<br />
           If you don't specify GEMINI_API_KEY, "uncensored reviews" won't
           work</em
         >
