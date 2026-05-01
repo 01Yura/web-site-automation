@@ -35,11 +35,11 @@
         <thead>
           <tr>
             <th style="width: 12%">Rule</th>
-            <th style="width: 18%">Schema</th>
-            <th style="width: 20%">Example</th>
-            <th style="width: 22%">Comment</th>
-            <th style="width: 16%">Selenide (варианты)</th>
-            <th style="width: 12%">Selenium</th>
+            <th style="width: 17%">Schema</th>
+            <th style="width: 19%">Example</th>
+            <th style="width: 27%">Comment</th>
+            <th style="width: 15%">Selenide (варианты)</th>
+            <th style="width: 10%">Selenium</th>
           </tr>
         </thead>
         <tbody>
@@ -61,7 +61,14 @@
             <td>text()</td>
             <td><code>//tag[text()="value"]</code></td>
             <td><code>//button[text()="Login"]</code></td>
-            <td>Полное совпадение текста</td>
+            <td>
+              Полное совпадение прямого текстового узла элемента. Не
+              сматчит текст внутри вложенных тегов
+              (<code>&lt;button&gt;&lt;span&gt;Login&lt;/span&gt;&lt;/button&gt;</code>).
+              Для устойчивости к пробелам и вложениям используют
+              <code>normalize-space(.)="…"</code> или просто
+              <code>.="…"</code>.
+            </td>
             <td>
               <code>$(byText("Login"))</code><br />
               <code>$$("button").findBy(text("Login"))</code><br />
@@ -77,12 +84,17 @@
             <td>contains() (text)</td>
             <td><code>//tag[contains(text(),"value")]</code></td>
             <td><code>//div[contains(text(),"Error")]</code></td>
-            <td>Частичное совпадение текста</td>
+            <td>
+              Частичное совпадение прямого текстового узла. Текст
+              внутри вложенных тегов так не находится; для «всего текста
+              элемента» — <code>contains(., "Error")</code> или
+              <code>contains(normalize-space(.), "Error")</code>.
+            </td>
             <td>
               <code>$(withText("Error"))</code><br />
               <span class="tiny"
                 >Генерирует примерно такой XPath:
-                .//*[contains(text(),'Error')]</span
+                .//*[contains(normalize-space(.),'Error')]</span
               ><br />
               <code>$(byXpath("//div[contains(text(),'Error')]"))</code>
             </td>
@@ -127,9 +139,14 @@
             <td>moving through the tree</td>
             <td><code>//parent/child</code></td>
             <td><code>//div/span</code></td>
-            <td>Переход родитель → потомок</td>
             <td>
-              <code>$("div span")</code><br />
+              Прямой потомок (один уровень вниз). В XPath
+              <code>/</code> — строго дочерний шаг; для «любой глубины»
+              нужно <code>//div//span</code>. CSS-эквивалент —
+              <code>div &gt; span</code>, а не <code>div span</code>.
+            </td>
+            <td>
+              <code>$("div > span")</code><br />
               <code>$(byXpath("//div/span"))</code>
             </td>
             <td><code>driver.findElement(By.xpath("//div/span"))</code></td>
@@ -152,7 +169,12 @@
             <td>indexing</td>
             <td><code>(//tag[@attr="v"])[N]</code></td>
             <td><code>(//input[@type="text"])[2]</code></td>
-            <td>N‑й элемент в выборке</td>
+            <td>
+              N‑й элемент в выборке. Нумерация в XPath начинается с
+              <code>1</code>; в Selenide-коллекциях
+              <code>$$().get(i)</code> — с <code>0</code>, поэтому
+              <code>get(1)</code> ≈ <code>(…)[2]</code>.
+            </td>
             <td>
               <code>$$("input[type='text']").get(1)</code><br />
               <code>$(byXpath("(//input[@type='text'])[2]"))</code>
@@ -175,7 +197,10 @@
             <td>following-sibling</td>
             <td><code>//tag/following-sibling::tag2</code></td>
             <td><code>//label/following-sibling::input</code></td>
-            <td>Сосед справа на том же уровне</td>
+            <td>
+              Все подходящие среди следующих братьев на том же уровне. Ось
+              <code>following-sibling::…</code> сама по себе значит: «все подходящие tag2 среди следующих братьев», а не «первый попавшийся».
+            </td>
             <td><code>$(byXpath("//label/following-sibling::input"))</code></td>
             <td>
               <code
@@ -187,7 +212,12 @@
             <td>preceding-sibling</td>
             <td><code>//tag/preceding-sibling::tag2</code></td>
             <td><code>//input/preceding-sibling::label</code></td>
-            <td>Сосед слева</td>
+            <td>
+              Все подходящие среди предыдущих братьев на том же уровне.
+              Ось <code>preceding-sibling::…</code> сама по себе значит:
+              «все подходящие tag2 среди предыдущих братьев», а не
+              «ближайший слева».
+            </td>
             <td><code>$(byXpath("//input/preceding-sibling::label"))</code></td>
             <td>
               <code
@@ -199,7 +229,10 @@
             <td>ancestor</td>
             <td><code>//tag/ancestor::X</code></td>
             <td><code>//span/ancestor::form</code></td>
-            <td>Любой предок выше по дереву</td>
+            <td>
+              Все подходящие предки выше по дереву (а не «один любой»).
+              Для ближайшего предка — <code>ancestor::form[1]</code>.
+            </td>
             <td><code>$(byXpath("//span/ancestor::form"))</code></td>
             <td>
               <code>driver.findElement(By.xpath("//span/ancestor::form"))</code>
@@ -228,7 +261,7 @@
             <td>tag &amp; attribute</td>
             <td><code>tag[attribute="value"]</code></td>
             <td><code>input[aria-label="Search"]</code></td>
-            <td>По атрибуту</td>
+            <td>По тегу и точному значению атрибута</td>
             <td>
               <code>$("input[aria-label='Search']")</code><br />
               <code>$(byAttribute("aria-label","Search"))</code><br />
@@ -281,10 +314,15 @@
             <td>attribute *=</td>
             <td><code>[attribute*="value"]</code></td>
             <td><code>input[placeholder*="user"]</code></td>
-            <td>Атрибут содержит</td>
+            <td>
+              Атрибут содержит подстроку.
+              <code>byAttribute(name, value)</code> сюда не подходит — он
+              генерирует точное совпадение
+              <code>[name="value"]</code>.
+            </td>
             <td>
               <code>$("input[placeholder*='user']")</code><br />
-              <code>$(byAttribute("placeholder","user"))</code>
+              <code>$(byCssSelector("input[placeholder*='user']"))</code>
             </td>
             <td>
               <code
