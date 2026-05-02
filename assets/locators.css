@@ -124,6 +124,11 @@ tbody td {
   isolation: isolate;
 }
 
+/* Заголовки секций вне горизонтальной прокрутки — не смещаются при scrollLeft */
+.locators-scroll-sync > h2:first-of-type {
+  margin-top: 0;
+}
+
 /* Плавающий заголовок таблицы — фиксируется вверху viewport при прокрутке */
 .locators-sticky-header {
   position: fixed;

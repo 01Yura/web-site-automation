@@ -1,44 +1,58 @@
 (function () {
-  function syncPair(main, top, sizer) {
+  /** Синхронизация горизонтальной прокрутки нескольких панелей и зеркальной полосы */
+  function syncPanels(panels, mirror, sizer) {
     let syncing = false;
 
+    function maxScrollWidth() {
+      var w = 0;
+      panels.forEach(function (p) {
+        if (p.scrollWidth > w) w = p.scrollWidth;
+      });
+      return w;
+    }
+
     function syncSizer() {
-      sizer.style.width = main.scrollWidth + "px";
+      sizer.style.width = maxScrollWidth() + "px";
     }
 
-    function syncFromMain() {
-      if (syncing) return;
+    function applyScrollLeft(sl) {
       syncing = true;
-      top.scrollLeft = main.scrollLeft;
+      panels.forEach(function (p) {
+        p.scrollLeft = sl;
+      });
+      mirror.scrollLeft = sl;
       syncing = false;
     }
 
-    function syncFromTop() {
+    function onPanelScroll(e) {
       if (syncing) return;
-      syncing = true;
-      main.scrollLeft = top.scrollLeft;
-      syncing = false;
+      applyScrollLeft(e.target.scrollLeft);
+    }
+
+    function onMirrorScroll() {
+      if (syncing) return;
+      applyScrollLeft(mirror.scrollLeft);
     }
 
     syncSizer();
-    main.addEventListener("scroll", syncFromMain);
-    top.addEventListener("scroll", syncFromTop);
+    panels.forEach(function (p) {
+      p.addEventListener("scroll", onPanelScroll);
+      if (typeof ResizeObserver !== "undefined") {
+        new ResizeObserver(syncSizer).observe(p);
+      }
+    });
+    mirror.addEventListener("scroll", onMirrorScroll);
     window.addEventListener("resize", syncSizer);
-    if (typeof ResizeObserver !== "undefined") {
-      new ResizeObserver(syncSizer).observe(main);
-    }
     if (document.fonts && document.fonts.ready) {
       document.fonts.ready.then(syncSizer);
     }
   }
 
-  /* Плавающий заголовок: клонируем thead и показываем fixed вверху,
-     когда оригинальный thead уходит за верхний край viewport */
-  function setupStickyHeader(main) {
-    var tables = main.querySelectorAll("table");
-    if (!tables.length) return;
+  /* Плавающий заголовок: клонируем thead и показываем fixed вверху viewport */
+  function setupStickyHeader(root, scrollSource) {
+    var tables = root.querySelectorAll("table");
+    if (!tables.length || !scrollSource) return;
 
-    // Строим DOM: повторяем структуру обёрток для наследования CSS
     var wrap = document.createElement("div");
     wrap.className = "locators-sticky-header";
     wrap.setAttribute("aria-hidden", "true");
@@ -68,7 +82,6 @@
         var theadRect = thead.getBoundingClientRect();
         var tableRect = tables[i].getBoundingClientRect();
 
-        // thead ушёл за верх, но таблица ещё видна
         if (theadRect.bottom <= 0 && tableRect.bottom > 50) {
           shouldShow = true;
           break;
@@ -82,28 +95,25 @@
 
       wrap.style.display = "block";
 
-      // Позиционируем точно по основному контейнеру
-      var mr = main.getBoundingClientRect();
+      var mr = scrollSource.getBoundingClientRect();
       wrap.style.left = mr.left + "px";
       wrap.style.width = mr.width + "px";
 
-      // Синхронизируем горизонтальную прокрутку
-      scrollDiv.scrollLeft = main.scrollLeft;
+      scrollDiv.scrollLeft = scrollSource.scrollLeft;
     }
 
     window.addEventListener("scroll", update, { passive: true });
-    main.addEventListener("scroll", update, { passive: true });
+    scrollSource.addEventListener("scroll", update, { passive: true });
     window.addEventListener("resize", update);
     update();
   }
 
   document.querySelectorAll("[data-locators-scroll-sync]").forEach(function (root) {
-    var main = root.querySelector("[data-locators-main-scroll]");
-    var top = root.querySelector("[data-locators-top-scroll]");
+    var panels = root.querySelectorAll("[data-locators-scroll-panel]");
+    var mirror = root.querySelector("[data-locators-top-scroll]");
     var sizer = root.querySelector("[data-locators-scroll-sizer]");
-    if (main && top && sizer) {
-      syncPair(main, top, sizer);
-      setupStickyHeader(main);
-    }
+    if (!panels.length || !mirror || !sizer) return;
+    syncPanels(panels, mirror, sizer);
+    setupStickyHeader(root, panels[0]);
   });
 })();

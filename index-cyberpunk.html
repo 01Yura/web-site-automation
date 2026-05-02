@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Home — Cyberpunk Edition</title>
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* ===== NEON / CYBERPUNK THEME ===== */
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --neon-purple: #b347ea;
+        --neon-blue: #00b4ff;
+        --neon-pink: #ff2d7c;
+        --neon-cyan: #00fff0;
+        --dark-bg: #0a0010;
+        --dark-card: #0d0018;
+        --dark-surface: #150025;
+      }
+
+      @keyframes neon-flicker {
+        0%,
+        19%,
+        21%,
+        23%,
+        25%,
+        54%,
+        56%,
+        100% {
+          text-shadow: 0 0 7px var(--neon-purple), 0 0 10px var(--neon-purple),
+            0 0 21px var(--neon-purple), 0 0 42px var(--neon-blue),
+            0 0 82px var(--neon-blue), 0 0 92px var(--neon-blue);
+        }
+        20%,
+        24%,
+        55% {
+          text-shadow: none;
+        }
+      }
+
+      @keyframes glow-border-rotate {
+        0% {
+          background-position: 0% 50%;
+        }
+        100% {
+          background-position: 300% 50%;
+        }
+      }
+
+      @keyframes rain-fall {
+        0% {
+          transform: translateY(-100vh);
+        }
+        100% {
+          transform: translateY(100vh);
+        }
+      }
+
+      @keyframes glitch {
+        0% {
+          clip-path: inset(40% 0 61% 0);
+          transform: translate(-2px, 2px);
+        }
+        20% {
+          clip-path: inset(92% 0 1% 0);
+          transform: translate(1px, -1px);
+        }
+        40% {
+          clip-path: inset(43% 0 1% 0);
+          transform: translate(-1px, 3px);
+        }
+        60% {
+          clip-path: inset(25% 0 58% 0);
+          transform: translate(3px, 1px);
+        }
+        80% {
+          clip-path: inset(54% 0 7% 0);
+          transform: translate(-3px, -2px);
+        }
+        100% {
+          clip-path: inset(58% 0 43% 0);
+          transform: translate(2px, -3px);
+        }
+      }
+
+      @keyframes scan {
+        0% {
+          top: -5%;
+        }
+        100% {
+          top: 105%;
+        }
+      }
+
+      @keyframes pulse-line {
+        0%,
+        100% {
+          opacity: 0.3;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+
+      @keyframes float-particle {
+        0%,
+        100% {
+          transform: translateY(0) translateX(0);
+          opacity: 0;
+        }
+        10% {
+          opacity: 1;
+        }
+        90% {
+          opacity: 1;
+        }
+        50% {
+          transform: translateY(-30px) translateX(15px);
+        }
+      }
+
+      body {
+        font-family: "Rajdhani", sans-serif;
+        background: var(--dark-bg);
+        color: #e0d0ff;
+        min-height: 100vh;
+        overflow-x: hidden;
+        position: relative;
+      }
+
+      /* Rain effect */
+      .cyber-rain {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        z-index: 0;
+        overflow: hidden;
+      }
+
+      .cyber-rain .drop {
+        position: absolute;
+        width: 1px;
+        background: linear-gradient(
+          to bottom,
+          transparent,
+          rgba(0, 180, 255, 0.6),
+          transparent
+        );
+        animation: rain-fall linear infinite;
+      }
+
+      /* Scan line */
+      .scan-line {
+        position: fixed;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(179, 71, 234, 0.4),
+          rgba(0, 180, 255, 0.4),
+          transparent
+        );
+        z-index: 9998;
+        pointer-events: none;
+        animation: scan 4s linear infinite;
+        filter: blur(1px);
+      }
+
+      /* Ambient glow blobs */
+      .glow-blob {
+        position: fixed;
+        border-radius: 50%;
+        filter: blur(80px);
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .glow-blob.purple {
+        width: 400px;
+        height: 400px;
+        background: rgba(179, 71, 234, 0.15);
+        top: -100px;
+        right: -100px;
+      }
+
+      .glow-blob.blue {
+        width: 350px;
+        height: 350px;
+        background: rgba(0, 180, 255, 0.12);
+        bottom: -50px;
+        left: -50px;
+      }
+
+      .glow-blob.pink {
+        width: 300px;
+        height: 300px;
+        background: rgba(255, 45, 124, 0.08);
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+
+      /* Language Switcher */
+      .language-switcher {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: rgba(13, 0, 24, 0.8);
+        border: 1px solid rgba(179, 71, 234, 0.3);
+        padding: 6px 12px;
+        border-radius: 4px;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        backdrop-filter: blur(10px);
+      }
+
+      .lang-link {
+        color: rgba(179, 71, 234, 0.7);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 13px;
+        padding: 4px 8px;
+        border-radius: 3px;
+        transition: all 0.3s ease;
+        font-family: "Share Tech Mono", monospace;
+        letter-spacing: 1px;
+      }
+
+      .lang-link:hover {
+        color: var(--neon-cyan);
+        text-shadow: 0 0 8px var(--neon-cyan);
+        text-decoration: none;
+      }
+
+      .lang-link.active {
+        background: var(--neon-purple);
+        color: #fff;
+        box-shadow: 0 0 12px rgba(179, 71, 234, 0.5),
+          inset 0 0 12px rgba(255, 255, 255, 0.1);
+      }
+
+      .lang-separator {
+        color: rgba(179, 71, 234, 0.3);
+        margin: 0 2px;
+      }
+
+      /* ===== MAIN ===== */
+      .cyber-container {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+        position: relative;
+        z-index: 1;
+      }
+
+      /* Glitch Title */
+      .cyber-title-wrapper {
+        text-align: center;
+        margin-bottom: 32px;
+        position: relative;
+      }
+
+      .cyber-title {
+        font-family: "Rajdhani", sans-serif;
+        font-size: 48px;
+        font-weight: 700;
+        color: #fff;
+        text-transform: uppercase;
+        letter-spacing: 4px;
+        position: relative;
+        animation: neon-flicker 3s infinite alternate;
+      }
+
+      /* Glitch copies */
+      .cyber-title::before,
+      .cyber-title::after {
+        content: attr(data-text);
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        overflow: hidden;
+      }
+
+      .cyber-title::before {
+        color: var(--neon-cyan);
+        animation: glitch 2s infinite linear alternate-reverse;
+        opacity: 0.8;
+      }
+
+      .cyber-title::after {
+        color: var(--neon-pink);
+        animation: glitch 3s infinite linear alternate;
+        opacity: 0.8;
+      }
+
+      .cyber-subtitle {
+        font-family: "Share Tech Mono", monospace;
+        font-size: 14px;
+        color: var(--neon-purple);
+        letter-spacing: 6px;
+        text-transform: uppercase;
+        margin-top: 10px;
+        opacity: 0.7;
+      }
+
+      /* Corner decorations */
+      .corner-deco {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        border-color: var(--neon-purple);
+        border-style: solid;
+        opacity: 0.5;
+      }
+
+      .corner-deco.tl {
+        top: -10px;
+        left: -10px;
+        border-width: 2px 0 0 2px;
+      }
+
+      .corner-deco.tr {
+        top: -10px;
+        right: -10px;
+        border-width: 2px 2px 0 0;
+      }
+
+      .corner-deco.bl {
+        bottom: -10px;
+        left: -10px;
+        border-width: 0 0 2px 2px;
+      }
+
+      .corner-deco.br {
+        bottom: -10px;
+        right: -10px;
+        border-width: 0 2px 2px 0;
+      }
+
+      /* Main Card — Neon bordered */
+      .cyber-card {
+        width: 750px;
+        max-width: 95vw;
+        background: var(--dark-card);
+        border: 1px solid rgba(179, 71, 234, 0.25);
+        position: relative;
+        padding: 0;
+        clip-path: polygon(
+          0 0,
+          calc(100% - 30px) 0,
+          100% 30px,
+          100% 100%,
+          30px 100%,
+          0 calc(100% - 30px)
+        );
+      }
+
+      /* Animated border glow */
+      .cyber-card::before {
+        content: "";
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        background: linear-gradient(
+          90deg,
+          var(--neon-purple),
+          var(--neon-blue),
+          var(--neon-pink),
+          var(--neon-cyan),
+          var(--neon-purple)
+        );
+        background-size: 300% 100%;
+        animation: glow-border-rotate 6s linear infinite;
+        clip-path: polygon(
+          0 0,
+          calc(100% - 30px) 0,
+          100% 30px,
+          100% 100%,
+          30px 100%,
+          0 calc(100% - 30px)
+        );
+        z-index: -1;
+        opacity: 0.6;
+      }
+
+      .cyber-card-inner {
+        background: var(--dark-card);
+        clip-path: polygon(
+          0 0,
+          calc(100% - 28px) 0,
+          100% 28px,
+          100% 100%,
+          28px 100%,
+          0 calc(100% - 28px)
+        );
+        padding: 32px;
+      }
+
+      .cyber-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid rgba(179, 71, 234, 0.15);
+      }
+
+      .cyber-card-header .label {
+        font-family: "Share Tech Mono", monospace;
+        font-size: 12px;
+        color: var(--neon-cyan);
+        letter-spacing: 3px;
+        text-transform: uppercase;
+      }
+
+      .cyber-card-header .status {
+        font-family: "Share Tech Mono", monospace;
+        font-size: 11px;
+        color: var(--neon-purple);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .cyber-card-header .status::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        background: #0f0;
+        border-radius: 50%;
+        box-shadow: 0 0 8px #0f0;
+        animation: pulse-line 1.5s ease-in-out infinite;
+      }
+
+      /* Neon Menu */
+      .cyber-menu {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .cyber-menu a {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 18px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid transparent;
+        border-left: 3px solid var(--neon-purple);
+        color: #c0b0e0;
+        text-decoration: none;
+        font-size: 17px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .cyber-menu a::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 0;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          rgba(179, 71, 234, 0.15),
+          transparent
+        );
+        transition: width 0.4s ease;
+      }
+
+      .cyber-menu a:hover {
+        border-color: var(--neon-purple);
+        border-left-color: var(--neon-cyan);
+        color: #fff;
+        text-shadow: 0 0 8px rgba(0, 255, 240, 0.5);
+        text-decoration: none;
+        box-shadow: 0 0 20px rgba(179, 71, 234, 0.15),
+          inset 0 0 20px rgba(179, 71, 234, 0.05);
+      }
+
+      .cyber-menu a:hover::before {
+        width: 100%;
+      }
+
+      .cyber-menu .index-num {
+        font-family: "Share Tech Mono", monospace;
+        font-size: 12px;
+        color: var(--neon-purple);
+        opacity: 0.5;
+        min-width: 24px;
+        z-index: 1;
+      }
+
+      .cyber-menu .menu-text {
+        z-index: 1;
+      }
+
+      .cyber-menu .arrow {
+        margin-left: auto;
+        font-family: "Share Tech Mono", monospace;
+        font-size: 14px;
+        color: var(--neon-purple);
+        opacity: 0;
+        transition: all 0.3s;
+        z-index: 1;
+      }
+
+      .cyber-menu a:hover .arrow {
+        opacity: 1;
+        color: var(--neon-cyan);
+        transform: translateX(4px);
+      }
+
+      /* Separator lines */
+      .cyber-sep {
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(179, 71, 234, 0.3),
+          transparent
+        );
+        margin: 20px 0;
+      }
+
+      /* Attribution */
+      .cyber-attribution {
+        margin-top: 30px;
+        font-size: 13px;
+        color: rgba(192, 176, 224, 0.3);
+        text-align: center;
+        font-family: "Share Tech Mono", monospace;
+        letter-spacing: 1px;
+      }
+
+      .cyber-attribution a {
+        color: var(--neon-purple);
+        text-decoration: none;
+        opacity: 0.6;
+        transition: all 0.3s;
+      }
+
+      .cyber-attribution a:hover {
+        opacity: 1;
+        text-shadow: 0 0 8px var(--neon-purple);
+        text-decoration: none;
+      }
+
+      /* Floating particles */
+      .particles {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        z-index: 0;
+        overflow: hidden;
+      }
+
+      .particle {
+        position: absolute;
+        width: 3px;
+        height: 3px;
+        border-radius: 50%;
+        animation: float-particle linear infinite;
+      }
+
+      /* Grid overlay */
+      .grid-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        z-index: 0;
+        background-image: linear-gradient(
+            rgba(179, 71, 234, 0.03) 1px,
+            transparent 1px
+          ),
+          linear-gradient(
+            90deg,
+            rgba(179, 71, 234, 0.03) 1px,
+            transparent 1px
+          );
+        background-size: 60px 60px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Ambient Glow Blobs -->
+    <div class="glow-blob purple"></div>
+    <div class="glow-blob blue"></div>
+    <div class="glow-blob pink"></div>
+
+    <!-- Rain Effect -->
+    <div class="cyber-rain" id="cyberRain"></div>
+
+    <!-- Grid Overlay -->
+    <div class="grid-overlay"></div>
+
+    <!-- Floating Particles -->
+    <div class="particles" id="particles"></div>
+
+    <!-- Scan Line -->
+    <div class="scan-line"></div>
+
+    <!-- Language Switcher -->
+    <div class="language-switcher">
+      <a id="home-switcher-label" href="index-cyberpunk.html" class="lang-link active">Home</a>
+      <span class="lang-separator">|</span>
+      <a id="switch-ru" href="ru/selenoid.html" class="lang-link">RU</a>
+      <span class="lang-separator">|</span>
+      <a id="switch-en" href="en/selenoid.html" class="lang-link">EN</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="cyber-container">
+      <!-- Glitch Title -->
+      <div class="cyber-title-wrapper">
+        <div class="corner-deco tl"></div>
+        <div class="corner-deco tr"></div>
+        <div class="corner-deco bl"></div>
+        <div class="corner-deco br"></div>
+        <h1 id="home-title" class="cyber-title" data-text="Автотесты">
+          Автотесты
+        </h1>
+        <div class="cyber-subtitle">Материалы по автоматизации</div>
+      </div>
+
+      <!-- Cyber Card -->
+      <div class="cyber-card">
+        <div class="cyber-card-inner">
+          <div class="cyber-card-header">
+            <span class="label">// Модули доступа</span>
+            <span class="status">Active</span>
+          </div>
+
+          <div class="cyber-menu">
+            <a id="link-selenoid" href="ru/selenoid.html">
+              <span class="index-num">01</span>
+              <span class="menu-text">Selenoid</span>
+              <span class="arrow">→</span>
+            </a>
+            <a id="link-locators" href="ru/locators.html">
+              <span class="index-num">02</span>
+              <span class="menu-text">Локаторы (XPath & CSS)</span>
+              <span class="arrow">→</span>
+            </a>
+            <a id="link-deps" href="ru/dependencies.html">
+              <span class="index-num">03</span>
+              <span class="menu-text">Зависимости (Java)</span>
+              <span class="arrow">→</span>
+            </a>
+            <a id="link-cookbook" href="ru/cookbook.html">
+              <span class="index-num">04</span>
+              <span class="menu-text">Рецепты кода</span>
+              <span class="arrow">→</span>
+            </a>
+            <a id="link-api" href="ru/api.html">
+              <span class="index-num">05</span>
+              <span class="menu-text">Bookstore App</span>
+              <span class="arrow">→</span>
+            </a>
+            <a
+              id="link-miro"
+              href="https://miro.com/app/board/uXjVIQHs0mg=/"
+              target="_blank"
+              rel="noopener"
+            >
+              <span class="index-num">06</span>
+              <span class="menu-text">Java Collection Framework</span>
+              <span class="arrow">→</span>
+            </a>
+            <a id="link-external" href="ru/nobugs-bank.html">
+              <span class="index-num">07</span>
+              <span class="menu-text">Nbank app</span>
+              <span class="arrow">→</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="cyber-sep" style="width: 200px; margin: 30px auto 0"></div>
+
+      <p class="cyber-attribution">
+        Автор: Yura Primyshev ·
+        <a
+          href="https://www.linkedin.com/in/yura-primyshev"
+          target="_blank"
+          rel="noopener"
+          >linkedin</a
+        >
+        · 2022
+      </p>
+    </div>
+
+    <script>
+      // Rain drops
+      const rain = document.getElementById("cyberRain");
+      for (let i = 0; i < 60; i++) {
+        const drop = document.createElement("div");
+        drop.className = "drop";
+        drop.style.left = Math.random() * 100 + "%";
+        drop.style.height = 40 + Math.random() * 80 + "px";
+        drop.style.animationDuration = 1 + Math.random() * 2 + "s";
+        drop.style.animationDelay = Math.random() * 3 + "s";
+        drop.style.opacity = 0.1 + Math.random() * 0.3;
+        rain.appendChild(drop);
+      }
+
+      // Floating particles
+      const particles = document.getElementById("particles");
+      for (let i = 0; i < 30; i++) {
+        const p = document.createElement("div");
+        p.className = "particle";
+        p.style.left = Math.random() * 100 + "%";
+        p.style.top = Math.random() * 100 + "%";
+        p.style.animationDuration = 4 + Math.random() * 6 + "s";
+        p.style.animationDelay = Math.random() * 5 + "s";
+        const colors = ["#b347ea", "#00b4ff", "#ff2d7c", "#00fff0"];
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        p.style.background = color;
+        p.style.boxShadow = `0 0 6px ${color}`;
+        particles.appendChild(p);
+      }
+    </script>
+  </body>
+</html>

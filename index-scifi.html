@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Home — Sci-Fi Edition</title>
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* ===== FUTURISM / SCI-FI THEME ===== */
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --holo-1: #00d4ff;
+        --holo-2: #7b2fff;
+        --holo-3: #ff2d95;
+        --holo-4: #00ff88;
+        --glass-bg: rgba(255, 255, 255, 0.06);
+        --glass-border: rgba(255, 255, 255, 0.12);
+        --glass-blur: 20px;
+      }
+
+      @keyframes holographic-shift {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+
+      @keyframes rotate-ring {
+        0% {
+          transform: translate(-50%, -50%) rotate(0deg);
+        }
+        100% {
+          transform: translate(-50%, -50%) rotate(360deg);
+        }
+      }
+
+      @keyframes pulse-glow {
+        0%,
+        100% {
+          box-shadow: 0 0 20px rgba(0, 212, 255, 0.2),
+            0 0 40px rgba(0, 212, 255, 0.1);
+        }
+        50% {
+          box-shadow: 0 0 30px rgba(0, 212, 255, 0.4),
+            0 0 60px rgba(0, 212, 255, 0.2);
+        }
+      }
+
+      @keyframes data-stream {
+        0% {
+          transform: translateY(100%);
+          opacity: 0;
+        }
+        10% {
+          opacity: 0.3;
+        }
+        90% {
+          opacity: 0.3;
+        }
+        100% {
+          transform: translateY(-100%);
+          opacity: 0;
+        }
+      }
+
+      @keyframes shimmer {
+        0% {
+          left: -100%;
+        }
+        100% {
+          left: 200%;
+        }
+      }
+
+      @keyframes hex-pulse {
+        0%, 100% { opacity: 0.03; }
+        50% { opacity: 0.08; }
+      }
+
+      body {
+        font-family: "Exo 2", sans-serif;
+        background: #0a0a1a;
+        color: #e0e8ff;
+        min-height: 100vh;
+        overflow-x: hidden;
+        position: relative;
+      }
+
+      /* Starfield background */
+      .starfield {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        z-index: 0;
+        overflow: hidden;
+      }
+
+      .starfield .star {
+        position: absolute;
+        border-radius: 50%;
+        background: #fff;
+      }
+
+      /* Animated hex grid overlay */
+      .hex-grid {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        z-index: 0;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50L0 16L28 0L56 16L56 50L28 66L28 100' fill='none' stroke='rgba(0,212,255,0.05)' stroke-width='0.5'/%3E%3C/svg%3E");
+        background-size: 56px 100px;
+        animation: hex-pulse 4s ease-in-out infinite;
+      }
+
+      /* Data streams */
+      .data-stream {
+        position: fixed;
+        width: 1px;
+        height: 100%;
+        top: 0;
+        pointer-events: none;
+        z-index: 0;
+        overflow: hidden;
+      }
+
+      .data-stream::after {
+        content: "";
+        position: absolute;
+        width: 1px;
+        height: 80px;
+        background: linear-gradient(
+          to bottom,
+          transparent,
+          var(--holo-1),
+          transparent
+        );
+        animation: data-stream 3s linear infinite;
+      }
+
+      /* Language Switcher — Glass */
+      .language-switcher {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--glass-bg);
+        backdrop-filter: blur(var(--glass-blur));
+        -webkit-backdrop-filter: blur(var(--glass-blur));
+        border: 1px solid var(--glass-border);
+        padding: 8px 14px;
+        border-radius: 30px;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .lang-link {
+        color: #a0b4d0;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 13px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        transition: all 0.3s ease;
+        font-family: "Orbitron", sans-serif;
+        font-size: 10px;
+        letter-spacing: 1px;
+      }
+
+      .lang-link:hover {
+        color: var(--holo-1);
+        background: rgba(0, 212, 255, 0.1);
+        text-decoration: none;
+      }
+
+      .lang-link.active {
+        background: linear-gradient(135deg, var(--holo-1), var(--holo-2));
+        color: #fff;
+        box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+      }
+
+      .lang-separator {
+        color: rgba(255, 255, 255, 0.2);
+        margin: 0 2px;
+      }
+
+      /* ===== MAIN CONTAINER ===== */
+      .sci-fi-container {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+        position: relative;
+        z-index: 1;
+      }
+
+      /* Holographic Header */
+      .holo-header {
+        text-align: center;
+        margin-bottom: 40px;
+        position: relative;
+        animation: float 6s ease-in-out infinite;
+      }
+
+      .holo-header h1 {
+        font-family: "Orbitron", sans-serif;
+        font-size: 36px;
+        font-weight: 900;
+        background: linear-gradient(
+          90deg,
+          var(--holo-1),
+          var(--holo-2),
+          var(--holo-3),
+          var(--holo-4),
+          var(--holo-1)
+        );
+        background-size: 300% 100%;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: holographic-shift 6s ease-in-out infinite;
+        letter-spacing: 2px;
+        margin-bottom: 8px;
+      }
+
+      .holo-header .subtitle {
+        font-family: "Orbitron", sans-serif;
+        font-size: 14px;
+        color: rgba(0, 212, 255, 0.6);
+        letter-spacing: 6px;
+        text-transform: uppercase;
+      }
+
+      /* Rotating Ring decoration */
+      .ring-container {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 300px;
+        height: 300px;
+        pointer-events: none;
+      }
+
+      .ring {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        border: 1px solid rgba(0, 212, 255, 0.15);
+        border-radius: 50%;
+        animation: rotate-ring linear infinite;
+      }
+
+      .ring:nth-child(1) {
+        width: 280px;
+        height: 280px;
+        animation-duration: 20s;
+      }
+
+      .ring:nth-child(2) {
+        width: 320px;
+        height: 320px;
+        animation-duration: 30s;
+        animation-direction: reverse;
+        border-color: rgba(123, 47, 255, 0.1);
+      }
+
+      .ring:nth-child(3) {
+        width: 360px;
+        height: 360px;
+        animation-duration: 40s;
+        border-color: rgba(255, 45, 149, 0.08);
+      }
+
+      /* Glass Card */
+      .glass-card {
+        width: 700px;
+        max-width: 95vw;
+        background: var(--glass-bg);
+        backdrop-filter: blur(var(--glass-blur));
+        -webkit-backdrop-filter: blur(var(--glass-blur));
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 32px;
+        position: relative;
+        overflow: hidden;
+        animation: pulse-glow 4s ease-in-out infinite;
+      }
+
+      /* Glass shimmer effect */
+      .glass-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 60%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.05),
+          transparent
+        );
+        animation: shimmer 6s ease-in-out infinite;
+      }
+
+      /* Top accent line */
+      .glass-card::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 20%;
+        right: 20%;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--holo-1),
+          var(--holo-2),
+          transparent
+        );
+      }
+
+      .glass-card .section-label {
+        font-family: "Orbitron", sans-serif;
+        font-size: 11px;
+        color: var(--holo-1);
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        margin-bottom: 20px;
+        opacity: 0.7;
+      }
+
+      /* Menu Grid */
+      .sci-menu {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+
+      .sci-menu a {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px 18px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 12px;
+        color: #c0d0e8;
+        text-decoration: none;
+        font-size: 15px;
+        font-weight: 400;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .sci-menu a::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+          135deg,
+          rgba(0, 212, 255, 0.1),
+          rgba(123, 47, 255, 0.1)
+        );
+        opacity: 0;
+        transition: opacity 0.4s;
+      }
+
+      .sci-menu a:hover {
+        border-color: rgba(0, 212, 255, 0.3);
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(0, 212, 255, 0.15);
+        text-decoration: none;
+      }
+
+      .sci-menu a:hover::before {
+        opacity: 1;
+      }
+
+      .sci-menu .icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: linear-gradient(
+          135deg,
+          rgba(0, 212, 255, 0.15),
+          rgba(123, 47, 255, 0.15)
+        );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        flex-shrink: 0;
+        z-index: 1;
+      }
+
+      .sci-menu .link-text {
+        z-index: 1;
+      }
+
+      .sci-menu a:nth-child(odd):last-child {
+        grid-column: 1 / -1;
+      }
+
+      /* Attribution */
+      .sci-attribution {
+        margin-top: 30px;
+        font-size: 13px;
+        color: rgba(160, 180, 208, 0.5);
+        text-align: center;
+        font-family: "Exo 2", sans-serif;
+      }
+
+      .sci-attribution a {
+        color: var(--holo-1);
+        text-decoration: none;
+        opacity: 0.7;
+        transition: opacity 0.3s;
+      }
+
+      .sci-attribution a:hover {
+        opacity: 1;
+        text-decoration: none;
+      }
+
+      /* Status indicators */
+      .status-bar {
+        display: flex;
+        justify-content: center;
+        gap: 24px;
+        margin-top: 24px;
+        font-family: "Orbitron", sans-serif;
+        font-size: 10px;
+        color: rgba(0, 212, 255, 0.4);
+        letter-spacing: 2px;
+      }
+
+      .status-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--holo-4);
+        box-shadow: 0 0 8px var(--holo-4);
+        animation: pulse-glow 2s ease-in-out infinite;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Starfield -->
+    <div class="starfield" id="starfield"></div>
+    <!-- Hex Grid -->
+    <div class="hex-grid"></div>
+
+    <!-- Data Streams -->
+    <div class="data-stream" style="left: 10%"></div>
+    <div class="data-stream" style="left: 30%; animation-delay: 1s"></div>
+    <div class="data-stream" style="left: 70%; animation-delay: 2s"></div>
+    <div class="data-stream" style="left: 90%; animation-delay: 0.5s"></div>
+
+    <!-- Language Switcher -->
+    <div class="language-switcher">
+      <a id="home-switcher-label" href="index-scifi.html" class="lang-link active">Home</a>
+      <span class="lang-separator">|</span>
+      <a id="switch-ru" href="ru/selenoid.html" class="lang-link">RU</a>
+      <span class="lang-separator">|</span>
+      <a id="switch-en" href="en/selenoid.html" class="lang-link">EN</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="sci-fi-container">
+      <!-- Holographic Header -->
+      <div class="holo-header">
+        <div class="ring-container">
+          <div class="ring"></div>
+          <div class="ring"></div>
+          <div class="ring"></div>
+        </div>
+        <h1 id="home-title">Материалы по автотестам</h1>
+        <div class="subtitle">Testing Automation Hub</div>
+      </div>
+
+      <!-- Glass Card -->
+      <div class="glass-card">
+        <div class="section-label">// Навигация</div>
+
+        <div class="sci-menu">
+          <a id="link-selenoid" href="ru/selenoid.html">
+            <span class="icon">🛸</span>
+            <span class="link-text">Selenoid</span>
+          </a>
+          <a id="link-locators" href="ru/locators.html">
+            <span class="icon">🎯</span>
+            <span class="link-text">Локаторы (XPath & CSS)</span>
+          </a>
+          <a id="link-deps" href="ru/dependencies.html">
+            <span class="icon">⚙️</span>
+            <span class="link-text">Зависимости (Java)</span>
+          </a>
+          <a id="link-cookbook" href="ru/cookbook.html">
+            <span class="icon">📡</span>
+            <span class="link-text">Рецепты кода</span>
+          </a>
+          <a id="link-api" href="ru/api.html">
+            <span class="icon">🔮</span>
+            <span class="link-text">Bookstore App</span>
+          </a>
+          <a
+            id="link-miro"
+            href="https://miro.com/app/board/uXjVIQHs0mg=/"
+            target="_blank"
+            rel="noopener"
+          >
+            <span class="icon">🧬</span>
+            <span class="link-text">Java Collection Framework</span>
+          </a>
+          <a id="link-external" href="ru/nobugs-bank.html">
+            <span class="icon">🏦</span>
+            <span class="link-text">Nbank app</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Status Bar -->
+      <div class="status-bar">
+        <div class="status-item">
+          <span class="status-dot"></span> SYSTEM ONLINE
+        </div>
+        <div class="status-item">
+          <span class="status-dot"></span> 7 MODULES
+        </div>
+        <div class="status-item">
+          <span class="status-dot"></span> ALL OPERATIONAL
+        </div>
+      </div>
+
+      <p class="sci-attribution">
+        Материалы подготовлены для целей обучения · Автор: Yura Primyshev (<a
+          href="https://www.linkedin.com/in/yura-primyshev"
+          target="_blank"
+          rel="noopener"
+          >linkedin</a
+        >) · Май 2022
+      </p>
+    </div>
+
+    <script>
+      // Generate starfield
+      const starfield = document.getElementById("starfield");
+      for (let i = 0; i < 120; i++) {
+        const star = document.createElement("div");
+        star.className = "star";
+        const size = Math.random() * 2 + 0.5;
+        star.style.width = size + "px";
+        star.style.height = size + "px";
+        star.style.left = Math.random() * 100 + "%";
+        star.style.top = Math.random() * 100 + "%";
+        star.style.opacity = Math.random() * 0.7 + 0.1;
+        star.style.animation = `pulse-glow ${2 + Math.random() * 4}s ease-in-out infinite`;
+        star.style.animationDelay = Math.random() * 4 + "s";
+        starfield.appendChild(star);
+      }
+    </script>
+  </body>
+</html>

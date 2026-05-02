@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Home — Retro Edition</title>
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* ===== RETRO / WINDOWS 95 THEME ===== */
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      @keyframes scanlines {
+        0% {
+          background-position: 0 0;
+        }
+        100% {
+          background-position: 0 4px;
+        }
+      }
+
+      @keyframes crt-flicker {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.98;
+        }
+      }
+
+      @keyframes neon-pulse {
+        0%,
+        100% {
+          text-shadow: 0 0 8px #0ff, 0 0 18px #0ff, 0 0 40px #0ff;
+        }
+        50% {
+          text-shadow: 0 0 4px #0ff, 0 0 10px #0ff, 0 0 20px #0ff;
+        }
+      }
+
+      @keyframes blink-cursor {
+        0%,
+        100% {
+          border-right-color: #0f0;
+        }
+        50% {
+          border-right-color: transparent;
+        }
+      }
+
+      @keyframes marquee {
+        0% {
+          transform: translateX(100%);
+        }
+        100% {
+          transform: translateX(-100%);
+        }
+      }
+
+      @keyframes pixel-rain {
+        0% {
+          transform: translateY(-100%);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(100vh);
+          opacity: 0;
+        }
+      }
+
+      body {
+        font-family: "VT323", monospace;
+        background: #000;
+        color: #0f0;
+        min-height: 100vh;
+        position: relative;
+        overflow-x: hidden;
+        animation: crt-flicker 0.15s infinite;
+      }
+
+      /* CRT Scanlines overlay */
+      body::after {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: repeating-linear-gradient(
+          0deg,
+          rgba(0, 0, 0, 0.15) 0px,
+          rgba(0, 0, 0, 0.15) 1px,
+          transparent 1px,
+          transparent 3px
+        );
+        pointer-events: none;
+        z-index: 9999;
+        animation: scanlines 0.1s linear infinite;
+      }
+
+      /* Pixel rain background */
+      .pixel-rain {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        overflow: hidden;
+        z-index: 0;
+      }
+
+      .pixel-rain span {
+        position: absolute;
+        display: block;
+        width: 4px;
+        height: 4px;
+        background: #0f0;
+        animation: pixel-rain linear infinite;
+        opacity: 0.3;
+      }
+
+      /* Marquee ticker */
+      .ticker {
+        background: #0a0a0a;
+        border-top: 2px solid #0f0;
+        border-bottom: 2px solid #0f0;
+        padding: 6px 0;
+        overflow: hidden;
+        white-space: nowrap;
+        font-size: 18px;
+        color: #ff0;
+        position: relative;
+        z-index: 2;
+      }
+
+      .ticker-content {
+        display: inline-block;
+        animation: marquee 18s linear infinite;
+        color: #ff0;
+        text-shadow: 0 0 6px #ff0;
+      }
+
+      /* Language Switcher — styled as a Win95 mini toolbar */
+      .language-switcher {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background: #c0c0c0;
+        border: 2px outset #fff;
+        padding: 2px 4px;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        font-family: "Press Start 2P", cursive;
+        font-size: 8px;
+      }
+
+      .lang-link {
+        color: #000;
+        text-decoration: none;
+        padding: 2px 6px;
+        background: #c0c0c0;
+        border: 2px outset #fff;
+        cursor: pointer;
+        font-family: "Press Start 2P", cursive;
+        font-size: 8px;
+      }
+
+      .lang-link:hover {
+        background: #a0a0a0;
+      }
+
+      .lang-link.active {
+        background: #000080;
+        color: #fff;
+        border-style: inset;
+      }
+
+      .lang-separator {
+        color: #808080;
+        margin: 0 2px;
+      }
+
+      /* ===== MAIN CONTENT ===== */
+      .retro-desktop {
+        min-height: 100vh;
+        padding: 50px 20px 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        z-index: 1;
+      }
+
+      /* Win95-style Window */
+      .win95-window {
+        width: 700px;
+        max-width: 95vw;
+        background: #c0c0c0;
+        border: 2px outset #fff;
+        box-shadow: 6px 6px 0px #000;
+      }
+
+      .win95-titlebar {
+        background: linear-gradient(90deg, #000080, #1084d0);
+        color: #fff;
+        padding: 4px 6px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-family: "Press Start 2P", cursive;
+        font-size: 10px;
+        user-select: none;
+      }
+
+      .win95-titlebar-text {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .win95-titlebar-text::before {
+        content: "📁";
+        font-size: 12px;
+      }
+
+      .win95-buttons {
+        display: flex;
+        gap: 2px;
+      }
+
+      .win95-btn {
+        width: 18px;
+        height: 18px;
+        background: #c0c0c0;
+        border: 2px outset #fff;
+        font-size: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-family: "Press Start 2P", cursive;
+        line-height: 1;
+      }
+
+      .win95-btn:active {
+        border-style: inset;
+      }
+
+      .win95-body {
+        padding: 16px;
+        border: 2px inset #808080;
+        margin: 4px;
+        background: #000;
+      }
+
+      .win95-body h1 {
+        font-family: "Press Start 2P", cursive;
+        font-size: 16px;
+        color: #0ff;
+        text-align: center;
+        margin-bottom: 10px;
+        animation: neon-pulse 2s ease-in-out infinite;
+        line-height: 1.6;
+      }
+
+      .win95-body .desc {
+        font-size: 22px;
+        color: #0f0;
+        text-align: center;
+        margin-bottom: 16px;
+        border-right: 2px solid #0f0;
+        display: inline-block;
+        padding-right: 4px;
+        animation: blink-cursor 1s step-end infinite;
+      }
+
+      .desc-wrapper {
+        text-align: center;
+      }
+
+      /* Retro Menu */
+      .retro-menu {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 8px;
+      }
+
+      .retro-menu a {
+        display: block;
+        background: #c0c0c0;
+        color: #000;
+        padding: 10px 14px;
+        border: 2px outset #fff;
+        text-decoration: none;
+        font-family: "Press Start 2P", cursive;
+        font-size: 11px;
+        cursor: pointer;
+        transition: none;
+        position: relative;
+        padding-left: 30px;
+      }
+
+      .retro-menu a::before {
+        content: "▶";
+        position: absolute;
+        left: 10px;
+        color: #000080;
+      }
+
+      .retro-menu a:hover {
+        background: #000080;
+        color: #fff;
+        text-decoration: none;
+      }
+
+      .retro-menu a:hover::before {
+        color: #ff0;
+      }
+
+      .retro-menu a:active {
+        border-style: inset;
+        transform: translate(1px, 1px);
+      }
+
+      /* Win95 Taskbar */
+      .win95-taskbar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 36px;
+        background: #c0c0c0;
+        border-top: 2px outset #fff;
+        display: flex;
+        align-items: center;
+        padding: 0 4px;
+        z-index: 100;
+        font-family: "Press Start 2P", cursive;
+        font-size: 9px;
+      }
+
+      .start-btn {
+        background: #c0c0c0;
+        border: 2px outset #fff;
+        padding: 3px 10px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-family: "Press Start 2P", cursive;
+        font-size: 9px;
+        font-weight: bold;
+      }
+
+      .start-btn::before {
+        content: "🪟";
+        font-size: 14px;
+      }
+
+      .start-btn:active {
+        border-style: inset;
+      }
+
+      .taskbar-divider {
+        width: 2px;
+        height: 24px;
+        background: #808080;
+        margin: 0 6px;
+        border-right: 1px solid #fff;
+      }
+
+      .taskbar-window {
+        background: #c0c0c0;
+        border: 2px inset #808080;
+        padding: 3px 10px;
+        font-size: 8px;
+        color: #000;
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .taskbar-clock {
+        margin-left: auto;
+        background: #c0c0c0;
+        border: 2px inset #808080;
+        padding: 3px 8px;
+        font-size: 9px;
+        color: #000;
+      }
+
+      /* Status bar inside window */
+      .win95-statusbar {
+        background: #c0c0c0;
+        border: 2px inset #808080;
+        margin: 0 4px 4px;
+        padding: 2px 6px;
+        font-size: 16px;
+        color: #000;
+        display: flex;
+        gap: 10px;
+      }
+
+      .statusbar-section {
+        border-right: 1px solid #808080;
+        padding-right: 10px;
+      }
+
+      .statusbar-section:last-child {
+        border-right: none;
+      }
+
+      /* Attribution */
+      .retro-attribution {
+        font-size: 16px;
+        color: #888;
+        text-align: center;
+        padding: 16px;
+        font-family: "VT323", monospace;
+      }
+
+      .retro-attribution a {
+        color: #0ff;
+        text-decoration: none;
+      }
+
+      .retro-attribution a:hover {
+        text-decoration: underline;
+        text-shadow: 0 0 6px #0ff;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Pixel Rain Background -->
+    <div class="pixel-rain" id="pixelRain"></div>
+
+    <!-- Marquee Ticker -->
+    <div class="ticker">
+      <span class="ticker-content"
+        >★ WELCOME TO THE RETRO ZONE ★ ★ АВТОМАТИЗАЦИЯ ТЕСТИРОВАНИЯ ★ ★ SELENOID • LOCATORS • DEPENDENCIES • COOKBOOK • API ★ ★ PRESS START ★</span
+      >
+    </div>
+
+    <!-- Language Switcher -->
+    <div class="language-switcher">
+      <a id="home-switcher-label" href="index-retro.html" class="lang-link active">Home</a>
+      <span class="lang-separator">|</span>
+      <a id="switch-ru" href="ru/selenoid.html" class="lang-link">RU</a>
+      <span class="lang-separator">|</span>
+      <a id="switch-en" href="en/selenoid.html" class="lang-link">EN</a>
+    </div>
+
+    <!-- Desktop Area -->
+    <div class="retro-desktop">
+      <!-- Win95 Window -->
+      <div class="win95-window">
+        <div class="win95-titlebar">
+          <span class="win95-titlebar-text">autotest_materials.exe</span>
+          <div class="win95-buttons">
+            <div class="win95-btn">_</div>
+            <div class="win95-btn">□</div>
+            <div class="win95-btn">×</div>
+          </div>
+        </div>
+
+        <div class="win95-body">
+          <h1 id="home-title">Материалы по автотестам</h1>
+          <div class="desc-wrapper">
+            <span id="home-desc" class="desc">C:\> Выберите раздел_</span>
+          </div>
+          <div class="retro-menu">
+            <a id="link-selenoid" href="ru/selenoid.html">Selenoid</a>
+            <a id="link-locators" href="ru/locators.html"
+              >Локаторы (XPath & CSS)</a
+            >
+            <a id="link-deps" href="ru/dependencies.html"
+              >Зависимости (Java)</a
+            >
+            <a id="link-cookbook" href="ru/cookbook.html">Рецепты кода</a>
+            <a id="link-api" href="ru/api.html">Bookstore App</a>
+            <a
+              id="link-miro"
+              href="https://miro.com/app/board/uXjVIQHs0mg=/"
+              target="_blank"
+              rel="noopener"
+              >Java Collection Framework</a
+            >
+            <a id="link-external" href="ru/nobugs-bank.html">Nbank app</a>
+          </div>
+        </div>
+
+        <div class="win95-statusbar">
+          <span class="statusbar-section">7 объектов</span>
+          <span class="statusbar-section">Готово</span>
+        </div>
+      </div>
+
+      <p class="retro-attribution">
+        Материалы подготовлены для целей обучения сотрудников на проекте
+        автоматизации тестирования. Автор: Yura Primyshev (<a
+          href="https://www.linkedin.com/in/yura-primyshev"
+          target="_blank"
+          rel="noopener"
+          >linkedin</a
+        >). Май 2022
+      </p>
+    </div>
+
+    <!-- Win95 Taskbar -->
+    <div class="win95-taskbar">
+      <div class="start-btn">Start</div>
+      <div class="taskbar-divider"></div>
+      <div class="taskbar-window">📁 autotest_materials.exe</div>
+      <div class="taskbar-clock" id="taskbar-clock">00:00</div>
+    </div>
+
+    <script>
+      // Clock
+      function updateClock() {
+        const now = new Date();
+        const h = String(now.getHours()).padStart(2, "0");
+        const m = String(now.getMinutes()).padStart(2, "0");
+        document.getElementById("taskbar-clock").textContent = h + ":" + m;
+      }
+      updateClock();
+      setInterval(updateClock, 30000);
+
+      // Pixel rain
+      const rain = document.getElementById("pixelRain");
+      for (let i = 0; i < 40; i++) {
+        const span = document.createElement("span");
+        span.style.left = Math.random() * 100 + "%";
+        span.style.animationDuration = 2 + Math.random() * 5 + "s";
+        span.style.animationDelay = Math.random() * 5 + "s";
+        span.style.opacity = 0.1 + Math.random() * 0.3;
+        const colors = ["#0f0", "#0ff", "#ff0", "#f0f"];
+        span.style.background =
+          colors[Math.floor(Math.random() * colors.length)];
+        rain.appendChild(span);
+      }
+    </script>
+  </body>
+</html>
