@@ -124,6 +124,24 @@ tbody td {
   isolation: isolate;
 }
 
+/* Плавающий заголовок таблицы — фиксируется вверху viewport при прокрутке */
+.locators-sticky-header {
+  position: fixed;
+  top: 0;
+  z-index: 500;
+  display: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  border-bottom: 1px solid var(--grid);
+}
+
+.locators-sticky-header .locators-h-scroll {
+  overflow: hidden;
+}
+
+.locators-sticky-header table {
+  border-radius: 0;
+}
+
 /* Единственная полоса прокрутки — всегда прилипает к низу viewport */
 .locators-h-scroll-bottom {
   overflow-x: auto;
