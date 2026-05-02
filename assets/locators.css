@@ -112,8 +112,8 @@ tbody td {
 /* Горизонтальная прокрутка + закрепление первых 4 колонок */
 .locators-scroll-sync {
   --loc-w1: 10.5rem;
-  --loc-w2: 15rem;
-  --loc-w3: 17rem;
+  --loc-w2: 20rem;
+  --loc-w3: 22rem;
   --loc-w4: 24rem;
   --loc-left-1: 0;
   --loc-left-2: var(--loc-w1);
@@ -177,7 +177,7 @@ tbody td {
 }
 
 .locators-h-scroll table {
-  min-width: max(100%, 162.5rem);
+  min-width: max(100%, 180.5rem);
   overflow: visible;
   border-radius: 0;
 }
