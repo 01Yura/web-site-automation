@@ -3,9 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Locators Cheat Sheet - XPath & CSS (Selenide / Selenium)</title>
+    <title>Locators Cheat Sheet - XPath & CSS (Selenide / Selenium / Playwright)</title>
     <link rel="icon" type="image/png" href="../favicon.png" />
     <link rel="stylesheet" href="../assets/locators.css" />
+    <script src="../assets/locators-scroll.js" defer></script>
   </head>
   <body>
     <div class="language-switcher">
@@ -23,23 +24,42 @@
     <div class="card">
       <h1>
         Locators Cheat Sheet
-        <span class="tiny">XPath & CSS - Selenide / Selenium</span>
+        <span class="tiny">XPath & CSS — Selenide / Selenium / Playwright (Python)</span>
       </h1>
       <p class="sub">
         Patterns, examples, and code variants. The Selenide column shows several
         convenient options.
       </p>
 
+      <div class="locators-scroll-sync" data-locators-scroll-sync>
+      <div
+        class="locators-h-scroll-top"
+        data-locators-top-scroll
+        aria-hidden="true"
+      >
+        <div class="locators-h-scroll-sizer" data-locators-scroll-sizer></div>
+      </div>
+      <div class="locators-h-scroll" data-locators-main-scroll>
       <h2>XPath</h2>
       <table>
+        <colgroup>
+          <col style="width: 10.5rem" />
+          <col style="width: 15rem" />
+          <col style="width: 17rem" />
+          <col style="width: 24rem" />
+          <col style="width: 20rem" />
+          <col style="width: 38rem" />
+          <col style="width: 38rem" />
+        </colgroup>
         <thead>
           <tr>
-            <th style="width: 12%">Rule</th>
-            <th style="width: 18%">Schema</th>
-            <th style="width: 20%">Example</th>
-            <th style="width: 22%">Comment</th>
-            <th style="width: 16%">Selenide (options)</th>
-            <th style="width: 12%">Selenium</th>
+            <th>Rule</th>
+            <th>Schema</th>
+            <th>Example</th>
+            <th>Comment</th>
+            <th>Selenide (options)</th>
+            <th>Selenium</th>
+            <th>Playwright (python)</th>
           </tr>
         </thead>
         <tbody>
@@ -56,6 +76,10 @@
                 >driver.findElement(By.xpath("//input[@placeholder='Username']"))</code
               >
             </td>
+            <td>
+              <code>page.locator("xpath=//input[@placeholder='Username']")</code><br />
+              <code>page.get_by_placeholder("Username")</code>
+            </td>
           </tr>
           <tr>
             <td>text()</td>
@@ -71,6 +95,10 @@
               <code
                 >driver.findElement(By.xpath("//button[text()='Login']"))</code
               >
+            </td>
+            <td>
+              <code>page.get_by_text("Login", exact=True)</code><br />
+              <code>page.locator("xpath=//button[text()='Login']")</code>
             </td>
           </tr>
           <tr>
@@ -91,6 +119,10 @@
                 >driver.findElement(By.xpath("//div[contains(text(),'Error')]"))</code
               >
             </td>
+            <td>
+              <code>page.get_by_text("Error")</code><br />
+              <code>page.locator("xpath=//div[contains(text(),'Error')]")</code>
+            </td>
           </tr>
           <tr>
             <td>contains() (attr)</td>
@@ -106,6 +138,11 @@
             <td>
               <code
                 >driver.findElement(By.xpath("//input[contains(@placeholder,'Usern')]"))</code
+              >
+            </td>
+            <td>
+              <code
+                >page.locator("xpath=//input[contains(@placeholder,'Usern')]")</code
               >
             </td>
           </tr>
@@ -125,6 +162,12 @@
                 >driver.findElement(By.xpath("//input[@type='text'][@name='login']"))</code
               >
             </td>
+            <td>
+              <code>page.locator("input[type='text'][name='login']")</code><br />
+              <code
+                >page.locator("xpath=//input[@type='text'][@name='login']")</code
+              >
+            </td>
           </tr>
           <tr>
             <td>moving through the tree</td>
@@ -136,6 +179,10 @@
               <code>$(byXpath("//div/span"))</code>
             </td>
             <td><code>driver.findElement(By.xpath("//div/span"))</code></td>
+            <td>
+              <code>page.locator("div > span")</code><br />
+              <code>page.locator("xpath=//div/span")</code>
+            </td>
           </tr>
           <tr>
             <td>not()</td>
@@ -148,6 +195,11 @@
             <td>
               <code
                 >driver.findElement(By.xpath("//input[not(contains(@type,'hidden'))]"))</code
+              >
+            </td>
+            <td>
+              <code
+                >page.locator("xpath=//input[not(contains(@type,'hidden'))]")</code
               >
             </td>
           </tr>
@@ -165,6 +217,10 @@
                 >driver.findElement(By.xpath("(//input[@type='text'])[2]"))</code
               >
             </td>
+            <td>
+              <code>page.locator("input[type='text']").nth(1)</code><br />
+              <code>page.locator("xpath=(//input[@type='text'])[2]")</code>
+            </td>
           </tr>
           <tr>
             <td>parent</td>
@@ -173,6 +229,7 @@
             <td>Go to parent</td>
             <td><code>$(byXpath("//input/.."))</code></td>
             <td><code>driver.findElement(By.xpath("//input/.."))</code></td>
+            <td><code>page.locator("xpath=//input/..")</code></td>
           </tr>
           <tr>
             <td>following-sibling</td>
@@ -183,6 +240,11 @@
             <td>
               <code
                 >driver.findElement(By.xpath("//label/following-sibling::input"))</code
+              >
+            </td>
+            <td>
+              <code
+                >page.locator("xpath=//label/following-sibling::input")</code
               >
             </td>
           </tr>
@@ -197,6 +259,11 @@
                 >driver.findElement(By.xpath("//input/preceding-sibling::label"))</code
               >
             </td>
+            <td>
+              <code
+                >page.locator("xpath=//input/preceding-sibling::label")</code
+              >
+            </td>
           </tr>
           <tr>
             <td>ancestor</td>
@@ -207,6 +274,9 @@
             <td>
               <code>driver.findElement(By.xpath("//span/ancestor::form"))</code>
             </td>
+            <td>
+              <code>page.locator("xpath=//span/ancestor::form")</code>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -216,14 +286,24 @@
         <span class="tiny">(CSS has no text() and contains() functions)</span>
       </h2>
       <table>
+        <colgroup>
+          <col style="width: 10.5rem" />
+          <col style="width: 15rem" />
+          <col style="width: 17rem" />
+          <col style="width: 24rem" />
+          <col style="width: 20rem" />
+          <col style="width: 38rem" />
+          <col style="width: 38rem" />
+        </colgroup>
         <thead>
           <tr>
-            <th style="width: 12%">Rule</th>
-            <th style="width: 18%">Schema</th>
-            <th style="width: 20%">Example</th>
-            <th style="width: 22%">Comment</th>
-            <th style="width: 16%">Selenide (options)</th>
-            <th style="width: 12%">Selenium</th>
+            <th>Rule</th>
+            <th>Schema</th>
+            <th>Example</th>
+            <th>Comment</th>
+            <th>Selenide (options)</th>
+            <th>Selenium</th>
+            <th>Playwright (python)</th>
           </tr>
         </thead>
         <tbody>
@@ -242,6 +322,9 @@
                 >driver.findElement(By.cssSelector("input[aria-label='Search']"))</code
               >
             </td>
+            <td>
+              <code>page.locator("input[aria-label='Search']")</code>
+            </td>
           </tr>
           <tr>
             <td>id</td>
@@ -253,6 +336,10 @@
               <code>$(byId("loginBtn"))</code>
             </td>
             <td><code>driver.findElement(By.id("loginBtn"))</code></td>
+            <td>
+              <code>page.locator("#loginBtn")</code><br />
+              <code>page.locator("[id='loginBtn']")</code>
+            </td>
           </tr>
           <tr>
             <td>class name</td>
@@ -266,6 +353,7 @@
             <td>
               <code>driver.findElement(By.className("btn-primary"))</code>
             </td>
+            <td><code>page.locator(".btn-primary")</code></td>
           </tr>
           <tr>
             <td>multiple class names</td>
@@ -279,6 +367,7 @@
             <td>
               <code>driver.findElement(By.cssSelector(".btn.large"))</code>
             </td>
+            <td><code>page.locator(".btn.large")</code></td>
           </tr>
           <tr>
             <td>attribute *=</td>
@@ -293,6 +382,9 @@
               <code
                 >driver.findElement(By.cssSelector("input[placeholder*='user']"))</code
               >
+            </td>
+            <td>
+              <code>page.locator("input[placeholder*='user']")</code>
             </td>
           </tr>
           <tr>
@@ -309,6 +401,9 @@
                 >driver.findElement(By.cssSelector("input[placeholder^='user']"))</code
               >
             </td>
+            <td>
+              <code>page.locator("input[placeholder^='user']")</code>
+            </td>
           </tr>
           <tr>
             <td>attribute $=</td>
@@ -324,6 +419,7 @@
                 >driver.findElement(By.cssSelector("img[src$='.png']"))</code
               >
             </td>
+            <td><code>page.locator("img[src$='.png']")</code></td>
           </tr>
           <tr>
             <td>name / link text (good to know)</td>
@@ -338,15 +434,25 @@
               <code>driver.findElement(By.linkText("Home"))</code><br />
               <code>driver.findElement(By.partialLinkText("Hom"))</code>
             </td>
+            <td>
+              <code>page.get_by_role("link", name="Home")</code><br />
+              <code>page.locator("a").filter(has_text="Hom")</code>
+            </td>
           </tr>
         </tbody>
       </table>
+      </div>
+      </div>
 
       <p class="sub">
         Imports (Selenide):
         <code>import static com.codeborne.selenide.Selenide.*;</code>,
         <code>import static com.codeborne.selenide.Selectors.*;</code>,
         <code>import static com.codeborne.selenide.Condition.*;</code>
+      </p>
+      <p class="sub">
+        Playwright (Python): examples use a <code>page</code> object from
+        <code>playwright.sync_api</code> (e.g. after <code>browser.new_page()</code>).
       </p>
     </div>
   </body>

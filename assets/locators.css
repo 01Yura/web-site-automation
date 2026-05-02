@@ -83,6 +83,7 @@ p.sub {
 
 table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0;
   overflow: hidden;
@@ -106,6 +107,155 @@ tbody td {
   border-bottom: 1px dashed rgba(156, 163, 175, 0.25);
   vertical-align: top;
   font-size: 14px;
+}
+
+/* Горизонтальная прокрутка + закрепление первых 4 колонок */
+.locators-scroll-sync {
+  --loc-w1: 10.5rem;
+  --loc-w2: 15rem;
+  --loc-w3: 17rem;
+  --loc-w4: 24rem;
+  --loc-left-1: 0;
+  --loc-left-2: var(--loc-w1);
+  --loc-left-3: calc(var(--loc-w1) + var(--loc-w2));
+  --loc-left-4: calc(var(--loc-w1) + var(--loc-w2) + var(--loc-w3));
+
+  border-radius: 12px;
+  isolation: isolate;
+}
+
+/* Единственная полоса прокрутки — всегда прилипает к низу viewport */
+.locators-h-scroll-bottom {
+  overflow-x: auto;
+  overflow-y: hidden;
+  height: 16px;
+  margin-top: 10px;
+  border: 1px solid var(--grid);
+  border-radius: 8px;
+  background: #111827;
+  scrollbar-width: thin;
+  /* Прилипает к низу viewport — ползунок виден всегда при прокрутке страницы */
+  position: sticky;
+  bottom: 0;
+  z-index: 200;
+}
+
+.locators-h-scroll-sizer {
+  height: 1px;
+}
+
+.locators-h-scroll {
+  overflow-x: auto;
+  overflow-y: visible;
+  scrollbar-width: none;          /* Firefox — прячем родной ползунок */
+}
+.locators-h-scroll::-webkit-scrollbar {
+  display: none;                  /* Chrome / Edge / Safari — прячем родной ползунок */
+}
+
+.locators-h-scroll table {
+  min-width: max(100%, 162.5rem);
+  overflow: visible;
+  border-radius: 0;
+}
+
+/*
+ * Z-index: у закреплённых слева ячеек DOM идёт раньше ячеек справа — без явного слоя
+ * справа рисуются поверх. Ставим закреплённые заголовки выше всех th справа,
+ * тело закреплённых — выше всех td справа, но ниже любого thead (вертикальный скролл).
+ */
+.locators-h-scroll thead th:nth-child(n + 5) {
+  z-index: 45;
+  background-color: #1f2937;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.locators-h-scroll thead th:nth-child(-n + 4) {
+  z-index: 55;
+}
+
+.locators-h-scroll thead th:nth-child(1),
+.locators-h-scroll tbody td:nth-child(1) {
+  position: sticky;
+  left: var(--loc-left-1);
+  width: var(--loc-w1);
+  min-width: var(--loc-w1);
+  max-width: var(--loc-w1);
+}
+
+.locators-h-scroll thead th:nth-child(2),
+.locators-h-scroll tbody td:nth-child(2) {
+  position: sticky;
+  left: var(--loc-left-2);
+  width: var(--loc-w2);
+  min-width: var(--loc-w2);
+  max-width: var(--loc-w2);
+}
+
+.locators-h-scroll thead th:nth-child(3),
+.locators-h-scroll tbody td:nth-child(3) {
+  position: sticky;
+  left: var(--loc-left-3);
+  width: var(--loc-w3);
+  min-width: var(--loc-w3);
+  max-width: var(--loc-w3);
+}
+
+.locators-h-scroll thead th:nth-child(4),
+.locators-h-scroll tbody td:nth-child(4) {
+  position: sticky;
+  left: var(--loc-left-4);
+  width: var(--loc-w4);
+  min-width: var(--loc-w4);
+  max-width: var(--loc-w4);
+  box-shadow: 10px 0 18px -10px rgba(0, 0, 0, 0.65);
+}
+
+.locators-h-scroll thead th:nth-child(-n + 4) {
+  top: 0;
+  background-color: #1f2937;
+  background-clip: padding-box;
+}
+
+/* Закрываем щели между закреплёнными колонками (subpixel) */
+.locators-h-scroll thead th:nth-child(-n + 4),
+.locators-h-scroll tbody td:nth-child(-n + 4) {
+  border-right: 1px solid #334155;
+}
+
+.locators-h-scroll tbody td:nth-child(-n + 4) {
+  z-index: 30;
+}
+
+/* Непрозрачный фон закреплённых ячеек тела */
+.locators-h-scroll tbody tr:nth-child(odd) td:nth-child(-n + 4) {
+  background-color: #1e293b;
+}
+
+.locators-h-scroll tbody tr:nth-child(even) td:nth-child(-n + 4) {
+  background-color: #111827;
+}
+
+/* Справа — ниже закреплённых по слою + непрозрачный фон строки (без просветов) */
+.locators-h-scroll tbody td:nth-child(n + 5) {
+  position: relative;
+  z-index: 1;
+}
+
+.locators-h-scroll tbody tr:nth-child(odd) td:nth-child(n + 5) {
+  background-color: #1a2436;
+}
+
+.locators-h-scroll tbody tr:nth-child(even) td:nth-child(n + 5) {
+  background-color: #0f1623;
+}
+
+/* Полосатость только через фон ячеек — фон tr давал полупрозрачность и «двойное» наложение */
+.locators-h-scroll tbody tr:nth-child(odd),
+.locators-h-scroll tbody tr:nth-child(even) {
+  background: transparent;
 }
 
 tbody tr:nth-child(odd) {
